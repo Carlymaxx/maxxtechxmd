@@ -4,7 +4,7 @@
   "description": "Advanced WhatsApp bot built with Baileys — powered by Carly Maxx",
   "main": "index.js",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "18.x"
   },
   "scripts": {
     "start": "node index.js",

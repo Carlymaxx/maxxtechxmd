@@ -1,12 +1,18 @@
 module.exports = {
-    name: "sticker",
-    alias: ["s", "stik"],
-    desc: "Convert Image/Video to Sticker",
-    run: async (sock, msg, args, from) => {
-        if (!msg.message.imageMessage && !msg.message.videoMessage)
-            return await sock.sendMessage(from, { text: "Send image/video with caption .sticker" });
+  name: "sticker",
+  alias: ["s", "stik"],
+  description: "Convert Image/Video to Sticker",
+  execute: async (sock, msg, args, from) => {
+    const isImage = msg.message.imageMessage;
+    const isVideo = msg.message.videoMessage;
 
-        let buffer = await sock.downloadMediaMessage(msg);
-        await sock.sendMessage(from, { sticker: buffer }, { quoted: msg });
+    if (!isImage && !isVideo) {
+      return await sock.sendMessage(from, { text: "Send an image/video with caption .sticker" });
     }
+
+    // Download media
+    let buffer = await sock.downloadMediaMessage(msg);
+    // Send as sticker
+    await sock.sendMessage(from, { sticker: buffer }, { quoted: msg });
+  }
 };
