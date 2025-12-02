@@ -1,0 +1,34 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+config.env
+
+# Baileys authentication state
+auth_info_baileys/
+
+# Logs
+*.log
+
+# Package lock
+package-lock.json
+
+# VS Code workspace settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# MacX metadata
+*.swp
+*.swo
+
+# IDE/project files
+*.idea/
+*.iml
+
+# Generated session or temporary files
+*.tmp
+*.session

@@ -1,0 +1,50 @@
+{
+  "name": "maxx-xmd",
+  "version": "3.2.0",
+  "description": "Advanced WhatsApp bot built with Baileys — powered by Carly Maxx",
+  "main": "index.js",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "node index.js"
+  },
+  "keywords": [
+    "whatsapp-bot",
+    "baileys",
+    "maxx-xmd",
+    "ai-bot",
+    "media-bot",
+    "carly-maxx"
+  ],
+  "author": "Carly Maxx",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^7.0.0-rc.6",
+    "axios": "^1.7.4",
+    "chalk": "^5.6.2",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "file-type": "^18.7.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "form-data": "^4.0.0",
+    "fs-extra": "^11.3.2",
+    "google-tts-api": "^0.0.6",
+    "image-size": "^1.1.1",
+    "link-preview-js": "^3.1.0",
+    "mime-types": "^2.1.35",
+    "moment-timezone": "^0.6.0",
+    "node-fetch": "^3.3.2",
+    "node-gtts": "^2.0.2",
+    "openai": "^4.0.0",
+    "pino": "^10.1.0",
+    "qrcode-terminal": "^0.12.0",
+    "translatte": "^3.0.1",
+    "wa-sticker-formatter": "^4.4.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

@@ -1,101 +1,247 @@
+// ==================== MAXX-XMD index.js ====================
+// Add this at the top of your file
+// Replace any existing fetch declaration
+// ==================== MAXX-XMD index.js ====================
+// Add this at the top of your file
+// Replace any existing fetch declaration
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
-const { default: makeWASocket, DisconnectReason } = require('@whiskeysockets/baileys');
-const crypto = require("crypto");
-require('dotenv').config();
+const { exec } = require('child_process');
+const qrcodeTerminal = require('qrcode-terminal');
+const { default: makeWASocket, useMultiFileAuthState, fetchLatestBaileysVersion, DisconnectReason } = require('@whiskeysockets/baileys');
+const play = require('play-dl');
+const yts = require('yt-search');
 
-const AUTH_FOLDER = path.join(__dirname, 'auth_info_baileys');
-fs.mkdirSync(AUTH_FOLDER, { recursive: true });
+const sessionFolder = path.join(__dirname, 'auth_info_baileys');
+if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
 
-// ✅ Restore session from base64 (Heroku Config Var)
-function restoreSession() {
-    try {
-        if (!process.env.SESSION_DATA) return console.log("⚠ No SESSION_DATA found.");
-        const buffer = Buffer.from(process.env.SESSION_DATA, "base64");
+// Bot settings
+const settings = { prefix: ".", botName: "MAXX-XMD" };
 
-        fs.writeFileSync(path.join(AUTH_FOLDER, "session.tar.gz"), buffer);
-        require("child_process").execSync(`tar -xzf session.tar.gz`, { cwd: AUTH_FOLDER });
-
-        console.log("✅ Session restored successfully!");
-    } catch (err) {
-        console.log("❌ Failed to restore session:", err);
-    }
+// ---- Helpers ----
+const sanitizeFileName = name => name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '').slice(0, 180).trim() || 'track';
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+async function streamToFile(readable, filePath) {
+    return new Promise((resolve, reject) => {
+        const ws = fs.createWriteStream(filePath);
+        readable.pipe(ws);
+        ws.on('finish', resolve);
+        ws.on('close', resolve);
+        ws.on('error', reject);
+        readable.on('error', reject);
+    });
 }
 
-restoreSession();
-
+// ---- Start Bot ----
 async function startBot() {
-    let creds = {};
     try {
-        creds = JSON.parse(fs.readFileSync(path.join(AUTH_FOLDER, "creds.json"), "utf8"));
-    } catch {
-        console.log("❌ No valid session found. Please scan QR once to create new session.");
-    }
+        const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
+        const { version } = await fetchLatestBaileysVersion();
 
-    const sock = makeWASocket({
-        printQRInTerminal: true,
-        auth: { creds, keys: {} },
-    });
+        const sock = makeWASocket({
+            version,
+            auth: state,
+            browser: ['MAXX-XMD', 'Chrome', '1.0']
+        });
 
-    // ✅ Save session automatically
-    sock.ev.on('creds.update', () => {
-        const data = JSON.stringify(sock.authState.creds, null, 2);
-        fs.writeFileSync(path.join(AUTH_FOLDER, "creds.json"), data);
-        console.log("💾 Session updated and saved.");
-    });
+        sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
-        if (connection === 'open') console.log('✅ BOT CONNECTED!');
-        if (connection === 'close') {
-            const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-            if (shouldReconnect) startBot();
-        }
-    });
+        sock.ev.on('connection.update', update => {
+            const { connection, lastDisconnect, qr } = update;
+            if (qr) {
+                qrcodeTerminal.generate(qr, { small: true });
+                console.log('📲 Scan this QR with WhatsApp (first time only)');
+            }
+            if (connection === 'open') console.log('✅ MAXX-XMD connected!');
+            if (connection === 'close') {
+                const reason = lastDisconnect?.error?.output?.statusCode;
+                if (reason === DisconnectReason.loggedOut) {
+                    console.log('🔐 Logged out, deleting session...');
+                    fs.rmSync(sessionFolder, { recursive: true, force: true });
+                }
+                console.log('🔁 Reconnecting in 5s...');
+                setTimeout(startBot, 5000);
+            }
+        });
 
-    // ✅ LOAD COMMANDS
-    sock.commands = new Map();
-    const commandFiles = fs.readdirSync('./commands').filter(f => f.endsWith('.js'));
-    for (const file of commandFiles) {
-        const command = require(`./commands/${file}`);
-        if (command?.name && command?.execute) {
-            sock.commands.set(command.name.toLowerCase(), command);
-            console.log(`✅ Loaded command: ${command.name}`);
-        }
-    }
+        // ---- Load Commands ----
+        const commands = new Map();
+        fs.readdirSync('./commands').forEach(file => {
+            if (file.endsWith('.js')) {
+                const command = require(`./commands/${file}`);
+                commands.set(command.name, command);
+            }
+        });
 
-    // ✅ MESSAGE HANDLER
-    sock.ev.on('messages.upsert', async ({ messages }) => {
-        const msg = messages[0];
-        if (!msg.message) return;
+        // ---- Message Handler ----
+        sock.ev.on('messages.upsert', async (m) => {
+            try {
+                const msg = m.messages[0];
+                if (!msg || !msg.message || msg.key.fromMe) return;
 
-        let text =
-            msg.message?.conversation ||
-            msg.message?.extendedTextMessage?.text ||
-            msg.message?.imageMessage?.caption ||
-            msg.message?.videoMessage?.caption ||
-            "";
+                const chatId = msg.key.remoteJid;
+                const text =
+                    msg.message.conversation ||
+                    msg.message.extendedTextMessage?.text ||
+                    msg.message.imageMessage?.caption ||
+                    msg.message.videoMessage?.caption ||
+                    '';
+                if (!text) return;
 
-        if (!text.startsWith(".")) return;
+                const prefix = settings.prefix;
+                if (!text.startsWith(prefix)) return;
 
-        const args = text.slice(1).trim().split(/ +/);
-        const cmdName = args.shift().toLowerCase();
-        const command = sock.commands.get(cmdName);
-        if (!command) return;
+                const args = text.slice(prefix.length).trim().split(/ +/);
+                const commandName = args.shift().toLowerCase();
+                const command = commands.get(commandName);
+                if (command) {
+                    await command.execute(sock, msg, args, chatId, {
+                        botName: settings.botName,
+                        owner: "YourName"
+                    });
+                }
 
+                // ---- YouTube Inline Command (legacy) ----
+                if (text.toLowerCase().startsWith(`${prefix}youtube `)) {
+                    const url = text.split(" ")[1];
+                    if(!url) return sock.sendMessage(chatId, { text: "❌ Please provide a YouTube URL!" });
+
+                    try {
+                        const res = await fetch(`https://your-api.example.com/youtube?url=${encodeURIComponent(url)}`);
+                        const data = await res.json();
+
+                        let msgText = `🎵 Title: ${data.data.title}\n\n📥 Download Links:\nMP3: ${data.data.downloadURL}\n`;
+                        if(data.videos && data.videos.length) {
+                            data.videos.forEach(v => msgText += `${v.label}: ${v.url}\n`);
+                        }
+
+                        if(data.data.thumbnail) {
+                            await sock.sendMessage(chatId, { image: { url: data.data.thumbnail }, caption: msgText });
+                        } else {
+                            await sock.sendMessage(chatId, { text: msgText });
+                        }
+                    } catch(err) {
+                        console.error(err);
+                        await sock.sendMessage(chatId, { text: "❌ Failed to fetch YouTube data." });
+                    }
+                }
+// ---- PLAY COMMAND (Automatic search, thumbnail, audio) ----
+if (commandName === 'play') {
+    const query = args.join(" ").trim();
+    if (!query) return sock.sendMessage(chatId, { text: '❌ Usage: .play <song name or URL>' });
+
+    await sock.sendMessage(chatId, { text: `🔍 Searching "${query}"...` });
+
+    try {
+        let songTitle, songArtist, songDuration, thumbnail, downloadURL;
+        let found = false;
+
+        // ---- Try Spotify search first ----
         try {
-            await command.execute(sock, msg, args, msg.key.remoteJid);
-        } catch (err) {
-            console.log("Command Error:", err);
-            await sock.sendMessage(msg.key.remoteJid, { text: "⚠ Command Failed!" });
+            const spotifyAPI = `https://eliteprotech-apis.zone.id/spotify?url=${encodeURIComponent('https://open.spotify.com/search/' + query)}`;
+            const res = await fetch(spotifyAPI);
+            const data = await res.json();
+            if (data.success && data.data?.metadata?.title) {
+                songTitle = data.data.metadata.title;
+                songArtist = data.data.metadata.artist || 'Unknown Artist';
+                songDuration = data.data.metadata.duration || 'Unknown';
+                thumbnail = data.data.metadata.images;
+                downloadURL = data.data.download;
+                found = true;
+            }
+        } catch(err) {
+            console.log('Spotify search failed, trying YouTube...', err);
         }
-    });
 
-    // ✅ EXPRESS SERVER
-    const app = express();
-    const PORT = process.env.PORT || 3000;
-    app.get('/', (req, res) => res.send('Maxx-XMD is Online ✅'));
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        // ---- Fallback: YouTube search if Spotify fails ----
+        if (!found) {
+            const searchResult = await yts(query);
+            const video = searchResult?.videos?.[0];
+            if (!video) return sock.sendMessage(chatId, { text: `❌ Could not find any results for "${query}"` });
+
+            songTitle = video.title;
+            songArtist = video.author?.name || 'YouTube';
+            songDuration = video.timestamp || 'Unknown';
+            thumbnail = video.thumbnail;
+            downloadURL = `https://eliteprotech-apis.zone.id/yt?url=${encodeURIComponent(video.url)}`;
+        }
+
+        // ---- Send thumbnail + song info ----
+        if (thumbnail) {
+            await sock.sendMessage(chatId, {
+                image: { url: thumbnail },
+                caption: `🎵 Title: ${songTitle}\n👤 Artist: ${songArtist}\n⏱ Duration: ${songDuration}`
+            });
+        } else {
+            await sock.sendMessage(chatId, { text: `🎵 Title: ${songTitle}\n👤 Artist: ${songArtist}\n⏱ Duration: ${songDuration}` });
+        }
+
+        // ---- Download audio from API ----
+        const safeTitle = sanitizeFileName(songTitle);
+        const tempPath = path.join(__dirname, `MAXXXMD - ${safeTitle}.mp3`);
+
+        // fetch the audio and save to temp file
+        const res = await fetch(downloadURL);
+        const buffer = await res.arrayBuffer();
+        fs.writeFileSync(tempPath, Buffer.from(buffer));
+
+        // ---- Check file size & clip if >16MB ----
+        const stats = fs.statSync(tempPath);
+        if (stats.size / (1024*1024) > 16) {
+            const finalPath = path.join(__dirname, `MAXXXMD - ${safeTitle}-clip.mp3`);
+            await new Promise((resolve, reject) => {
+                const cmd = `ffmpeg -hide_banner -loglevel error -y -i "${tempPath}" -t 60 -vn "${finalPath}"`;
+                exec(cmd, (err) => err ? reject(err) : resolve());
+            });
+            fs.unlinkSync(tempPath);
+
+            await sock.sendMessage(chatId, {
+                audio: fs.createReadStream(finalPath),
+                mimetype: 'audio/mpeg',
+                fileName: path.basename(finalPath)
+            });
+            fs.unlinkSync(finalPath);
+        } else {
+            await sock.sendMessage(chatId, {
+                audio: fs.createReadStream(tempPath),
+                mimetype: 'audio/mpeg',
+                fileName: path.basename(tempPath)
+            });
+            fs.unlinkSync(tempPath);
+        }
+
+    } catch(err) {
+        console.error(err);
+        await sock.sendMessage(chatId, { text: `❌ Failed to play "${query}".` });
+    }
 }
 
+                // ---- Hello Command ----
+                if(text.toLowerCase() === `${prefix}hello`) {
+                    return sock.sendMessage(chatId, { text: "👋 Hello! How can I help you today?" });
+                }
+
+            } catch(err) {
+                console.log('❌ messages.upsert error:', err);
+            }
+        });
+
+        // ---- Express Server ----
+        const app = express();
+        app.use(express.json());
+        app.get('/', (req,res)=>res.send(`<h1>${settings.botName} is Online ✅</h1>`));
+
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, ()=>console.log(`🚀 MAXX-XMD server listening on port ${PORT}`));
+
+    } catch(err) {
+        console.error('❌ Fatal startup error:', err);
+        process.exit(1);
+    }
+}
+
+// ---- Start bot ----
 startBot();
