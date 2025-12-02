@@ -1,1 +1,37 @@
 node_modules
+auth_info_baileys/
+session*
+*.json
+!package.json
+!.gitattributes
+# Node modules
+node_modules/
+
+# Baileys auth sessions
+auth_info_baileys/
+session*
+creds.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build output (if any)
+dist/
+build/
+
+# Keep these tracked
+!package.json
+!.gitattributes
