@@ -1,13 +1,27 @@
-const fs = require('fs');
-const path = require('path');
+import { makeWaSocket, useSingleFileAuthState } from "@whiskeysockets/baileys";
+import fs from "fs";
 
-const sessionFolder = path.join(__dirname, 'auth_info_baileys');
-const files = fs.readdirSync(sessionFolder);
+const { state, saveState } = useSingleFileAuthState("./auth_info_baileys/session.json");
 
-files.forEach(file => {
-    if (file.startsWith('session') && file.endsWith('.json')) {
-        const sessionData = JSON.parse(fs.readFileSync(path.join(sessionFolder, file)));
-        console.log('Session ID from file:', file);
-        console.log(JSON.stringify(sessionData, null, 2));
+const sock = makeWaSocket({
+    auth: state,
+});
+
+sock.ev.on("creds.update", saveState);
+
+sock.ev.on("connection.update", (update) => {
+    console.log(update);
+
+    if (update.qr) {
+        console.log("🔑 Scan this QR code with your WhatsApp to generate a session:");
+        console.log(update.qr);
+    }
+
+    if (update.connection === "open") {
+        console.log("✅ Logged in successfully!");
+        const sessionData = fs.readFileSync("./auth_info_baileys/session.json", "utf-8");
+        console.log("📄 Your session JSON:\n");
+        console.log(sessionData);
+        process.exit(0); // exit after printing session
     }
 });
