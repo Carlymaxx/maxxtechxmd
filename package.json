@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc.8",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "link-preview-js": "^3.2.0",

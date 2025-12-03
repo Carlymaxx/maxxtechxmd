@@ -11,7 +11,8 @@ const {
 } = require('@whiskeysockets/baileys');
 
 // Use your fork instead of @adiwajshing/baileys-pair
-const { default: Pair } = require('maxx-tech'); // <-- change this to your GitHub fork package name
+const bot = require("./index.js");
+ // <-- change this to your GitHub fork package name
 
 const PORT = process.env.PORT || 3000;
 const BOT_OWNER = process.env.BOT_OWNER || 'MAXX';
