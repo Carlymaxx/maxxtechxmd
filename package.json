@@ -1,4 +1,10 @@
 {
+  "name": "maxx-xmd-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc.8",
     "cors": "^2.8.5",
