@@ -35,3 +35,8 @@ build/
 # Keep these tracked
 !package.json
 !.gitattributes
+node_modules/
+auth_info_baileys/
+*.mp3
+*.json
+.env
