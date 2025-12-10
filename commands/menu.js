@@ -46,7 +46,7 @@ module.exports = {
 │✨ ${randEmoji()} ${settings.botName.toUpperCase()} MENU ${randEmoji()} ✨
 │═════════   ═══════════  ═════
 │
-│👤 Owner: ${settings.owner} ${randEmoji()}
+│👤 Owner: ${settings.Maxx} ${randEmoji()}
 │🆔 Prefix: ${settings.prefix} ${randEmoji()}
 │🕒 Time (Nairobi Ruiru): ${nairobiTime} ${randEmoji()}
 │📅 Date: ${nairobiDate} ${randEmoji()}
