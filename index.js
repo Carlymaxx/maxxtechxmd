@@ -134,6 +134,6 @@ async function startBot() {
         process.exit(1);
     }
 }
-
-// ---- Export startBot for external usage ----
+// Export startBot for external usage
 module.exports = { startBot };
+
