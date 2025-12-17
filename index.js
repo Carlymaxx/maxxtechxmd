@@ -34,50 +34,105 @@ async function streamToFile(readable, filePath) {
     });
 }
 
-// ---- Multi-session bot manager ----
-const { startBot: startMultiBot } = require('./botManager'); // Make sure botManager.js is in same repo
+// ---- Store active sockets by sessionId ----
+const activeSockets = {}; // { sessionId: sock }
 
-// ---- Start Express Server ----
-const app = express();
-app.use(express.json());
+// ---- Start a bot session ----
+async function startBotSession(sessionId = 'main') {
+    if (activeSockets[sessionId]) return activeSockets[sessionId];
 
-// ---- Health check ----
-app.get('/', (req, res) => res.send(`<h1>${settings.botName} is Online ✅</h1>`));
+    const sessionFolder = path.join(__dirname, 'auth_info_baileys', sessionId);
+    if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder, { recursive: true });
 
-// ---- Start session via API ----
-app.post('/start-session', async (req, res) => {
     try {
-        const { sessionName } = req.body;
-        if (!sessionName) return res.status(400).json({ error: 'sessionName required' });
+        const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
+        const { version } = await fetchLatestBaileysVersion();
 
-        await startMultiBot(sessionName);
-        res.json({ success: true, message: `Session "${sessionName}" started!` });
+        const sock = makeWASocket({
+            version,
+            auth: state,
+            browser: [settings.botName, 'Chrome', '1.0']
+        });
+
+        sock.ev.on('creds.update', saveCreds);
+
+        sock.ev.on('connection.update', update => {
+            const { connection, lastDisconnect, qr } = update;
+            if (qr) {
+                qrcodeTerminal.generate(qr, { small: true });
+                console.log(`[${sessionId}] 📲 Scan QR with WhatsApp (first time only)`);
+            }
+            if (connection === 'open') console.log(`[${sessionId}] ✅ Bot connected!`);
+            if (connection === 'close') {
+                const reason = lastDisconnect?.error?.output?.statusCode;
+                if (reason === DisconnectReason.loggedOut) {
+                    console.log(`[${sessionId}] 🔐 Logged out, deleting session...`);
+                    fs.rmSync(sessionFolder, { recursive: true, force: true });
+                }
+                console.log(`[${sessionId}] 🔁 Reconnecting in 5s...`);
+                setTimeout(() => startBotSession(sessionId), 5000);
+            }
+        });
+
+        // ---- Load Commands ----
+        const commands = new Map();
+        const commandsPath = path.join(__dirname, 'commands');
+        if (fs.existsSync(commandsPath)) {
+            fs.readdirSync(commandsPath).forEach(file => {
+                if (file.endsWith('.js')) {
+                    const command = require(path.join(commandsPath, file));
+                    commands.set(command.name, command);
+                }
+            });
+        }
+
+        // ---- Message Handler ----
+        sock.ev.on('messages.upsert', async (m) => {
+            try {
+                const msg = m.messages[0];
+                if (!msg || !msg.message || msg.key.fromMe) return;
+
+                const chatId = msg.key.remoteJid;
+                const text =
+                    msg.message.conversation ||
+                    msg.message.extendedTextMessage?.text ||
+                    msg.message.imageMessage?.caption ||
+                    msg.message.videoMessage?.caption ||
+                    '';
+                if (!text) return;
+
+                const prefix = settings.prefix;
+                if (!text.startsWith(prefix)) return;
+
+                const args = text.slice(prefix.length).trim().split(/ +/);
+                const commandName = args.shift().toLowerCase();
+                const command = commands.get(commandName);
+                if (command) {
+                    await command.execute(sock, msg, args, chatId, {
+                        botName: settings.botName,
+                        owner: "MAXX"
+                    });
+                }
+
+                // ---- Simple Hello Command ----
+                if (text.toLowerCase() === `${prefix}hello`) {
+                    await sock.sendMessage(chatId, { text: "👋 Hello! How can I help you today?" });
+                }
+
+                // ---- TODO: Add your YouTube / Play commands here per session ----
+
+            } catch (err) {
+                console.error(`[${sessionId}] messages.upsert error:`, err);
+            }
+        });
+
+        activeSockets[sessionId] = sock;
+        return sock;
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
+        console.error(`[${sessionId}] Fatal startup error:`, err);
+        throw err;
     }
-});
+}
 
-// ---- Example send message endpoint ----
-app.post('/send-message', async (req, res) => {
-    try {
-        const { sessionName, number, message } = req.body;
-        if (!sessionName || !number || !message)
-            return res.status(400).json({ error: 'sessionName, number, and message are required' });
-
-        const { sendMessage } = require('./botManager');
-        await sendMessage(sessionName, number, message);
-        res.json({ success: true, message: `Message sent via "${sessionName}" ✅` });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// ---- Start Express ----
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 MAXX-XMD server listening on port ${PORT}`));
-
-// ---- Optional: automatically start a default session ----
-const DEFAULT_SESSION = 'default';
-startMultiBot(DEFAULT_SESSION).catch(console.error);
+// ---- Export ----
+module.exports = { startBotSession };
