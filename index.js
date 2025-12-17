@@ -244,4 +244,8 @@ if (commandName === 'play') {
 }
 
 // ---- Start bot ----
-startBot();
+// Remove the automatic start
+// startBot();
+
+// Export for server usage
+module.exports = { startBot };
