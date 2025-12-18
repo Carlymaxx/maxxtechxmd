@@ -84,7 +84,10 @@ Deploy your own bot easily using one of the platforms below:
 
 ### 🪄 Get your Session ID easily:
 
-[![Session ID](https://img.shields.io/badge/SESSIONID-GET-ffb703?style=for-the-badge&logo=javascript)](https://replit.com/@maxxy1470/Session-Generator)
+
+[![Session ID](https://img.shields.io/badge/SESSIONID-GET-ffb703?style=for-the-badge&logo=javascript)](https://pairmaxxxmd.onrender.com/)
+
+
 
 🚀 CAILLMAXX WhatsApp Bot 🤖
 
