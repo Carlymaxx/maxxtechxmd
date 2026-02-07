@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Empty turbopack config to silence the warning
+  turbopack: {},
+  
+  // Server-side external packages
+  serverExternalPackages: ['jimp', 'sharp', '@whiskeysockets/baileys'],
 };
 
 export default nextConfig;

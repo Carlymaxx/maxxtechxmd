@@ -14,7 +14,7 @@ const {
 const bot = require("./index.js");
  // <-- change this to your GitHub fork package name
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 const BOT_OWNER = process.env.BOT_OWNER || 'MAXX';
 const BOT_DEV = process.env.BOT_DEVELOPER || 'MAXX TECH';
 const SESSION_PREFIX = process.env.SESSION_PREFIX || 'MAXX-XMD';
@@ -185,6 +185,43 @@ setInterval(() => {
     console.error('Cleanup error', e);
   }
 }, 10 * 60 * 1000); // every 10 minutes
+
+// --- Start bot endpoint ---
+app.post('/start-bot', async (req, res) => {
+  try {
+    if (!sock) {
+      startBot().catch(console.error);
+      res.json({ success: true, message: 'Bot starting... Check terminal for QR code' });
+    } else if (sock.ws.readyState === 1) {
+      res.json({ success: false, error: 'Bot is already running' });
+    } else {
+      startBot().catch(console.error);
+      res.json({ success: true, message: 'Bot restarting... Check terminal for QR code' });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'Failed to start bot' });
+  }
+});
+
+// --- Send message endpoint ---
+app.post('/send', async (req, res) => {
+  try {
+    const { number, message } = req.body;
+    if (!number || !message) {
+      return res.status(400).json({ success: false, error: 'Number and message required' });
+    }
+    
+    if (!sock || sock.ws.readyState !== 1) {
+      return res.status(503).json({ success: false, error: 'Bot not connected' });
+    }
+    
+    await sendWhatsApp(number, message);
+    res.json({ success: true, message: 'Message sent' });
+  } catch (e) {
+    console.error('Send error:', e);
+    res.status(500).json({ success: false, error: 'Failed to send message' });
+  }
+});
 
 // --- Start Express server ---
 app.listen(PORT, () => console.log(`🚀 MAXX-XMD server listening on port ${PORT}`));
