@@ -1,4 +1,4 @@
-require('dotenv').config({ path: path.join(__dirname, 'config.env') });
+require('dotenv').config({ path: require('path').join(__dirname, 'config.env') });
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -183,9 +183,7 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 
 // --- Catch-all handler for Next.js ---
-app.get('*', (req, res) => {
-  return nextHandle(req, res);
-});
+app.use(nextHandle);
 
 // --- Start everything ---
 nextApp.prepare().then(() => {
