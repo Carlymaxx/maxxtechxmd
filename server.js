@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, 'config.env') });
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -15,11 +15,11 @@ const bot = require("./index.js");
 
 const DEV = process.env.NODE_ENV !== 'production';
 const PORT = process.env.PORT || 4000;
-const BOT_OWNER = process.env.BOT_OWNER || 'MAXX';
+const BOT_OWNER = process.env.OWNER_NAME || 'MAXX';
 const BOT_DEV = process.env.BOT_DEVELOPER || 'MAXX TECH';
-const SESSION_PREFIX = process.env.SESSION_PREFIX || 'MAXX-XMD';
+const SESSION_PREFIX = process.env.BOT_NAME || 'MAXX-XMD';
 const DB_FILE = path.join(__dirname, 'db.json');
-const SESSIONS_DIR = path.join(__dirname, 'sessions');
+const SESSIONS_DIR = path.join(__dirname, 'auth_info_baileys'); // Match index.js
 
 // --- Initialize DB ---
 if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, JSON.stringify({ users: {}, sessions: {} }, null, 2));
@@ -34,7 +34,7 @@ const nextHandle = nextApp.getRequestHandler();
 // --- Start MAXX-XMD Baileys Bot ---
 let sock;
 async function startBot() {
-  const { state, saveCreds } = await useMultiFileAuthState('./auth_info');
+  const { state, saveCreds } = await useMultiFileAuthState('./auth_info_baileys');
   const { version } = await fetchLatestBaileysVersion();
 
   sock = makeWASocket({ version, auth: state, printQRInTerminal: false });
@@ -47,9 +47,22 @@ async function startBot() {
     if (conn === 'close') {
       const shouldReconnect = up.lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
       if (shouldReconnect) startBot();
-      else console.log('❌ Logged out, delete auth_info folder and restart');
+      else console.log('❌ Logged out, delete auth_info_baileys folder and restart');
     }
     if (up.qr) console.log('📲 QR ready in terminal (if needed)');
+  });
+
+  // Connect message handler
+  sock.ev.on('messages.upsert', async ({ messages }) => {
+    for (const msg of messages) {
+      if (msg.key.fromMe) continue;
+      try {
+        const handler = require('./handlers/messagehandler.js');
+        await handler(sock, msg);
+      } catch (err) {
+        console.error('Message handler error:', err);
+      }
+    }
   });
 }
 

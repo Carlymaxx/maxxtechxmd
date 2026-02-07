@@ -1,5 +1,6 @@
 // ==================== MAXX-XMD index.js (Multi-Session, no server) ====================
 
+require('dotenv').config(); // Load config.env
 const fs = require('fs');
 const path = require('path');
 const qrcodeTerminal = require('qrcode-terminal');
@@ -10,12 +11,16 @@ const {
     DisconnectReason
 } = require('@whiskeysockets/baileys');
 
+// ---- Load config ----
+const settings = {
+    prefix: process.env.PREFIX || ".",
+    botName: process.env.BOT_NAME || "MAXX-XMD",
+    ownerNumber: process.env.OWNER_NUMBER || ""
+};
+
 // ---- Folders ----
 const SESSIONS_DIR = path.join(__dirname, 'auth_info_baileys');
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
-
-// ---- Bot settings ----
-const settings = { prefix: ".", botName: "MAXX-XMD" };
 
 // ---- Active sessions ----
 const activeSessions = {}; // { sessionId: sock }
@@ -57,6 +62,20 @@ async function startBotSession(sessionId = 'main') {
     });
 
     activeSessions[sessionId] = sock;
+    
+    // Connect message handler
+    sock.ev.on('messages.upsert', async ({ messages }) => {
+        for (const msg of messages) {
+            if (msg.key.fromMe) continue;
+            try {
+                const handler = require('./handlers/messagehandler.js');
+                await handler(sock, msg);
+            } catch (err) {
+                console.error('Message handler error:', err);
+            }
+        }
+    });
+    
     return sock;
 }
 
