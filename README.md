@@ -19,6 +19,7 @@ A powerful WhatsApp bot built with Baileys and a modern Next.js web dashboard fo
 - Modern web interface
 - Bot status monitoring
 - Message sending interface
+- **🆕 WhatsApp Pairing System** - Link your WhatsApp without QR codes
 - Real-time updates
 - Responsive design with Tailwind CSS
 
@@ -79,6 +80,31 @@ bun dev
 ```
 
 ## 📱 First Time Setup
+
+### Method 1: Pairing Dashboard (Recommended) 🆕
+
+1. Start the Next.js dashboard:
+   ```bash
+   bun dev
+   ```
+
+2. Open your browser and go to: `http://localhost:3000/pair`
+
+3. Enter your WhatsApp phone number (with country code, no spaces)
+
+4. Click "Send Verification Code"
+
+5. Check your WhatsApp for an 8-digit code
+
+6. Enter the code and click "Verify & Create Session"
+
+7. Your Session ID will be sent to your WhatsApp and displayed on screen
+
+8. Add the Session ID to your `config.env` file
+
+📖 **For detailed instructions, see [PAIRING_GUIDE.md](PAIRING_GUIDE.md)**
+
+### Method 2: QR Code (Traditional)
 
 1. Start the bot using one of the methods above
 2. A QR code will appear in the terminal
