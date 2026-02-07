@@ -1,14 +1,17 @@
 {
-  "name": "maxx-xmd-nextjs",
+  "name": "maxx-xmd-heroku",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_ENV=production node server.js",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "bot": "node server.js"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc.8",

@@ -1,4 +1,6 @@
 export default function Home() {
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8 text-center">
@@ -20,7 +22,7 @@ export default function Home() {
         {/* Navigation Links */}
         <div className="space-y-4">
           <a
-            href="http://localhost:4000/pair.html"
+            href={`${origin}/dashboard.html`}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors"
@@ -29,7 +31,7 @@ export default function Home() {
           </a>
           
           <a
-            href="http://localhost:4000/dashboard.html"
+            href={`${origin}/dashboard.html`}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors"
@@ -41,9 +43,9 @@ export default function Home() {
         {/* Info */}
         <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
-            ⚠️ <strong>Note:</strong> Please start the Express server first with:
+            ⚠️ <strong>Note:</strong> Make sure the bot server is running.
             <br />
-            <code className="bg-yellow-100 px-2 py-1 rounded mt-2 inline-block">bun run bot</code>
+            The dashboard will show the bot status automatically.
           </p>
         </div>
       </div>

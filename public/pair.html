@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Maxx~XMD Dashboard</title>
+<title>Maxx~XMD Pair Dashboard</title>
 <style>
 body {
   font-family: "Poppins", sans-serif;
@@ -42,12 +42,18 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .user { text-align: right; color: #00bfff; }
 .bot { text-align: left; color: #00ffcc; }
 #status, #sessionId { margin-top: 10px; text-align: center; }
-hr { width: 350px; margin: 20px 0; border: 1px solid #00ffff50; }
+.nav-link { color: white; text-decoration: none; padding: 10px 20px; background: rgba(255,255,255,0.1); border-radius: 8px; transition: background 0.2s; margin: 5px; }
+.nav-link:hover { background: rgba(255,255,255,0.2); }
 </style>
 </head>
 <body>
 
-<h1>💠 Maxx~XMD Dashboard</h1>
+<h1>💠 Maxx~XMD Pair</h1>
+
+<div style="margin-bottom: 20px;">
+  <a href="/" class="nav-link">🏠 Home</a>
+  <a href="/dashboard.html" class="nav-link">📊 Dashboard</a>
+</div>
 
 <div id="info">
   <p><b>OS:</b> <span id="os"></span></p>
@@ -58,17 +64,11 @@ hr { width: 350px; margin: 20px 0; border: 1px solid #00ffff50; }
 
 <div id="chat"></div>
 
-<input type="text" id="phone" placeholder="Enter your WhatsApp number" />
-<button id="generate">Generate Code (DB Session)</button>
+<input type="text" id="phone" placeholder="Enter your WhatsApp number (with country code)" />
+<button id="generate">Generate Code</button>
 
 <input type="text" id="code" placeholder="Enter code received on WhatsApp" />
 <button id="verify">Verify Code</button>
-
-<hr />
-
-<button id="pairStart">Start Pair.js Session</button>
-<input type="text" id="pairCode" placeholder="Enter Pair.js code" />
-<button id="pairVerify">Verify Pair.js Session</button>
 
 <div id="status"></div>
 <div id="sessionId"></div>
@@ -92,7 +92,7 @@ function addMsg(who, text) {
 // ---- Bot status ----
 async function getBotStatus() {
   try {
-    const res = await fetch("/status");
+    const res = await fetch("/api/status");
     const data = await res.json();
     document.getElementById("botStatus").innerText = data.connected ? "✅ Connected" : "❌ Disconnected";
   } catch {
@@ -100,16 +100,14 @@ async function getBotStatus() {
   }
 }
 getBotStatus();
-setInterval(getBotStatus, 5000); // check every 5s
+setInterval(getBotStatus, 5000);
 
 // ---- Inputs ----
 const phoneInput = document.getElementById("phone");
 const codeInput = document.getElementById("code");
-const pairCodeInput = document.getElementById("pairCode");
 const sessionDiv = document.getElementById("sessionId");
-let currentRef = null;
 
-// ---- DB Session ----
+// ---- Generate Code ----
 document.getElementById("generate").onclick = async () => {
   const number = phoneInput.value.trim();
   if(!number) return alert("Enter your WhatsApp number!");
@@ -117,7 +115,7 @@ document.getElementById("generate").onclick = async () => {
   const btn = document.getElementById("generate");
   btn.disabled = true;
   try {
-    const res = await fetch("/generate", {
+    const res = await fetch("/api/generate", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ number })
@@ -130,6 +128,7 @@ document.getElementById("generate").onclick = async () => {
   btn.disabled = false;
 };
 
+// ---- Verify Code ----
 document.getElementById("verify").onclick = async () => {
   const number = phoneInput.value.trim();
   const code = codeInput.value.trim();
@@ -138,7 +137,7 @@ document.getElementById("verify").onclick = async () => {
   const btn = document.getElementById("verify");
   btn.disabled = true;
   try {
-    const res = await fetch("/verify", {
+    const res = await fetch("/api/verify", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ number, code })
@@ -148,50 +147,6 @@ document.getElementById("verify").onclick = async () => {
     if(data.sessionId) sessionDiv.innerText = `✅ DB Session ID: ${data.sessionId}\nConnected!`;
   } catch(e) {
     addMsg("bot", "❌ Error verifying code");
-  }
-  btn.disabled = false;
-};
-
-// ---- Pair.js Session ----
-document.getElementById("pairStart").onclick = async () => {
-  const phone = phoneInput.value.trim();
-  if(!phone) return alert("Enter your WhatsApp number!");
-  addMsg("user", `Starting Pair.js session for ${phone}...`);
-  const btn = document.getElementById("pairStart");
-  btn.disabled = true;
-  try {
-    const res = await fetch("/start", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ phone })
-    });
-    const data = await res.json();
-    addMsg("bot", data.message || data.error);
-    if(data.ref) currentRef = data.ref;
-  } catch(e) {
-    addMsg("bot", "❌ Error starting Pair.js session");
-  }
-  btn.disabled = false;
-};
-
-document.getElementById("pairVerify").onclick = async () => {
-  const phone = phoneInput.value.trim();
-  const code = pairCodeInput.value.trim();
-  if(!phone || !code || !currentRef) return alert("Enter phone, code, and start Pair.js first!");
-  addMsg("user", `Verifying Pair.js code ${code} for ${phone}...`);
-  const btn = document.getElementById("pairVerify");
-  btn.disabled = true;
-  try {
-    const res = await fetch("/pair-verify", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ phone, code, ref: currentRef })
-    });
-    const data = await res.json();
-    addMsg("bot", data.message || data.error);
-    sessionDiv.innerText = `✅ Pair.js session ready for ${phone}`;
-  } catch(e) {
-    addMsg("bot", "❌ Error verifying Pair.js session");
   }
   btn.disabled = false;
 };

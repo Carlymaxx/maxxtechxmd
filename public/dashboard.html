@@ -302,7 +302,7 @@
     
     async function checkStatus() {
       try {
-        const res = await fetch('/status');
+        const res = await fetch('/api/status');
         const data = await res.json();
         const dot = document.getElementById('statusDot');
         const text = document.getElementById('statusText');
@@ -337,7 +337,7 @@
       btn.textContent = 'Starting...';
       
       try {
-        const res = await fetch('/start-bot', {
+        const res = await fetch('/api/start-bot', {
           method: 'POST'
         });
         const data = await res.json();
@@ -375,7 +375,7 @@
       btn.textContent = 'Sending...';
       
       try {
-        const res = await fetch('/send', {
+        const res = await fetch('/api/send', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ number: phone, message })
