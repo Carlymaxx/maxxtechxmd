@@ -23,8 +23,8 @@ module.exports = {
 
   // Use international format by default (country code + number). Update via config.env or setting.js if needed.
   OWNER_NUMBER: settings.OWNER_NUMBER || process.env.OWNER_NUMBER || "254725979273",
-  OWNER_NAME: process.env.OWNER_NAME || "Carly Maxx",
-  DEV: process.env.DEV || "254725979273",
+  OWNER_NAME: process.env.OWNER_NAME || "carlymaxx",
+  DEV: process.env.DEV || "maxx",
   DEVELOPER_NUMBER: '254725979273@s.whatsapp.net',
   
   MENU_AUDIO_URL: process.env.MENU_AUDIO_URL || 'https://files.catbox.moe/vkvci3.mp3',

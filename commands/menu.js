@@ -2,7 +2,7 @@ const moment = require("moment-timezone");
 const os = require("os");
 const process = require("process");
 const emojis = require('../utils/emojis');
- // your emoji list
+  // your emoji list
 
 module.exports = {
   name: "menu",
@@ -47,6 +47,8 @@ module.exports = {
 │═════════   ═══════════  ═════
 │
 │👤 Owner: ${settings.Maxx} ${randEmoji()}
+│🛠️ Developer: maxx ${randEmoji()}
+│📢 Channel: https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J ${randEmoji()}
 │🆔 Prefix: ${settings.prefix} ${randEmoji()}
 │🕒 Time (Nairobi Ruiru): ${nairobiTime} ${randEmoji()}
 │📅 Date: ${nairobiDate} ${randEmoji()}
