@@ -43,3 +43,7 @@ next-env.d.ts
 # whatsapp bot session data
 .wwebjs_auth/
 .wwebjs_cache/
+auth_info_baileys/
+auth_info/
+sessions/
+db.json

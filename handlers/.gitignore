@@ -1,0 +1,11 @@
+# Ignore WhatsApp session and credentials
+auth_info/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+
+# Optional: logs
+*.log
