@@ -1,6 +1,33 @@
 # MAXX-XMD WhatsApp Bot with Next.js Dashboard
 
+[![Dashboard Preview](https://img.shields.io/badge/📊-Dashboard-blue?style=for-the-badge)](http://localhost:3000)
+
 A powerful WhatsApp bot built with Baileys and a modern Next.js web dashboard for management and control.
+
+![Dashboard Screenshot](https://via.placeholder.com/800x400?text=MAXX-XMD+Dashboard+Preview)
+
+---
+
+## 📊 Dashboard Preview
+
+The Next.js Dashboard provides a modern, responsive web interface to manage your WhatsApp bot:
+
+### 🖥️ Main Dashboard (http://localhost:3000)
+- **Bot Status** - Real-time connection status indicator
+- **Start/Stop Bot** - Control bot from the web interface
+- **Send Messages** - Programmatic message sending to any WhatsApp number
+- **Session Management** - View and manage active sessions
+- **Responsive Design** - Works on desktop, tablet, and mobile
+
+### 📱 Pairing Dashboard (http://localhost:3000/pair)
+- **QR-Free Linking** - Link WhatsApp without scanning QR codes
+- **8-Digit Code Verification** - Secure pairing system
+- **Session ID Delivery** - Session ID automatically sent to your WhatsApp
+- **User-Friendly Interface** - Simple step-by-step process
+
+---
+
+## 🚀 Features
 
 ## 🚀 Features
 
