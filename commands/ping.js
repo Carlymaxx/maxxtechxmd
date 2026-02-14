@@ -11,7 +11,7 @@ module.exports = {
 
         const message = `
       ╔══════════   ═══════════╗
-      🌈✨ *MAXX-XMD PING STATUS* ✨🌈
+      🌈✨ *MAXX-XMD  STATUS* ✨🌈
       ╚══════════   ═══════════╝
 
 👋 Hello, *${user}*!  
