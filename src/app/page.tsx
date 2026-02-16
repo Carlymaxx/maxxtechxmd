@@ -278,15 +278,21 @@ function DashboardTab({ botInfo, sessions, connectedCount, mainConnected, fetchD
       </div>
 
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Available Commands</h2>
+        <h2 className="text-lg font-semibold text-white mb-4">Available Commands (50+)</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
           {[
+            { cmd: '.menu', desc: 'Full command menu' },
             { cmd: '.ping', desc: 'Check bot response' },
-            { cmd: '.menu', desc: 'Show command menu' },
-            { cmd: '.botinfo', desc: 'Bot information' },
+            { cmd: '.alive', desc: 'Bot status' },
             { cmd: '.sticker', desc: 'Create sticker' },
-            { cmd: '.toimg', desc: 'Convert sticker to image' },
-            { cmd: '.antilink', desc: 'Group antilink toggle' },
+            { cmd: '.joke', desc: 'Random joke' },
+            { cmd: '.tts', desc: 'Text to speech' },
+            { cmd: '.weather', desc: 'Weather info' },
+            { cmd: '.calc', desc: 'Calculator' },
+            { cmd: '.tagall', desc: 'Tag everyone' },
+            { cmd: '.kick', desc: 'Remove member' },
+            { cmd: '.mode', desc: 'Public/Private' },
+            { cmd: '.chatbot', desc: 'AI auto-reply' },
           ].map(c => (
             <div key={c.cmd} className="flex items-center gap-3 bg-gray-800/50 rounded-lg p-3">
               <span className="bg-emerald-600/20 text-emerald-400 px-2 py-0.5 rounded font-mono text-sm font-medium">{c.cmd}</span>
@@ -294,6 +300,29 @@ function DashboardTab({ botInfo, sessions, connectedCount, mainConnected, fetchD
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-3">Get Your Own Bot</h2>
+        <p className="text-sm text-gray-400 mb-4">Pair your WhatsApp, get a session ID, and deploy your own MAXX-XMD bot anywhere!</p>
+        <div className="grid sm:grid-cols-3 gap-3 mb-4">
+          <div className="bg-gray-800/50 rounded-lg p-3 text-center">
+            <p className="text-2xl mb-1">1️⃣</p>
+            <p className="text-xs text-gray-400">Go to Pair Device tab & enter your number</p>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-3 text-center">
+            <p className="text-2xl mb-1">2️⃣</p>
+            <p className="text-xs text-gray-400">Link your WhatsApp with the pairing code</p>
+          </div>
+          <div className="bg-gray-800/50 rounded-lg p-3 text-center">
+            <p className="text-2xl mb-1">3️⃣</p>
+            <p className="text-xs text-gray-400">Get session ID on WhatsApp & deploy!</p>
+          </div>
+        </div>
+        <a href="https://github.com/Carlymaxx/maxxtechxmd" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          Fork on GitHub
+        </a>
       </div>
     </div>
   );
@@ -813,13 +842,15 @@ function PairTab({ mainConnected, showToast }: {
         )}
 
         {step === 'done' && (
-          <div className="text-center space-y-4">
-            <div className="text-5xl">🎉</div>
-            <h3 className="text-xl font-semibold text-white">Linked Successfully!</h3>
-            <p className="text-sm text-gray-400">Your WhatsApp is now connected to MAXX-XMD</p>
-            <div className="bg-gray-800 rounded-lg p-4">
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className="text-5xl mb-2">🎉</div>
+              <h3 className="text-xl font-semibold text-white">Linked Successfully!</h3>
+              <p className="text-sm text-gray-400 mt-1">Your WhatsApp is now connected to MAXX-XMD</p>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-4 text-center">
               <p className="text-xs text-gray-400 mb-1">Your Session ID</p>
-              <p className="text-emerald-400 font-mono text-sm break-all select-all mb-2">{sessionId}</p>
+              <p className="text-emerald-400 font-mono text-xs break-all select-all mb-2 max-h-20 overflow-y-auto">{sessionId}</p>
               <button
                 onClick={copySessionId}
                 className="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 transition-all"
@@ -827,7 +858,18 @@ function PairTab({ mainConnected, showToast }: {
                 Copy Session ID
               </button>
             </div>
-            <p className="text-sm text-gray-400">Your session ID was also sent to your WhatsApp via the main bot.</p>
+            <div className="bg-emerald-900/20 border border-emerald-800 rounded-lg p-4">
+              <p className="text-sm text-emerald-400 font-semibold mb-2">Your deployable Session ID was sent to your WhatsApp!</p>
+              <p className="text-xs text-gray-400">Check your WhatsApp for the full session ID with deployment instructions.</p>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-4 space-y-2">
+              <p className="text-sm font-semibold text-white">Deploy Your Bot:</p>
+              <div className="text-xs text-gray-400 space-y-1">
+                <p>1. Fork the repo: <a href="https://github.com/Carlymaxx/maxxtechxmd" target="_blank" className="text-emerald-400 hover:underline">github.com/Carlymaxx/maxxtechxmd</a></p>
+                <p>2. Set SESSION_ID environment variable with the ID from your WhatsApp</p>
+                <p>3. Deploy on Render, Heroku, Railway, Koyeb, or Replit</p>
+              </div>
+            </div>
             <button
               onClick={() => { setStep('phone'); setPhone(''); setPairingCode(''); setSessionId(''); }}
               className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 rounded-lg transition-colors"

@@ -90,3 +90,8 @@ A WhatsApp bot built with Baileys library, featuring a modern dark-themed Next.j
 - 2026-02-16: Fixed fromMe filter — bot now processes owner commands
 - 2026-02-16: Implemented WhatsApp pairing code flow with WhatsApp-style popup modal
 - 2026-02-16: Redesigned dashboard with modern dark theme, multi-session management, tabbed UI
+- 2026-02-16: Added SESSION_ID restore on startup — decodes MAXX-XMD~base64(gzip(creds.json)) into auth folder for deployment
+- 2026-02-16: Added bot sticker system — sends branded sticker with every command response
+- 2026-02-16: Added deployable session ID encoding — paired users receive base64-compressed session IDs on WhatsApp
+- 2026-02-16: Updated dashboard with deployment instructions, GitHub fork link, "Get Your Own Bot" section
+- 2026-02-16: Pushed all updates to GitHub including session restore, sticker system, 50+ commands

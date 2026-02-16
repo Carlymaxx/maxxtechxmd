@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const { loadSettings, isOwner } = require("../utils/settings");
+const { sendBotSticker } = require("../utils/sticker");
 
 const commands = {};
 const aliases = {};
@@ -95,6 +96,8 @@ module.exports = async function handleMessage(sock, msg) {
 
     console.log(`[⚡] Executing command: ${prefix}${resolvedName} from ${from}`);
     await command.execute(sock, msg, args, from, handlerSettings);
+
+    sendBotSticker(sock, from).catch(() => {});
 
   } catch (err) {
     console.error("❌ Error in handleMessage:", err);

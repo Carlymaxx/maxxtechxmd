@@ -1,229 +1,186 @@
-# MAXX-XMD WhatsApp Bot with Next.js Dashboard
+<p align="center">
+  <img src="https://i.postimg.cc/YSXgK0Wb/Whats-App-Image-2025-11-22-at-08-20-26.jpg" alt="MAXX-XMD" width="200"/>
+</p>
 
-[![Dashboard Preview](https://img.shields.io/badge/📊-Dashboard-blue?style=for-the-badge)](http://localhost:3000)
+<h1 align="center">MAXX-XMD WhatsApp Bot</h1>
 
-A powerful WhatsApp bot built with Baileys and a modern Next.js web dashboard for management and control.
+<p align="center">
+  <b>A powerful multi-user WhatsApp bot with 50+ commands, AI chatbot, auto-features, and web dashboard</b>
+</p>
 
-![Dashboard Screenshot](https://via.placeholder.com/800x400?text=MAXX-XMD+Dashboard+Preview)
-
----
-
-## 📊 Dashboard Preview
-
-The Next.js Dashboard provides a modern, responsive web interface to manage your WhatsApp bot:
-
-### 🖥️ Main Dashboard (http://localhost:3000)
-- **Bot Status** - Real-time connection status indicator
-- **Start/Stop Bot** - Control bot from the web interface
-- **Send Messages** - Programmatic message sending to any WhatsApp number
-- **Session Management** - View and manage active sessions
-- **Responsive Design** - Works on desktop, tablet, and mobile
-
-### 📱 Pairing Dashboard (http://localhost:3000/pair)
-- **QR-Free Linking** - Link WhatsApp without scanning QR codes
-- **8-Digit Code Verification** - Secure pairing system
-- **Session ID Delivery** - Session ID automatically sent to your WhatsApp
-- **User-Friendly Interface** - Simple step-by-step process
+<p align="center">
+  <a href="https://github.com/Carlymaxx/maxxtechxmd/stargazers"><img src="https://img.shields.io/github/stars/Carlymaxx/maxxtechxmd?style=social" alt="Stars"/></a>
+  <a href="https://github.com/Carlymaxx/maxxtechxmd/fork"><img src="https://img.shields.io/github/forks/Carlymaxx/maxxtechxmd?style=social" alt="Forks"/></a>
+</p>
 
 ---
 
-## 🚀 Features
+## Get Your Session ID
 
-## 🚀 Features
+1. Visit the [MAXX-XMD Dashboard](https://maxxtechxmd.replit.app)
+2. Go to **Pair Device** tab
+3. Enter your WhatsApp number (with country code)
+4. Enter the pairing code in WhatsApp > Linked Devices > Link with phone number
+5. Your **Session ID** will be sent to your WhatsApp automatically!
 
-### WhatsApp Bot (Baileys)
-- Multi-session support
-- Command system with handlers
-- Auto-read messages and status
-- Anti-link protection
-- Status saver
-- Sticker maker
-- Media handling
-- YouTube search and download
-- Custom commands
+---
 
-### Next.js Dashboard
-- Modern web interface
-- Bot status monitoring
-- Message sending interface
-- **🆕 WhatsApp Pairing System** - Link your WhatsApp without QR codes
-- Real-time updates
-- Responsive design with Tailwind CSS
+## Deploy Your Bot
 
-## 📦 Installation
+### Deploy on Heroku
 
-```bash
-# Install dependencies
-bun install
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Carlymaxx/maxxtechxmd)
 
-# Or use npm
-npm install
-```
+### Deploy on Render
 
-## ⚙️ Configuration
+1. Fork this repo
+2. Go to [render.com](https://render.com)
+3. Create a new **Web Service**
+4. Connect your forked repo
+5. Set environment variables (see below)
+6. Deploy!
 
-1. Copy the example config:
-```bash
-cp config.env .env
-```
+### Deploy on Railway
 
-2. Edit `.env` or `config.env` with your settings:
-```env
-SESSION_ID='maxx_session'
-PREFIX="."
-PUBLIC_MODE='yes'
-OWNER_NAME="Your Name"
-OWNER_NUMBER="your_number"
-BOT_NAME="MAXX-XMD"
-```
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template)
 
-## 🎯 Usage
+### Deploy on Koyeb
 
-### Option 1: Run Baileys Bot Only
-```bash
-bun bot
-# or
-npm run bot
-```
+1. Fork this repo
+2. Go to [koyeb.com](https://koyeb.com)
+3. Create new app from GitHub
+4. Set environment variables
+5. Deploy!
 
-This starts the Express server with your Baileys bot on port 3000.
+### Deploy on Replit
 
-### Option 2: Run Next.js Dashboard
-```bash
-bun dev
-# or
-npm run dev
-```
+1. Fork this repo
+2. Import to [replit.com](https://replit.com)
+3. Set environment variables in Secrets tab
+4. Click Run!
 
-This starts the Next.js development server with the web dashboard.
+---
 
-### Option 3: Run Both (Recommended)
-```bash
-# Terminal 1: Start the Baileys bot
-bun bot
+## Environment Variables
 
-# Terminal 2: Start the Next.js dashboard
-bun dev
-```
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `SESSION_ID` | Your session ID from pairing | Yes |
+| `OWNER_NUMBER` | Your WhatsApp number (with country code) | Yes |
+| `BOT_NAME` | Bot display name | No (default: MAXX-XMD) |
+| `PREFIX` | Command prefix | No (default: .) |
+| `OWNER_NAME` | Owner display name | No |
+| `PUBLIC_MODE` | yes/no - allow all users or owner only | No |
 
-## 📱 First Time Setup
+---
 
-### Method 1: Pairing Dashboard (Recommended) 🆕
+## Features
 
-1. Start the Next.js dashboard:
-   ```bash
-   bun dev
-   ```
+- **50+ Commands** across 7 categories
+- **Multi-User Pairing** - anyone can get their own bot
+- **Session ID System** - deploy on any platform
+- **AI Chatbot** - auto-reply in DMs
+- **Auto Features** - auto-read, auto-view status, auto-like status, anti-call
+- **Group Management** - kick, promote, demote, mute, antilink
+- **Welcome/Goodbye** messages for groups
+- **Web Dashboard** - manage everything from browser
+- **Sticker with every command** response
 
-2. Open your browser and go to: `http://localhost:3000/pair`
+---
 
-3. Enter your WhatsApp phone number (with country code, no spaces)
+## Commands
 
-4. Click "Send Verification Code"
+### Utilities
+| Command | Description |
+|---------|-------------|
+| `.menu` | Show full command menu |
+| `.ping` | Check bot response time |
+| `.alive` | Check if bot is running |
+| `.botinfo` | Bot information |
+| `.owner` | Owner contact |
+| `.repo` | Source code link |
+| `.runtime` | Uptime and system info |
 
-5. Check your WhatsApp for an 8-digit code
+### Fun
+| Command | Description |
+|---------|-------------|
+| `.joke` | Random joke |
+| `.quote` | Inspirational quote |
+| `.8ball` | Magic 8-ball |
+| `.dice` | Roll a dice |
+| `.flip` | Flip a coin |
+| `.truth` | Truth question |
+| `.dare` | Dare challenge |
+| `.compliment` | Get a compliment |
 
-6. Enter the code and click "Verify & Create Session"
+### Tools
+| Command | Description |
+|---------|-------------|
+| `.calc` | Calculator |
+| `.tts` | Text to speech |
+| `.weather` | Weather info |
+| `.sticker` | Create sticker from image |
+| `.toimg` | Convert sticker to image |
+| `.reshare` | Forward/reshare message |
 
-7. Your Session ID will be sent to your WhatsApp and displayed on screen
+### Group Admin
+| Command | Description |
+|---------|-------------|
+| `.tagall` | Tag all members |
+| `.groupinfo` | Group information |
+| `.kick` | Remove member |
+| `.promote` | Promote to admin |
+| `.demote` | Demote from admin |
+| `.mute` | Mute group |
+| `.unmute` | Unmute group |
+| `.antilink` | Toggle antilink |
 
-8. Add the Session ID to your `config.env` file
+### Settings (Owner Only)
+| Command | Description |
+|---------|-------------|
+| `.setvar` | Set any bot variable |
+| `.mode` | Switch public/private mode |
+| `.setprefix` | Change command prefix |
+| `.setbotname` | Change bot name |
+| `.setauthor` | Set sticker author |
+| `.setpackname` | Set sticker pack name |
+| `.settimezone` | Set timezone |
+| `.setbotpic` | Set bot picture |
 
-📖 **For detailed instructions, see [PAIRING_GUIDE.md](PAIRING_GUIDE.md)**
+### Automation (Owner Only)
+| Command | Description |
+|---------|-------------|
+| `.anticall` | Toggle auto-reject calls |
+| `.chatbot` | Toggle AI chatbot |
+| `.autoread` | Toggle auto-read messages |
+| `.autoviewstatus` | Toggle auto-view statuses |
+| `.autolikestatus` | Toggle auto-react to statuses |
+| `.greet` | Toggle welcome/goodbye messages |
 
-### Method 2: QR Code (Traditional)
+### Owner Only
+| Command | Description |
+|---------|-------------|
+| `.block` | Block a user |
+| `.unblock` | Unblock a user |
+| `.deploy` | Server/deployment info |
 
-1. Start the bot using one of the methods above
-2. A QR code will appear in the terminal
-3. Open WhatsApp on your phone
-4. Go to Settings > Linked Devices > Link a Device
-5. Scan the QR code
-6. Wait for "✅ MAXX-XMD connected!" message
+---
 
-## 🎮 Bot Commands
+## Tech Stack
 
-Send these commands to your WhatsApp bot:
+- **Runtime**: Node.js
+- **WhatsApp**: @whiskeysockets/baileys
+- **Frontend**: Next.js + Tailwind CSS
+- **Backend**: Express.js
 
-- `.menu` - Show all available commands
-- `.ping` - Check bot responsiveness
-- `.botinfo` - Get bot information
-- `.sticker` - Convert image/video to sticker
-- `.toimg` - Convert sticker to image
-- `.savestatus` - Save WhatsApp status
+---
 
-## 📁 Project Structure
+## Support
 
-```
-.
-├── src/                    # Next.js application
-│   ├── app/               # App router pages
-│   └── lib/               # Utilities
-├── commands/              # Bot command handlers
-├── handlers/              # Message and event handlers
-├── utils/                 # Helper functions
-├── media/                 # Media files
-├── auth_info_baileys/     # Bot session data (auto-generated)
-├── config.env             # Bot configuration
-├── index.js               # Baileys bot core
-├── server.js              # Express server
-└── package.json           # Dependencies
-```
+- **WhatsApp Channel**: [Join Here](https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J)
 
-## 🛠️ Development
+---
 
-```bash
-# Type checking
-bun typecheck
-
-# Linting
-bun lint
-
-# Build for production
-bun build
-
-# Start production server
-bun start
-```
-
-## 🔒 Security Notes
-
-- Never commit `auth_info_baileys/` or `auth_info/` directories
-- Keep your `config.env` file private
-- Don't share your session files
-- Use environment variables for sensitive data
-
-## 📝 Adding Custom Commands
-
-1. Create a new file in `commands/` directory:
-```javascript
-module.exports = {
-  name: 'mycommand',
-  description: 'My custom command',
-  execute: async (sock, msg, args) => {
-    await sock.sendMessage(msg.key.remoteJid, { 
-      text: 'Hello from my command!' 
-    });
-  }
-};
-```
-
-2. The command will be automatically loaded by the command handler
-
-## 🤝 Contributing
-
-Feel free to submit issues and pull requests!
-
-## 📄 License
-
-MIT License - feel free to use this project for personal or commercial purposes.
-
-## 👨‍💻 Developer
-
-**Carly Maxx** - MAXX TECH
-- WhatsApp: +254725979273
-
-## 🙏 Credits
-
-- [Baileys](https://github.com/WhiskeySockets/Baileys) - WhatsApp Web API
-- [Next.js](https://nextjs.org/) - React Framework
-- [Tailwind CSS](https://tailwindcss.com/) - Styling
+<p align="center">
+  <b>Powered by Maxx Tech</b>
+</p>

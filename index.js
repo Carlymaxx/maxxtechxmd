@@ -1,6 +1,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 const qrcodeTerminal = require('qrcode-terminal');
 const {
     default: makeWASocket,
@@ -19,6 +20,39 @@ const envSettings = {
 
 const SESSIONS_DIR = path.join(__dirname, 'auth_info_baileys');
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
+
+function restoreSessionFromEnv() {
+    const sessionId = process.env.SESSION_ID;
+    if (!sessionId) return;
+
+    const mainFolder = path.join(SESSIONS_DIR, 'main');
+    const credsPath = path.join(mainFolder, 'creds.json');
+
+    if (fs.existsSync(credsPath)) {
+        console.log('📂 Session creds already exist, skipping restore.');
+        return;
+    }
+
+    try {
+        let encoded = sessionId;
+        if (encoded.startsWith('MAXX-XMD~')) {
+            encoded = encoded.replace('MAXX-XMD~', '');
+        }
+
+        const compressed = Buffer.from(encoded, 'base64');
+        const creds = zlib.gunzipSync(compressed).toString('utf8');
+
+        JSON.parse(creds);
+
+        if (!fs.existsSync(mainFolder)) fs.mkdirSync(mainFolder, { recursive: true });
+        fs.writeFileSync(credsPath, creds, 'utf8');
+        console.log('✅ Session restored from SESSION_ID environment variable!');
+    } catch (err) {
+        console.error('❌ Failed to restore session from SESSION_ID:', err.message);
+    }
+}
+
+restoreSessionFromEnv();
 
 const activeSessions = {};
 const stoppingSessions = new Set();

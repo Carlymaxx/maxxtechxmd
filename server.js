@@ -7,6 +7,7 @@ const next = require('next');
 
 const QRCode = require('qrcode');
 const bot = require("./index.js");
+const { getSessionIdForFolder } = require('./utils/sessionEncoder');
 
 const DEV = process.env.NODE_ENV !== 'production';
 const PORT = process.env.PORT || 5000;
@@ -234,21 +235,57 @@ app.post('/api/pair', async (req, res) => {
         bot.sessionConnected[sessionId] = true;
         console.log(`✅ [${sessionId}] User ${number} paired successfully!`);
 
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         try {
+          const deploySessionId = getSessionIdForFolder(sessionId);
           const mainSockNow = bot.activeSessions['main'];
           if (mainSockNow && bot.sessionConnected['main']) {
             const userJid = number + '@s.whatsapp.net';
+
             await mainSockNow.sendMessage(userJid, {
-              text: `✅ *MAXX-XMD Bot Linked Successfully!*\n\n📋 *Your Session ID:*\n\`${sessionId}\`\n\n👤 Owner: ${BOT_OWNER}\n🔧 Developer: ${BOT_DEV}\n\n_Keep this session ID safe. Your bot is now active!_`
+              text: `╔══════════════════════════╗\n` +
+                    `║  ✅ *MAXX-XMD LINKED!*\n` +
+                    `╚══════════════════════════╝\n\n` +
+                    `🎉 *Your WhatsApp is now connected!*\n\n` +
+                    `📋 *Your Session ID:*\n\n` +
+                    `\`\`\`${deploySessionId || sessionId}\`\`\`\n\n` +
+                    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                    `📌 *HOW TO DEPLOY YOUR BOT:*\n\n` +
+                    `1️⃣ Fork the repo:\n` +
+                    `   github.com/Carlymaxx/maxxtechxmd\n\n` +
+                    `2️⃣ Set these environment variables:\n` +
+                    `   • SESSION_ID = (paste above)\n` +
+                    `   • OWNER_NUMBER = ${number}\n` +
+                    `   • BOT_NAME = Your Bot Name\n` +
+                    `   • PREFIX = .\n\n` +
+                    `3️⃣ Deploy on any platform:\n` +
+                    `   🟢 Render (render.com)\n` +
+                    `   🟣 Heroku (heroku.com)\n` +
+                    `   🔵 Railway (railway.app)\n` +
+                    `   🟡 Koyeb (koyeb.com)\n` +
+                    `   ⚡ Replit (replit.com)\n\n` +
+                    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+                    `👑 *Owner:* ${BOT_OWNER}\n` +
+                    `🔧 *Developer:* ${BOT_DEV}\n\n` +
+                    `⚠️ _Keep your session ID private!_\n\n` +
+                    `> _Powered by MAXX-XMD_ ⚡💫`
             });
-            console.log(`📨 Session ID sent to ${number} via main bot`);
+            console.log(`📨 Deployable session ID sent to ${number}`);
 
             if (OWNER_NUMBER) {
               const ownerJid = OWNER_NUMBER + '@s.whatsapp.net';
               await mainSockNow.sendMessage(ownerJid, {
-                text: `📱 *New Device Paired!*\n\n👤 *Number:* +${number}\n📋 *Session ID:*\n\`${sessionId}\`\n\n⏰ *Time:* ${new Date().toLocaleString()}\n\n_This device is now linked to ${SESSION_PREFIX}_`
+                text: `╔══════════════════════════╗\n` +
+                      `║  📱 *NEW DEVICE PAIRED!*\n` +
+                      `╚══════════════════════════╝\n\n` +
+                      `👤 *Number:* +${number}\n` +
+                      `📋 *Session:* ${sessionId}\n` +
+                      `⏰ *Time:* ${new Date().toLocaleString()}\n` +
+                      `🌐 *Total Users:* ${Object.keys(bot.activeSessions).length}\n\n` +
+                      `_This device is now linked to ${SESSION_PREFIX}_`
               });
-              console.log(`📨 Session ID also sent to owner ${OWNER_NUMBER}`);
+              console.log(`📨 Owner notified about new pairing`);
             }
           }
         } catch (sendErr) {
