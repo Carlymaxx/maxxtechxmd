@@ -82,7 +82,6 @@ async function startBotSession(sessionId = 'main') {
     sock.ev.on('messages.upsert', async ({ messages, type }) => {
         if (type !== 'notify') return;
         for (const msg of messages) {
-            if (msg.key.fromMe) continue;
             if (msg.key.remoteJid === 'status@broadcast') continue;
             try {
                 const handler = require('./handlers/messagehandler.js');
@@ -172,7 +171,6 @@ async function startPairingSession(sessionId, phoneNumber) {
     sock.ev.on('messages.upsert', async ({ messages, type }) => {
         if (type !== 'notify') return;
         for (const msg of messages) {
-            if (msg.key.fromMe) continue;
             if (msg.key.remoteJid === 'status@broadcast') continue;
             try {
                 const handler = require('./handlers/messagehandler.js');
