@@ -3,8 +3,7 @@ module.exports = {
     name: "antilink",
     description: "Enable or disable anti-link",
     
-    execute: async (msg, sock, args) => {
-        const from = msg.key.remoteJid;
+    execute: async (sock, msg, args, from, settings) => {
 
         if (!args[0]) return sock.sendMessage(from, { text: "Use: .antilink on / off" });
 
