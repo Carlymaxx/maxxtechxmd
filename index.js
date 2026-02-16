@@ -248,18 +248,13 @@ async function sendSessionIdToUser(sessionId, phoneNumber) {
     }
 
     const userJid = phoneNumber + '@s.whatsapp.net';
-    const ownerNumber = envSettings.ownerNumber;
-    const botOwner = process.env.OWNER_NAME || 'MAXX';
-    const botDev = process.env.BOT_DEVELOPER || 'MAXX TECH';
 
-    const sessionMsg = `*𝗠𝗔𝗫𝗫-𝗫𝗠𝗗 SESSION ID* 🔑\n\n` +
-        `Here is your *MAXX-XMD* session ID.\nCopy it and use it to deploy your bot on any platform.\n\n` +
-        `\`\`\`${deploySessionId}\`\`\`\n\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `📌 *HOW TO DEPLOY:*\n\n` +
+    const sessionIdMsg = `${deploySessionId}`;
+
+    const deployMsg = `*𝗠𝗔𝗫𝗫-𝗫𝗠𝗗 DEPLOYMENT GUIDE* 📌\n\n` +
         `1️⃣ Fork: github.com/Carlymaxx/maxxtechxmd\n\n` +
         `2️⃣ Set environment variables:\n` +
-        `   • SESSION_ID = _(paste above)_\n` +
+        `   • SESSION_ID = _(paste your session ID above)_\n` +
         `   • OWNER_NUMBER = ${phoneNumber}\n` +
         `   • PREFIX = .\n\n` +
         `3️⃣ Deploy on:\n` +
@@ -268,39 +263,31 @@ async function sendSessionIdToUser(sessionId, phoneNumber) {
         `⚠️ _Keep your session ID private!_\n\n` +
         `> _Powered by MAXX-XMD_ ⚡`;
 
-    try {
-        const pairedSock = activeSessions[sessionId];
-        if (pairedSock && sessionConnected[sessionId]) {
-            await pairedSock.sendMessage(userJid, { text: sessionMsg });
-            console.log(`📨 [${sessionId}] Session ID sent to ${phoneNumber} via paired session`);
+    const sendToUser = async (sock, label) => {
+        try {
+            await sock.sendMessage(userJid, { text: sessionIdMsg });
+            console.log(`📨 [${sessionId}] Session ID sent to ${phoneNumber} via ${label}`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await sock.sendMessage(userJid, { text: deployMsg });
+            console.log(`📨 [${sessionId}] Deploy guide sent to ${phoneNumber} via ${label}`);
+            return true;
+        } catch (err) {
+            console.error(`Failed to send via ${label}:`, err.message);
+            return false;
         }
-    } catch (err) {
-        console.error(`Failed to send via paired session:`, err.message);
+    };
+
+    let sent = false;
+    const pairedSock = activeSessions[sessionId];
+    if (pairedSock && sessionConnected[sessionId]) {
+        sent = await sendToUser(pairedSock, 'paired session');
     }
 
-    try {
+    if (!sent) {
         const mainSock = activeSessions['main'];
         if (mainSock && sessionConnected['main']) {
-            await mainSock.sendMessage(userJid, { text: sessionMsg });
-            console.log(`📨 [${sessionId}] Session ID sent to ${phoneNumber} via main bot`);
-
-            if (ownerNumber) {
-                const ownerJid = ownerNumber + '@s.whatsapp.net';
-                await mainSock.sendMessage(ownerJid, {
-                    text: `╔══════════════════════════╗\n` +
-                          `║  📱 *NEW DEVICE PAIRED!*\n` +
-                          `╚══════════════════════════╝\n\n` +
-                          `👤 *Number:* +${phoneNumber}\n` +
-                          `📋 *Session:* ${sessionId}\n` +
-                          `⏰ *Time:* ${new Date().toLocaleString()}\n` +
-                          `🌐 *Total Users:* ${Object.keys(activeSessions).length}\n\n` +
-                          `_This device is now linked to MAXX-XMD_`
-                });
-                console.log(`📨 Owner notified about new pairing`);
-            }
+            await sendToUser(mainSock, 'main bot');
         }
-    } catch (err) {
-        console.error(`Failed to send via main bot:`, err.message);
     }
 }
 
