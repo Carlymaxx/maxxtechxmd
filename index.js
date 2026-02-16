@@ -253,11 +253,7 @@ async function sendSessionIdToUser(sessionId, phoneNumber) {
 
     const deployMsg = `*𝗠𝗔𝗫𝗫-𝗫𝗠𝗗 DEPLOYMENT GUIDE* 📌\n\n` +
         `1️⃣ Fork: github.com/Carlymaxx/maxxtechxmd\n\n` +
-        `2️⃣ Set environment variables:\n` +
-        `   • SESSION_ID = _(paste your session ID above)_\n` +
-        `   • OWNER_NUMBER = ${phoneNumber}\n` +
-        `   • PREFIX = .\n\n` +
-        `3️⃣ Deploy on:\n` +
+        `2️⃣ Deploy on:\n` +
         `   🟣 Heroku • 🟢 Render • 🔵 Railway\n` +
         `   🟡 Koyeb • ⚡ Replit\n\n` +
         `⚠️ _Keep your session ID private!_\n\n` +
