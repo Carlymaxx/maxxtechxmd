@@ -17,7 +17,7 @@
     "@whiskeysockets/baileys": "^7.0.0-rc.8",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.2.1",
+    "express": "^4.22.1",
     "jimp": "^1.6.0",
     "link-preview-js": "^3.2.0",
     "moment-timezone": "^0.6.0",

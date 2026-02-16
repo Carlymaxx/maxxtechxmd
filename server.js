@@ -19,68 +19,205 @@ const BOT_OWNER = process.env.OWNER_NAME || 'MAXX';
 const BOT_DEV = process.env.BOT_DEVELOPER || 'MAXX TECH';
 const SESSION_PREFIX = process.env.BOT_NAME || 'MAXX-XMD';
 const DB_FILE = path.join(__dirname, 'db.json');
-const SESSIONS_DIR = path.join(__dirname, 'auth_info_baileys'); // Match index.js
+const SESSIONS_DIR = path.join(__dirname, 'auth_info_baileys');
 
-// --- Initialize DB ---
 if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, JSON.stringify({ users: {}, sessions: {} }, null, 2));
 const readDB = () => JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
 const writeDB = (data) => fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 
-// --- Next.js App ---
 const nextApp = next({ dev: DEV });
 const nextHandle = nextApp.getRequestHandler();
 
-// --- Start MAXX-XMD Baileys Bot ---
-let sock;
-async function startBot() {
-  const { state, saveCreds } = await useMultiFileAuthState('./auth_info_baileys');
-  const { version } = await fetchLatestBaileysVersion();
+const sessionStatus = {};
 
-  sock = makeWASocket({ version, auth: state, printQRInTerminal: false });
-
-  sock.ev.on('creds.update', saveCreds);
-
-  sock.ev.on('connection.update', (up) => {
-    const conn = up.connection || '';
-    if (conn === 'open') console.log('✅ BAILEYS BOT CONNECTED');
-    if (conn === 'close') {
-      const shouldReconnect = up.lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut;
-      if (shouldReconnect) startBot();
-      else console.log('❌ Logged out, delete auth_info_baileys folder and restart');
+async function startBotSession(sessionId = 'main') {
+  if (bot.activeSessions[sessionId]) {
+    const existing = bot.activeSessions[sessionId];
+    if (existing.ws && existing.ws.readyState === 1) {
+      sessionStatus[sessionId] = 'connected';
+      return existing;
     }
-    if (up.qr) console.log('📲 QR ready in terminal (if needed)');
-  });
+  }
 
-  // Connect message handler
-  sock.ev.on('messages.upsert', async ({ messages }) => {
-    for (const msg of messages) {
-      if (msg.key.fromMe) continue;
-      try {
-        const handler = require('./handlers/messagehandler.js');
-        await handler(sock, msg);
-      } catch (err) {
-        console.error('Message handler error:', err);
+  sessionStatus[sessionId] = 'connecting';
+
+  try {
+    const sock = await bot.startBotSession(sessionId);
+
+    sock.ev.on('connection.update', (update) => {
+      const { connection } = update;
+      if (connection === 'open') {
+        sessionStatus[sessionId] = 'connected';
+      } else if (connection === 'close') {
+        sessionStatus[sessionId] = 'disconnected';
       }
-    }
-  });
+    });
+
+    return sock;
+  } catch (err) {
+    sessionStatus[sessionId] = 'error';
+    throw err;
+  }
 }
 
-// --- Express ---
+function getSessionInfo(sessionId) {
+  const sock = bot.activeSessions[sessionId];
+  const isConnected = sock && sock.ws && sock.ws.readyState === 1;
+  return {
+    id: sessionId,
+    status: isConnected ? 'connected' : (sessionStatus[sessionId] || 'disconnected'),
+    connected: isConnected
+  };
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- Helper: send WhatsApp message ---
-async function sendWhatsApp(number, message) {
-  if (!sock) throw new Error('Bot not ready');
-  const jid = number.includes('@') ? number : number + '@s.whatsapp.net';
-  return await sock.sendMessage(jid, { text: message });
-}
-
-// --- API Routes ---
 app.get('/api/status', (req, res) => {
-  res.json({ connected: sock ? sock.ws.readyState === 1 : false });
+  const mainSock = bot.activeSessions['main'];
+  const connected = mainSock ? mainSock.ws && mainSock.ws.readyState === 1 : false;
+  res.json({ connected });
+});
+
+app.get('/api/sessions', (req, res) => {
+  try {
+    const sessionDirs = [];
+    if (fs.existsSync(SESSIONS_DIR)) {
+      const entries = fs.readdirSync(SESSIONS_DIR, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          sessionDirs.push(entry.name);
+        }
+      }
+    }
+
+    const allIds = new Set([...sessionDirs, ...Object.keys(bot.activeSessions)]);
+    const sessions = Array.from(allIds).map(id => getSessionInfo(id));
+
+    res.json({ sessions });
+  } catch (e) {
+    console.error('Sessions list error:', e);
+    res.status(500).json({ error: 'Failed to list sessions' });
+  }
+});
+
+app.post('/api/sessions', async (req, res) => {
+  try {
+    const { name } = req.body;
+    const sessionId = name || `session-${Date.now()}`;
+    const safeName = sessionId.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    await startBotSession(safeName);
+    res.json({ success: true, session: getSessionInfo(safeName) });
+  } catch (e) {
+    console.error('Create session error:', e);
+    res.status(500).json({ error: 'Failed to create session' });
+  }
+});
+
+app.post('/api/sessions/:id/start', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await startBotSession(id);
+    res.json({ success: true, session: getSessionInfo(id) });
+  } catch (e) {
+    console.error('Start session error:', e);
+    res.status(500).json({ error: 'Failed to start session' });
+  }
+});
+
+app.post('/api/sessions/:id/stop', async (req, res) => {
+  try {
+    const { id } = req.params;
+    bot.stoppingSessions.add(id);
+    const sock = bot.activeSessions[id];
+    if (sock) {
+      sock.end(undefined);
+      delete bot.activeSessions[id];
+      sessionStatus[id] = 'disconnected';
+    }
+    res.json({ success: true, message: `Session ${id} stopped` });
+  } catch (e) {
+    console.error('Stop session error:', e);
+    res.status(500).json({ error: 'Failed to stop session' });
+  }
+});
+
+app.delete('/api/sessions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    bot.stoppingSessions.add(id);
+    const sock = bot.activeSessions[id];
+    if (sock) {
+      sock.end(undefined);
+      delete bot.activeSessions[id];
+    }
+    delete sessionStatus[id];
+
+    const sessionFolder = path.join(SESSIONS_DIR, id);
+    if (fs.existsSync(sessionFolder)) {
+      fs.rmSync(sessionFolder, { recursive: true, force: true });
+    }
+
+    res.json({ success: true, message: `Session ${id} deleted` });
+  } catch (e) {
+    console.error('Delete session error:', e);
+    res.status(500).json({ error: 'Failed to delete session' });
+  }
+});
+
+app.post('/api/sessions/:id/send', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { number, message } = req.body;
+    if (!number || !message) {
+      return res.status(400).json({ error: 'Number and message required' });
+    }
+
+    const sock = bot.activeSessions[id];
+    if (!sock || !sock.ws || sock.ws.readyState !== 1) {
+      return res.status(503).json({ error: 'Session not connected' });
+    }
+
+    const jid = number.includes('@') ? number : number + '@s.whatsapp.net';
+    await sock.sendMessage(jid, { text: message });
+    res.json({ success: true, message: 'Message sent' });
+  } catch (e) {
+    console.error('Send error:', e);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+app.post('/api/start-bot', async (req, res) => {
+  try {
+    await startBotSession('main');
+    res.json({ success: true, message: 'Bot starting...' });
+  } catch (e) {
+    res.status(500).json({ success: false, error: 'Failed to start bot' });
+  }
+});
+
+app.post('/api/send', async (req, res) => {
+  try {
+    const { number, message } = req.body;
+    if (!number || !message) {
+      return res.status(400).json({ success: false, error: 'Number and message required' });
+    }
+
+    const mainSock = bot.activeSessions['main'];
+    if (!mainSock || !mainSock.ws || mainSock.ws.readyState !== 1) {
+      return res.status(503).json({ success: false, error: 'Bot not connected' });
+    }
+
+    const jid = number.includes('@') ? number : number + '@s.whatsapp.net';
+    await mainSock.sendMessage(jid, { text: message });
+    res.json({ success: true, message: 'Message sent' });
+  } catch (e) {
+    console.error('Send error:', e);
+    res.status(500).json({ success: false, error: 'Failed to send message' });
+  }
 });
 
 app.post('/api/generate', async (req, res) => {
@@ -96,9 +233,15 @@ app.post('/api/generate', async (req, res) => {
     db.users[number].lastSentAt = Date.now();
     writeDB(db);
 
+    const mainSock = bot.activeSessions['main'];
+    if (!mainSock || !mainSock.ws || mainSock.ws.readyState !== 1) {
+      return res.status(503).json({ error: 'Bot not connected. Start a session first.' });
+    }
+
+    const jid = number + '@s.whatsapp.net';
     const msg = `🔐 MAXX-XMD VERIFICATION CODE\nYour code: *${code}*\nOwner: ${BOT_OWNER}\nDeveloper: ${BOT_DEV}`;
-    await sendWhatsApp(number, msg);
-    res.json({ message: 'Verification code sent to WhatsApp ✅' });
+    await mainSock.sendMessage(jid, { text: msg });
+    res.json({ message: 'Verification code sent to WhatsApp' });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Server error' });
@@ -123,7 +266,12 @@ app.post('/api/verify', async (req, res) => {
     user.code = null;
     writeDB(db);
 
-    await sendWhatsApp(number, `✅ MAXX-XMD session successfully generated!\nSession ID: ${sessionId}\nOwner: ${BOT_OWNER}\nDeveloper: ${BOT_DEV}\nValid 24h`);
+    const mainSock = bot.activeSessions['main'];
+    if (mainSock && mainSock.ws && mainSock.ws.readyState === 1) {
+      const jid = number + '@s.whatsapp.net';
+      await mainSock.sendMessage(jid, { text: `✅ MAXX-XMD session generated!\nSession ID: ${sessionId}\nOwner: ${BOT_OWNER}\nDeveloper: ${BOT_DEV}\nValid 24h` });
+    }
+
     res.json({ message: 'Verification successful! Session sent to WhatsApp', sessionId });
   } catch (e) {
     console.error(e);
@@ -131,40 +279,17 @@ app.post('/api/verify', async (req, res) => {
   }
 });
 
-app.post('/api/start-bot', async (req, res) => {
-  try {
-    if (!sock) {
-      startBot().catch(console.error);
-      res.json({ success: true, message: 'Bot starting... Check terminal for QR code' });
-    } else if (sock.ws.readyState === 1) {
-      res.json({ success: false, error: 'Bot is already running' });
-    } else {
-      startBot().catch(console.error);
-      res.json({ success: true, message: 'Bot restarting... Check terminal for QR code' });
-    }
-  } catch (e) {
-    res.status(500).json({ success: false, error: 'Failed to start bot' });
-  }
+app.get('/api/info', (req, res) => {
+  res.json({
+    botName: SESSION_PREFIX,
+    owner: BOT_OWNER,
+    developer: BOT_DEV,
+    prefix: process.env.PREFIX || '.',
+    activeSessions: Object.keys(bot.activeSessions).length,
+    uptime: process.uptime()
+  });
 });
 
-app.post('/api/send', async (req, res) => {
-  try {
-    const { number, message } = req.body;
-    if (!number || !message) {
-      return res.status(400).json({ success: false, error: 'Number and message required' });
-    }
-    if (!sock || sock.ws.readyState !== 1) {
-      return res.status(503).json({ success: false, error: 'Bot not connected' });
-    }
-    await sendWhatsApp(number, message);
-    res.json({ success: true, message: 'Message sent' });
-  } catch (e) {
-    console.error('Send error:', e);
-    res.status(500).json({ success: false, error: 'Failed to send message' });
-  }
-});
-
-// --- Cleanup expired sessions ---
 setInterval(() => {
   try {
     const db = readDB();
@@ -182,13 +307,13 @@ setInterval(() => {
   }
 }, 10 * 60 * 1000);
 
-// --- Catch-all handler for Next.js ---
-app.use(nextHandle);
+app.all('*', (req, res) => {
+  return nextHandle(req, res);
+});
 
-// --- Start everything ---
 nextApp.prepare().then(() => {
   app.listen(PORT, '0.0.0.0', () => console.log(`🚀 MAXX-XMD server listening on port ${PORT}`));
-  startBot().catch(console.error);
+  startBotSession('main').catch(console.error);
 }).catch(err => {
   console.error('Failed to start Next.js:', err);
   process.exit(1);

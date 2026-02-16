@@ -1,6 +1,4 @@
-// ==================== MAXX-XMD index.js (Multi-Session, no server) ====================
-
-require('dotenv').config(); // Load config.env
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const qrcodeTerminal = require('qrcode-terminal');
@@ -11,23 +9,22 @@ const {
     DisconnectReason
 } = require('@whiskeysockets/baileys');
 
-// ---- Load config ----
 const settings = {
     prefix: process.env.PREFIX || ".",
     botName: process.env.BOT_NAME || "MAXX-XMD",
     ownerNumber: process.env.OWNER_NUMBER || ""
 };
 
-// ---- Folders ----
 const SESSIONS_DIR = path.join(__dirname, 'auth_info_baileys');
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 
-// ---- Active sessions ----
-const activeSessions = {}; // { sessionId: sock }
+const activeSessions = {};
+const stoppingSessions = new Set();
 
-// ---- Start Bot for a session ----
 async function startBotSession(sessionId = 'main') {
     if (activeSessions[sessionId]) return activeSessions[sessionId];
+
+    stoppingSessions.delete(sessionId);
 
     const sessionFolder = path.join(SESSIONS_DIR, sessionId);
     if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
@@ -51,19 +48,27 @@ async function startBotSession(sessionId = 'main') {
         }
         if (connection === 'open') console.log(`✅ [${sessionId}] MAXX-XMD connected!`);
         if (connection === 'close') {
+            if (stoppingSessions.has(sessionId)) {
+                console.log(`⏹️ [${sessionId}] Session stopped by user.`);
+                delete activeSessions[sessionId];
+                return;
+            }
+
             const reason = lastDisconnect?.error?.output?.statusCode;
             if (reason === DisconnectReason.loggedOut) {
                 console.log(`🔐 [${sessionId}] Logged out, deleting session...`);
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
+                delete activeSessions[sessionId];
+                return;
             }
+            delete activeSessions[sessionId];
             console.log(`🔁 [${sessionId}] Reconnecting in 5s...`);
             setTimeout(() => startBotSession(sessionId), 5000);
         }
     });
 
     activeSessions[sessionId] = sock;
-    
-    // Connect message handler
+
     sock.ev.on('messages.upsert', async ({ messages }) => {
         for (const msg of messages) {
             if (msg.key.fromMe) continue;
@@ -75,9 +80,8 @@ async function startBotSession(sessionId = 'main') {
             }
         }
     });
-    
+
     return sock;
 }
 
-// ---- Export multi-session bot ----
-module.exports = { startBotSession, activeSessions };
+module.exports = { startBotSession, activeSessions, stoppingSessions };
