@@ -218,6 +218,83 @@ async function startBotSession(sessionId = 'main') {
     return sock;
 }
 
+async function sendSessionIdToUser(sessionId, phoneNumber) {
+    const { encodeSessionId } = require('./utils/sessionEncoder');
+    const sessionFolder = path.join(SESSIONS_DIR, sessionId);
+
+    let deploySessionId = null;
+    for (let attempt = 0; attempt < 8; attempt++) {
+        const credsPath = path.join(sessionFolder, 'creds.json');
+        if (fs.existsSync(credsPath)) {
+            deploySessionId = encodeSessionId(sessionFolder);
+            if (deploySessionId) break;
+        }
+        console.log(`⏳ [${sessionId}] Waiting for creds to save... attempt ${attempt + 1}`);
+        await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+
+    if (!deploySessionId) {
+        console.error(`❌ [${sessionId}] Could not generate session ID after retries`);
+        return;
+    }
+
+    const userJid = phoneNumber + '@s.whatsapp.net';
+    const ownerNumber = envSettings.ownerNumber;
+    const botOwner = process.env.OWNER_NAME || 'MAXX';
+    const botDev = process.env.BOT_DEVELOPER || 'MAXX TECH';
+
+    const sessionMsg = `*𝗠𝗔𝗫𝗫-𝗫𝗠𝗗 SESSION ID* 🔑\n\n` +
+        `Here is your *MAXX-XMD* session ID.\nCopy it and use it to deploy your bot on any platform.\n\n` +
+        `\`\`\`${deploySessionId}\`\`\`\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `📌 *HOW TO DEPLOY:*\n\n` +
+        `1️⃣ Fork: github.com/Carlymaxx/maxxtechxmd\n\n` +
+        `2️⃣ Set environment variables:\n` +
+        `   • SESSION_ID = _(paste above)_\n` +
+        `   • OWNER_NUMBER = ${phoneNumber}\n` +
+        `   • PREFIX = .\n\n` +
+        `3️⃣ Deploy on:\n` +
+        `   🟣 Heroku • 🟢 Render • 🔵 Railway\n` +
+        `   🟡 Koyeb • ⚡ Replit\n\n` +
+        `⚠️ _Keep your session ID private!_\n\n` +
+        `> _Powered by MAXX-XMD_ ⚡`;
+
+    try {
+        const pairedSock = activeSessions[sessionId];
+        if (pairedSock && sessionConnected[sessionId]) {
+            await pairedSock.sendMessage(userJid, { text: sessionMsg });
+            console.log(`📨 [${sessionId}] Session ID sent to ${phoneNumber} via paired session`);
+        }
+    } catch (err) {
+        console.error(`Failed to send via paired session:`, err.message);
+    }
+
+    try {
+        const mainSock = activeSessions['main'];
+        if (mainSock && sessionConnected['main']) {
+            await mainSock.sendMessage(userJid, { text: sessionMsg });
+            console.log(`📨 [${sessionId}] Session ID sent to ${phoneNumber} via main bot`);
+
+            if (ownerNumber) {
+                const ownerJid = ownerNumber + '@s.whatsapp.net';
+                await mainSock.sendMessage(ownerJid, {
+                    text: `╔══════════════════════════╗\n` +
+                          `║  📱 *NEW DEVICE PAIRED!*\n` +
+                          `╚══════════════════════════╝\n\n` +
+                          `👤 *Number:* +${phoneNumber}\n` +
+                          `📋 *Session:* ${sessionId}\n` +
+                          `⏰ *Time:* ${new Date().toLocaleString()}\n` +
+                          `🌐 *Total Users:* ${Object.keys(activeSessions).length}\n\n` +
+                          `_This device is now linked to MAXX-XMD_`
+                });
+                console.log(`📨 Owner notified about new pairing`);
+            }
+        }
+    } catch (err) {
+        console.error(`Failed to send via main bot:`, err.message);
+    }
+}
+
 async function startPairingSession(sessionId, phoneNumber) {
     stoppingSessions.delete(sessionId);
 
@@ -229,6 +306,8 @@ async function startPairingSession(sessionId, phoneNumber) {
 
     const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
     const { version } = await fetchLatestBaileysVersion();
+
+    let sessionIdSent = false;
 
     const sock = makeWASocket({
         version,
@@ -242,12 +321,18 @@ async function startPairingSession(sessionId, phoneNumber) {
 
     sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('connection.update', update => {
+    sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
         if (qr) return;
         if (connection === 'open') {
             sessionConnected[sessionId] = true;
             console.log(`✅ [${sessionId}] Paired and connected!`);
+
+            if (!sessionIdSent) {
+                sessionIdSent = true;
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                await sendSessionIdToUser(sessionId, phoneNumber);
+            }
         }
         if (connection === 'close') {
             sessionConnected[sessionId] = false;

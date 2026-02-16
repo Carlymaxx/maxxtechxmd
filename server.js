@@ -7,7 +7,6 @@ const next = require('next');
 
 const QRCode = require('qrcode');
 const bot = require("./index.js");
-const { getSessionIdForFolder } = require('./utils/sessionEncoder');
 
 const DEV = process.env.NODE_ENV !== 'production';
 const PORT = process.env.PORT || 5000;
@@ -228,84 +227,6 @@ app.post('/api/pair', async (req, res) => {
     if (!pairingCode) {
       return res.status(400).json({ error: 'Session already registered. Delete old session first.' });
     }
-
-    sock.ev.on('connection.update', async (update) => {
-      const { connection } = update;
-      if (connection === 'open') {
-        bot.sessionConnected[sessionId] = true;
-        console.log(`✅ [${sessionId}] User ${number} paired successfully!`);
-
-        await new Promise(resolve => setTimeout(resolve, 5000));
-
-        let deploySessionId = null;
-        for (let attempt = 0; attempt < 5; attempt++) {
-          deploySessionId = getSessionIdForFolder(sessionId);
-          if (deploySessionId) break;
-          console.log(`⏳ [${sessionId}] Waiting for creds to save... attempt ${attempt + 1}`);
-          await new Promise(resolve => setTimeout(resolve, 3000));
-        }
-
-        if (!deploySessionId) {
-          console.error(`❌ [${sessionId}] Could not generate session ID after retries`);
-          return;
-        }
-
-        const userJid = number + '@s.whatsapp.net';
-
-        const sessionMsg = `*𝗠𝗔𝗫𝗫-𝗫𝗠𝗗 SESSION ID* 🔑\n\n` +
-              `Here is your *MAXX-XMD* session ID.\nCopy it and use it to deploy your bot on any platform.\n\n` +
-              `\`\`\`${deploySessionId}\`\`\`\n\n` +
-              `━━━━━━━━━━━━━━━━━━━━━━\n` +
-              `📌 *HOW TO DEPLOY:*\n\n` +
-              `1️⃣ Fork: github.com/Carlymaxx/maxxtechxmd\n\n` +
-              `2️⃣ Set environment variables:\n` +
-              `   • SESSION_ID = _(paste above)_\n` +
-              `   • OWNER_NUMBER = ${number}\n` +
-              `   • PREFIX = .\n\n` +
-              `3️⃣ Deploy on:\n` +
-              `   🟣 Heroku • 🟢 Render • 🔵 Railway\n` +
-              `   🟡 Koyeb • ⚡ Replit\n\n` +
-              `⚠️ _Keep your session ID private!_\n\n` +
-              `> _Powered by MAXX-XMD_ ⚡`;
-
-        try {
-          const pairedSock = bot.activeSessions[sessionId];
-          if (pairedSock && bot.sessionConnected[sessionId]) {
-            await pairedSock.sendMessage(userJid, { text: sessionMsg });
-            console.log(`📨 Session ID sent to ${number} via paired session`);
-          }
-        } catch (err1) {
-          console.error(`Failed to send via paired session:`, err1.message);
-        }
-
-        try {
-          const mainSockNow = bot.activeSessions['main'];
-          if (mainSockNow && bot.sessionConnected['main']) {
-            await mainSockNow.sendMessage(userJid, { text: sessionMsg });
-            console.log(`📨 Session ID also sent to ${number} via main bot`);
-
-            if (OWNER_NUMBER) {
-              const ownerJid = OWNER_NUMBER + '@s.whatsapp.net';
-              await mainSockNow.sendMessage(ownerJid, {
-                text: `╔══════════════════════════╗\n` +
-                      `║  📱 *NEW DEVICE PAIRED!*\n` +
-                      `╚══════════════════════════╝\n\n` +
-                      `👤 *Number:* +${number}\n` +
-                      `📋 *Session:* ${sessionId}\n` +
-                      `⏰ *Time:* ${new Date().toLocaleString()}\n` +
-                      `🌐 *Total Users:* ${Object.keys(bot.activeSessions).length}\n\n` +
-                      `_This device is now linked to ${SESSION_PREFIX}_`
-              });
-              console.log(`📨 Owner notified about new pairing`);
-            }
-          }
-        } catch (err2) {
-          console.error(`Failed to send via main bot:`, err2.message);
-        }
-      } else if (connection === 'close') {
-        bot.sessionConnected[sessionId] = false;
-      }
-    });
 
     const formattedCode = pairingCode.match(/.{1,4}/g)?.join('-') || pairingCode;
 
