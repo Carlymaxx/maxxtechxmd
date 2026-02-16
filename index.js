@@ -110,28 +110,23 @@ async function startPairingSession(sessionId, phoneNumber) {
         version,
         auth: state,
         printQRInTerminal: false,
-        browser: [settings.botName, 'Chrome', '1.0']
+        qrTimeout: undefined,
+        defaultQueryTimeoutMs: undefined,
+        connectTimeoutMs: 120000,
+        browser: ['Mac OS', 'Chrome', '14.4.1']
     });
 
     sock.ev.on('creds.update', saveCreds);
 
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    if (sock.authState.creds.registered) {
-        sock.end(undefined);
-        fs.rmSync(sessionFolder, { recursive: true, force: true });
-        throw new Error('Session already registered. Please try again.');
-    }
-
-    const pairingCode = await sock.requestPairingCode(phoneNumber);
-    console.log(`🔑 [${sessionId}] Pairing code for ${phoneNumber}: ${pairingCode}`);
-
     sock.ev.on('connection.update', update => {
-        const { connection, lastDisconnect } = update;
+        const { connection, lastDisconnect, qr } = update;
+        if (qr) return;
         if (connection === 'open') {
+            sessionConnected[sessionId] = true;
             console.log(`✅ [${sessionId}] Paired and connected!`);
         }
         if (connection === 'close') {
+            sessionConnected[sessionId] = false;
             if (stoppingSessions.has(sessionId)) {
                 console.log(`⏹️ [${sessionId}] Session stopped by user.`);
                 delete activeSessions[sessionId];
@@ -139,8 +134,15 @@ async function startPairingSession(sessionId, phoneNumber) {
             }
 
             const reason = lastDisconnect?.error?.output?.statusCode;
+            const errorMsg = lastDisconnect?.error?.message || '';
             if (reason === DisconnectReason.loggedOut) {
                 console.log(`🔐 [${sessionId}] Logged out, deleting session...`);
+                fs.rmSync(sessionFolder, { recursive: true, force: true });
+                delete activeSessions[sessionId];
+                return;
+            }
+            if (errorMsg.includes('QR refs') || errorMsg.includes('timed out')) {
+                console.log(`⏰ [${sessionId}] Pairing timed out, cleaning up...`);
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
                 delete activeSessions[sessionId];
                 return;
@@ -152,6 +154,18 @@ async function startPairingSession(sessionId, phoneNumber) {
     });
 
     activeSessions[sessionId] = sock;
+
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    if (sock.authState.creds.registered) {
+        sock.end(undefined);
+        fs.rmSync(sessionFolder, { recursive: true, force: true });
+        delete activeSessions[sessionId];
+        throw new Error('Session already registered. Please try again.');
+    }
+
+    const pairingCode = await sock.requestPairingCode(phoneNumber);
+    console.log(`🔑 [${sessionId}] Pairing code for ${phoneNumber}: ${pairingCode}`);
 
     sock.ev.on('messages.upsert', async ({ messages }) => {
         for (const msg of messages) {
