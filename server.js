@@ -14,7 +14,7 @@ const {
 const bot = require("./index.js");
 
 const DEV = process.env.NODE_ENV !== 'production';
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 const BOT_OWNER = process.env.OWNER_NAME || 'MAXX';
 const BOT_DEV = process.env.BOT_DEVELOPER || 'MAXX TECH';
 const SESSION_PREFIX = process.env.BOT_NAME || 'MAXX-XMD';
@@ -187,7 +187,7 @@ app.use(nextHandle);
 
 // --- Start everything ---
 nextApp.prepare().then(() => {
-  app.listen(PORT, () => console.log(`🚀 MAXX-XMD server listening on port ${PORT}`));
+  app.listen(PORT, '0.0.0.0', () => console.log(`🚀 MAXX-XMD server listening on port ${PORT}`));
   startBot().catch(console.error);
 }).catch(err => {
   console.error('Failed to start Next.js:', err);
