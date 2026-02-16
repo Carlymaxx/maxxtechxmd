@@ -556,6 +556,36 @@ function PairTab({ mainConnected, showToast }: {
   const [step, setStep] = useState<'phone' | 'code' | 'done'>('phone');
   const [sessionId, setSessionId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(pairingCode.replace(/-/g, ''));
+      setCopied(true);
+      showToast('success', 'Code copied!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = pairingCode.replace(/-/g, '');
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopied(true);
+      showToast('success', 'Code copied!');
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const copySessionId = async () => {
+    try {
+      await navigator.clipboard.writeText(sessionId);
+      showToast('success', 'Session ID copied!');
+    } catch {
+      showToast('error', 'Failed to copy');
+    }
+  };
 
   const requestPairing = async () => {
     const cleanNumber = phone.replace(/[^0-9]/g, '');
@@ -576,8 +606,8 @@ function PairTab({ mainConnected, showToast }: {
       } else {
         setPairingCode(data.pairingCode);
         setSessionId(data.sessionId);
-        showToast('success', 'Pairing code generated!');
         setStep('code');
+        setShowPopup(true);
       }
     } catch {
       showToast('error', 'Connection failed');
@@ -596,6 +626,7 @@ function PairTab({ mainConnected, showToast }: {
         const data = await res.json();
         if (data.connected) {
           setStep('done');
+          setShowPopup(false);
           showToast('success', 'WhatsApp linked successfully!');
           clearInterval(interval);
         } else if (data.status === 'failed' || data.status === 'disconnected') {
@@ -603,6 +634,7 @@ function PairTab({ mainConnected, showToast }: {
           setStep('phone');
           setPairingCode('');
           setSessionId('');
+          setShowPopup(false);
           clearInterval(interval);
         }
       } catch {}
@@ -611,6 +643,7 @@ function PairTab({ mainConnected, showToast }: {
         setStep('phone');
         setPairingCode('');
         setSessionId('');
+        setShowPopup(false);
         clearInterval(interval);
       }
     }, 3000);
@@ -627,9 +660,76 @@ function PairTab({ mainConnected, showToast }: {
 
   return (
     <div className="max-w-lg mx-auto animate-fade-in">
+      {showPopup && pairingCode && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowPopup(false)}>
+          <div className="w-full max-w-sm animate-fade-in" onClick={e => e.stopPropagation()}>
+            <div className="bg-[#1f2c34] rounded-2xl overflow-hidden shadow-2xl border border-[#2a3942]">
+              <div className="bg-[#00a884] px-5 py-4 flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-base">MAXX-XMD</p>
+                  <p className="text-white/70 text-xs">Pairing Code Ready</p>
+                </div>
+                <button onClick={() => setShowPopup(false)} className="ml-auto text-white/70 hover:text-white text-xl leading-none">&times;</button>
+              </div>
+
+              <div className="px-5 py-6 space-y-4">
+                <div className="bg-[#0b141a] rounded-xl p-5 text-center space-y-3">
+                  <p className="text-[#8696a0] text-xs uppercase tracking-widest">Your MAXX-XMD Code</p>
+                  <p className="text-3xl font-mono font-bold text-[#00a884] tracking-[0.35em] select-all">{pairingCode}</p>
+                  <button
+                    onClick={copyCode}
+                    className={`inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-medium transition-all ${copied ? 'bg-[#00a884] text-white' : 'bg-[#00a884]/20 text-[#00a884] hover:bg-[#00a884]/30'}`}
+                  >
+                    {copied ? (
+                      <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!</>
+                    ) : (
+                      <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Code</>
+                    )}
+                  </button>
+                </div>
+
+                <div className="bg-[#0b141a] rounded-xl p-4 space-y-2.5">
+                  <p className="text-white text-sm font-medium">Enter this code in WhatsApp:</p>
+                  <div className="space-y-1.5">
+                    <div className="flex items-start gap-2">
+                      <span className="text-[#00a884] font-bold text-sm mt-0.5">1.</span>
+                      <p className="text-[#8696a0] text-sm">Open <span className="text-white">WhatsApp</span> on your phone</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-[#00a884] font-bold text-sm mt-0.5">2.</span>
+                      <p className="text-[#8696a0] text-sm">Go to <span className="text-white">Linked Devices</span></p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-[#00a884] font-bold text-sm mt-0.5">3.</span>
+                      <p className="text-[#8696a0] text-sm">Tap <span className="text-white">Link a Device</span></p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-[#00a884] font-bold text-sm mt-0.5">4.</span>
+                      <p className="text-[#8696a0] text-sm">Tap <span className="text-[#00a884]">&quot;Link with phone number&quot;</span></p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-[#00a884] font-bold text-sm mt-0.5">5.</span>
+                      <p className="text-[#8696a0] text-sm">Paste or type the <span className="text-white">code above</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-sm text-[#8696a0]">
+                  <span className="w-4 h-4 border-2 border-[#00a884] border-t-transparent rounded-full animate-spin" />
+                  Waiting for you to link...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
         <h2 className="text-lg font-semibold text-white mb-2">Pair Your WhatsApp</h2>
-        <p className="text-sm text-gray-400 mb-6">Link your WhatsApp to get your own bot session</p>
+        <p className="text-sm text-gray-400 mb-6">Link your WhatsApp to get your own MAXX-XMD bot session</p>
 
         {!mainConnected && (
           <div className="bg-amber-900/30 border border-amber-700 rounded-lg p-4 mb-6">
@@ -679,21 +779,24 @@ function PairTab({ mainConnected, showToast }: {
 
         {step === 'code' && (
           <div className="space-y-5">
-            <div className="bg-gray-800 rounded-xl p-6 text-center">
-              <p className="text-sm text-gray-400 mb-3">Your Pairing Code</p>
-              <p className="text-4xl font-mono font-bold text-emerald-400 tracking-[0.3em]">{pairingCode}</p>
+            <div className="bg-gray-800 rounded-xl p-6 text-center space-y-3">
+              <p className="text-sm text-gray-400">Your MAXX-XMD Pairing Code</p>
+              <p className="text-4xl font-mono font-bold text-emerald-400 tracking-[0.3em] select-all">{pairingCode}</p>
+              <button
+                onClick={copyCode}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${copied ? 'bg-emerald-600 text-white' : 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'}`}
+              >
+                {copied ? 'Copied!' : 'Copy MAXX-XMD Code'}
+              </button>
             </div>
 
-            <div className="bg-gray-800/50 rounded-lg p-4 space-y-2">
-              <p className="text-sm font-medium text-white">How to link:</p>
-              <ol className="text-sm text-gray-400 space-y-1.5 list-decimal list-inside">
-                <li>Open WhatsApp on your phone</li>
-                <li>Go to <span className="text-white">Settings</span> &gt; <span className="text-white">Linked Devices</span></li>
-                <li>Tap <span className="text-white">Link a Device</span></li>
-                <li>Select <span className="text-emerald-400">&quot;Link with phone number instead&quot;</span></li>
-                <li>Enter the code shown above</li>
-              </ol>
-            </div>
+            <button
+              onClick={() => setShowPopup(true)}
+              className="w-full bg-[#00a884] hover:bg-[#00a884]/90 text-white font-medium py-2.5 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Show WhatsApp Instructions
+            </button>
 
             <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
               <span className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -701,7 +804,7 @@ function PairTab({ mainConnected, showToast }: {
             </div>
 
             <button
-              onClick={() => { setStep('phone'); setPairingCode(''); setSessionId(''); }}
+              onClick={() => { setStep('phone'); setPairingCode(''); setSessionId(''); setShowPopup(false); }}
               className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
             >
               Cancel & Start Over
@@ -716,7 +819,13 @@ function PairTab({ mainConnected, showToast }: {
             <p className="text-sm text-gray-400">Your WhatsApp is now connected to MAXX-XMD</p>
             <div className="bg-gray-800 rounded-lg p-4">
               <p className="text-xs text-gray-400 mb-1">Your Session ID</p>
-              <p className="text-emerald-400 font-mono text-sm break-all select-all">{sessionId}</p>
+              <p className="text-emerald-400 font-mono text-sm break-all select-all mb-2">{sessionId}</p>
+              <button
+                onClick={copySessionId}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-medium bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 transition-all"
+              >
+                Copy Session ID
+              </button>
             </div>
             <p className="text-sm text-gray-400">Your session ID was also sent to your WhatsApp via the main bot.</p>
             <button
