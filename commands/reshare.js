@@ -5,51 +5,49 @@ module.exports = {
   alias: ["forward", "fwd"],
   description: "Forward/reshare a quoted message",
   execute: async (sock, msg, args, from, settings) => {
-    const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+    const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
+    const quoted = contextInfo?.quotedMessage;
 
     if (!quoted) {
       return await sock.sendMessage(from, { text: `❌ Reply to a message to reshare it!\n\nUsage: Reply to any message with ${settings.prefix}reshare` }, { quoted: msg });
     }
+
+    const quotedKey = {
+      remoteJid: from,
+      id: contextInfo.stanzaId,
+      fromMe: false,
+      participant: contextInfo.participant || undefined
+    };
 
     try {
       if (quoted.conversation || quoted.extendedTextMessage) {
         const text = quoted.conversation || quoted.extendedTextMessage?.text;
         await sock.sendMessage(from, { text: `♻️ *Reshared:*\n\n${text}` });
       } else if (quoted.imageMessage) {
-        const buffer = await downloadMediaMessage(
-          { message: { imageMessage: quoted.imageMessage }, key: msg.message.extendedTextMessage.contextInfo.stanzaId },
-          "buffer", {}
-        );
+        const quotedMsg = { key: quotedKey, message: { imageMessage: quoted.imageMessage } };
+        const buffer = await downloadMediaMessage(quotedMsg, "buffer", {});
         await sock.sendMessage(from, {
           image: buffer,
           caption: quoted.imageMessage.caption ? `♻️ ${quoted.imageMessage.caption}` : "♻️ Reshared image"
         });
       } else if (quoted.videoMessage) {
-        const buffer = await downloadMediaMessage(
-          { message: { videoMessage: quoted.videoMessage }, key: msg.message.extendedTextMessage.contextInfo.stanzaId },
-          "buffer", {}
-        );
+        const quotedMsg = { key: quotedKey, message: { videoMessage: quoted.videoMessage } };
+        const buffer = await downloadMediaMessage(quotedMsg, "buffer", {});
         await sock.sendMessage(from, {
           video: buffer,
           caption: quoted.videoMessage.caption ? `♻️ ${quoted.videoMessage.caption}` : "♻️ Reshared video"
         });
       } else if (quoted.audioMessage) {
-        const buffer = await downloadMediaMessage(
-          { message: { audioMessage: quoted.audioMessage }, key: msg.message.extendedTextMessage.contextInfo.stanzaId },
-          "buffer", {}
-        );
+        const quotedMsg = { key: quotedKey, message: { audioMessage: quoted.audioMessage } };
+        const buffer = await downloadMediaMessage(quotedMsg, "buffer", {});
         await sock.sendMessage(from, { audio: buffer, mimetype: "audio/mp4" });
       } else if (quoted.stickerMessage) {
-        const buffer = await downloadMediaMessage(
-          { message: { stickerMessage: quoted.stickerMessage }, key: msg.message.extendedTextMessage.contextInfo.stanzaId },
-          "buffer", {}
-        );
+        const quotedMsg = { key: quotedKey, message: { stickerMessage: quoted.stickerMessage } };
+        const buffer = await downloadMediaMessage(quotedMsg, "buffer", {});
         await sock.sendMessage(from, { sticker: buffer });
       } else if (quoted.documentMessage) {
-        const buffer = await downloadMediaMessage(
-          { message: { documentMessage: quoted.documentMessage }, key: msg.message.extendedTextMessage.contextInfo.stanzaId },
-          "buffer", {}
-        );
+        const quotedMsg = { key: quotedKey, message: { documentMessage: quoted.documentMessage } };
+        const buffer = await downloadMediaMessage(quotedMsg, "buffer", {});
         await sock.sendMessage(from, {
           document: buffer,
           mimetype: quoted.documentMessage.mimetype,

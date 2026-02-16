@@ -10,28 +10,53 @@ A WhatsApp bot built with Baileys library, featuring a modern dark-themed Next.j
 - **WhatsApp**: @whiskeysockets/baileys
 - **Entry Point**: `server.js` — starts Express + Next.js + WhatsApp bot
 - **Port**: 5000
+- **GitHub**: https://github.com/Carlymaxx/maxxtechxmd.git
 
 ## Key Files
 - `server.js` — Main server (Express + Next.js + Bot startup + Multi-session API + Pairing API)
-- `index.js` — WhatsApp bot multi-session logic (startBotSession, startPairingSession, activeSessions)
+- `index.js` — WhatsApp bot multi-session logic with auto-features (anticall, autoread, autoviewstatus, autolikestatus, welcome/goodbye)
 - `config.env` — Bot configuration (prefix, owner, features)
-- `handlers/messagehandler.js` — Command router: loads commands, handles aliases, passes (sock, msg, args, from, settings)
-- `commands/` — Bot command modules (each exports {name, alias?, description, execute})
+- `settings.json` — Runtime persistent settings (generated at first run, gitignored)
+- `utils/settings.js` — Settings manager (load/save/toggle JSON-backed settings)
+- `utils/grouphelper.js` — Group admin permission checks (getSenderJid, isGroupAdmin, isBotAdmin)
+- `handlers/messagehandler.js` — Command router with mode support (public/private), chatbot, aliases
+- `commands/` — 50 bot command modules (each exports {name, alias?, description, execute})
 - `next.config.ts` — Next.js configuration (allowedDevOrigins for Replit proxy)
 - `src/app/page.tsx` — Main dashboard page (client component with tabs)
 
 ## Command Architecture
 - Commands are loaded dynamically from `commands/` directory
 - Each command exports: `{ name, alias?, description, execute: async (sock, msg, args, from, settings) => {} }`
-- Prefix: "." (configurable via config.env PREFIX)
+- Prefix: "." (configurable via settings)
 - Bot processes ALL messages including fromMe (since bot runs as owner's linked device)
 - Status broadcasts and history sync messages are filtered out
+- Private mode: only owner can use commands; Public mode: everyone can use commands
+- Chatbot: auto-reply in DMs using SimSimi API when enabled
 
-## Available Commands (26 total)
+## Available Commands (50 files)
 ### Utilities: menu, ping, alive, botinfo, owner, repo, runtime
 ### Fun: joke, quote, 8ball, dice, flip, truth, dare, compliment
-### Tools: calc, tts, weather, sticker, toimg
+### Tools: calc, tts, weather, sticker, toimg, reshare
 ### Group: tagall, groupinfo, kick, promote, demote, mute, unmute, antilink
+### Settings: setvar, mode, setprefix, setbotname, setauthor, setpackname, settimezone, setbotpic
+### Automation: anticall, chatbot, autoread, autoviewstatus, autolikestatus, greet
+### Owner: block, unblock, deploy
+
+## Auto-Features (index.js)
+- **Anticall**: Auto-reject incoming calls and send message
+- **Autoread**: Auto-mark messages as read
+- **Autoviewstatus**: Auto-view WhatsApp statuses
+- **Autolikestatus**: Auto-react to statuses with configurable emoji
+- **Welcome/Goodbye**: Send greeting messages when users join/leave groups
+- **Chatbot**: AI auto-reply in DMs (SimSimi API)
+- **Mode**: Public (all users) or Private (owner only)
+
+## Settings System
+- Persistent JSON storage at `settings.json` (gitignored)
+- Runtime-modifiable via `.setvar` command
+- Toggle commands for each feature (anticall, chatbot, autoread, etc.)
+- Owner-only access for all settings changes
+- Falls back to config.env defaults if settings.json doesn't exist
 
 ## Pairing Flow
 1. Main bot starts with QR code (owner scans to connect)
@@ -55,10 +80,13 @@ A WhatsApp bot built with Baileys library, featuring a modern dark-themed Next.j
 - `GET /api/pair/status/:sessionId` — Check pairing session connection status
 
 ## Recent Changes
+- 2026-02-16: Added persistent settings system (utils/settings.js + settings.json)
+- 2026-02-16: Added auto-features in index.js: anticall, autoread, autoviewstatus, autolikestatus, welcome/goodbye events
+- 2026-02-16: Added 17 new settings/automation/owner commands (setvar, mode, setprefix, setbotname, setauthor, setpackname, settimezone, setbotpic, anticall, chatbot, autoread, autoviewstatus, autolikestatus, greet, block, deploy, reshare)
+- 2026-02-16: Updated message handler with public/private mode, chatbot auto-reply, dynamic settings
+- 2026-02-16: Pushed project to GitHub: https://github.com/Carlymaxx/maxxtechxmd
 - 2026-02-16: Added 19 new commands (alive, owner, repo, runtime, joke, quote, 8ball, dice, flip, truth, dare, compliment, calc, tts, weather, tagall, groupinfo, kick, promote, demote, mute, unmute)
 - 2026-02-16: Fixed command handler — passes correct params (sock, msg, args, from, settings), supports aliases, image/video captions
-- 2026-02-16: Fixed fromMe filter — bot now processes owner commands (since bot IS the owner's linked device)
-- 2026-02-16: Added type:'notify' filter to only process real-time messages, skip history sync
-- 2026-02-16: Owner always gets notified on device pairing (removed !== number check)
+- 2026-02-16: Fixed fromMe filter — bot now processes owner commands
 - 2026-02-16: Implemented WhatsApp pairing code flow with WhatsApp-style popup modal
 - 2026-02-16: Redesigned dashboard with modern dark theme, multi-session management, tabbed UI
