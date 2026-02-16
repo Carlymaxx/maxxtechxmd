@@ -79,9 +79,11 @@ async function startBotSession(sessionId = 'main') {
 
     activeSessions[sessionId] = sock;
 
-    sock.ev.on('messages.upsert', async ({ messages }) => {
+    sock.ev.on('messages.upsert', async ({ messages, type }) => {
+        if (type !== 'notify') return;
         for (const msg of messages) {
             if (msg.key.fromMe) continue;
+            if (msg.key.remoteJid === 'status@broadcast') continue;
             try {
                 const handler = require('./handlers/messagehandler.js');
                 await handler(sock, msg);
@@ -167,9 +169,11 @@ async function startPairingSession(sessionId, phoneNumber) {
     const pairingCode = await sock.requestPairingCode(phoneNumber);
     console.log(`🔑 [${sessionId}] Pairing code for ${phoneNumber}: ${pairingCode}`);
 
-    sock.ev.on('messages.upsert', async ({ messages }) => {
+    sock.ev.on('messages.upsert', async ({ messages, type }) => {
+        if (type !== 'notify') return;
         for (const msg of messages) {
             if (msg.key.fromMe) continue;
+            if (msg.key.remoteJid === 'status@broadcast') continue;
             try {
                 const handler = require('./handlers/messagehandler.js');
                 await handler(sock, msg);
