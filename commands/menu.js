@@ -1,33 +1,23 @@
 const moment = require("moment-timezone");
 const os = require("os");
-const process = require("process");
 const emojis = require('../utils/emojis');
-  // your emoji list
 
 module.exports = {
   name: "menu",
-  alias: ["help"],
+  alias: ["help", "commands"],
   description: "Show bot menu and info",
 
-  execute: async (sock, msg, args, from, settings, plugins = [], users = []) => {
-    // Nairobi time & date
+  execute: async (sock, msg, args, from, settings) => {
     const nairobiTime = moment().tz("Africa/Nairobi").format("HH:mm:ss");
     const nairobiDate = moment().tz("Africa/Nairobi").format("YYYY-MM-DD");
 
-    // RAM usage
-    const totalMem = Math.round(os.totalmem() / 1024 / 1024); // MB
-    const usedMem = Math.round((os.totalmem() - os.freemem()) / 1024 / 1024); // MB
+    const totalMem = Math.round(os.totalmem() / 1024 / 1024);
+    const usedMem = Math.round((os.totalmem() - os.freemem()) / 1024 / 1024);
 
-    // Public / Private mode
-    const mode = global.public ? "Public" : "Private";
+    const uptime = process.uptime();
+    const hours = Math.floor(uptime / 3600);
+    const minutes = Math.floor((uptime % 3600) / 60);
 
-    // Bot version
-    const version = "2.8.9";
-
-    // Active users count
-    const activeUsers = users.length || "N/A";
-
-    // Greeting based on Nairobi hour
     const hour = parseInt(moment().tz("Africa/Nairobi").format("HH"));
     let greeting = "Hello";
     if (hour >= 5 && hour < 12) greeting = "🌞 Good morning";
@@ -35,44 +25,64 @@ module.exports = {
     else if (hour >= 18 && hour < 22) greeting = "🌙 Good evening";
     else greeting = "🌌 Good night";
 
-    // Pick random emojis for decoration
     const randEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
-    const heartEmoji = ["💖", "💗", "💓", "💞", "💕", "💘", "💝"];
-    const randomHeart = heartEmoji[Math.floor(Math.random() * heartEmoji.length)];
 
-    // Build the menu with vertical border │
-    const text = `
-│═════════   ═══════════  ═════
-│✨ ${randEmoji()} ${settings.botName.toUpperCase()} MENU ${randEmoji()} ✨
-│═════════   ═══════════  ═════
-│
-│👤 Owner: ${settings.Maxx} ${randEmoji()}
-│🛠️ Developer: maxx ${randEmoji()}
-│📢 Channel: https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J ${randEmoji()}
-│🆔 Prefix: ${settings.prefix} ${randEmoji()}
-│🕒 Time (Nairobi Ruiru): ${nairobiTime} ${randEmoji()}
-│📅 Date: ${nairobiDate} ${randEmoji()}
-│
-│════════════ INFO ═══════════
-│🛠 Mode: ${mode} ${randEmoji()}
-│🧩 Version: ${version} ${randEmoji()}
-│💾 RAM Usage: ${usedMem}MB / ${totalMem}MB ${randEmoji()}
-│🔌 Plugins Active: ${plugins.length || 0} ${randEmoji()}
-│👥 Active Users: ${activeUsers} ${randEmoji()}
-│
-│══════════ COMMANDS ═════════
-│• menu ${randEmoji()}
-│• ping ${randEmoji()}
-│• welcome ${randEmoji()}
-│• goodbye ${randEmoji()}
-│• antidelete ${randEmoji()}
-│
-│══════════ GREETING ═════════
-│${greeting}, ${msg.pushName || "User"}! ${randomHeart}
-│MAXX-XMD loves you! ${randomHeart} ${randEmoji()}
-│
-│═════════════════════════════
-`;
+    const text = `╔══════════════════════════╗
+║  ✨ *${settings.botName} MENU* ✨
+╚══════════════════════════╝
+
+${greeting}, *${msg.pushName || "User"}*! ${randEmoji()}
+
+👑 *Owner:* ${settings.owner}
+🔧 *Prefix:* ${settings.prefix}
+🕒 *Time:* ${nairobiTime}
+📅 *Date:* ${nairobiDate}
+⏱️ *Uptime:* ${hours}h ${minutes}m
+💾 *RAM:* ${usedMem}MB / ${totalMem}MB
+
+╔═══ 🛠️ *UTILITIES* ═══╗
+║ ${settings.prefix}menu - Bot menu ${randEmoji()}
+║ ${settings.prefix}ping - Check response ${randEmoji()}
+║ ${settings.prefix}alive - Bot status ${randEmoji()}
+║ ${settings.prefix}botinfo - Bot info ${randEmoji()}
+║ ${settings.prefix}owner - Owner contact ${randEmoji()}
+║ ${settings.prefix}repo - Source code ${randEmoji()}
+║ ${settings.prefix}runtime - Uptime & system ${randEmoji()}
+╚════════════════════╝
+
+╔═══ 🎮 *FUN* ═══╗
+║ ${settings.prefix}joke - Random joke ${randEmoji()}
+║ ${settings.prefix}quote - Inspiration ${randEmoji()}
+║ ${settings.prefix}8ball - Magic 8-ball ${randEmoji()}
+║ ${settings.prefix}dice - Roll dice ${randEmoji()}
+║ ${settings.prefix}flip - Flip a coin ${randEmoji()}
+║ ${settings.prefix}truth - Truth question ${randEmoji()}
+║ ${settings.prefix}dare - Dare challenge ${randEmoji()}
+║ ${settings.prefix}compliment - Get hyped ${randEmoji()}
+╚════════════════════╝
+
+╔═══ 🔧 *TOOLS* ═══╗
+║ ${settings.prefix}calc - Calculator ${randEmoji()}
+║ ${settings.prefix}tts - Text to speech ${randEmoji()}
+║ ${settings.prefix}weather - Weather info ${randEmoji()}
+║ ${settings.prefix}sticker - Make sticker ${randEmoji()}
+║ ${settings.prefix}toimg - Sticker to image ${randEmoji()}
+╚════════════════════╝
+
+╔═══ 👥 *GROUP* ═══╗
+║ ${settings.prefix}tagall - Tag everyone ${randEmoji()}
+║ ${settings.prefix}groupinfo - Group info ${randEmoji()}
+║ ${settings.prefix}kick - Remove member ${randEmoji()}
+║ ${settings.prefix}promote - Make admin ${randEmoji()}
+║ ${settings.prefix}demote - Remove admin ${randEmoji()}
+║ ${settings.prefix}mute - Mute group ${randEmoji()}
+║ ${settings.prefix}unmute - Unmute group ${randEmoji()}
+║ ${settings.prefix}antilink - Toggle antilink ${randEmoji()}
+╚════════════════════╝
+
+📢 *Channel:* https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J
+
+> _Powered by Maxx Tech_ ⚡💫`;
 
     await sock.sendMessage(from, {
       image: { url: "https://i.postimg.cc/YSXgK0Wb/Whats-App-Image-2025-11-22-at-08-20-26.jpg" },

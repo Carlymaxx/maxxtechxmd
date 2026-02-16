@@ -15,19 +15,30 @@ A WhatsApp bot built with Baileys library, featuring a modern dark-themed Next.j
 - `server.js` — Main server (Express + Next.js + Bot startup + Multi-session API + Pairing API)
 - `index.js` — WhatsApp bot multi-session logic (startBotSession, startPairingSession, activeSessions)
 - `config.env` — Bot configuration (prefix, owner, features)
+- `handlers/messagehandler.js` — Command router: loads commands, handles aliases, passes (sock, msg, args, from, settings)
+- `commands/` — Bot command modules (each exports {name, alias?, description, execute})
 - `next.config.ts` — Next.js configuration (allowedDevOrigins for Replit proxy)
 - `src/app/page.tsx` — Main dashboard page (client component with tabs)
-- `src/app/layout.tsx` — Root layout with dark theme
-- `src/app/globals.css` — Global styles and Tailwind theme
-- `commands/` — Bot command modules
-- `handlers/` — Message/command handler logic
+
+## Command Architecture
+- Commands are loaded dynamically from `commands/` directory
+- Each command exports: `{ name, alias?, description, execute: async (sock, msg, args, from, settings) => {} }`
+- Prefix: "." (configurable via config.env PREFIX)
+- Bot processes ALL messages including fromMe (since bot runs as owner's linked device)
+- Status broadcasts and history sync messages are filtered out
+
+## Available Commands (26 total)
+### Utilities: menu, ping, alive, botinfo, owner, repo, runtime
+### Fun: joke, quote, 8ball, dice, flip, truth, dare, compliment
+### Tools: calc, tts, weather, sticker, toimg
+### Group: tagall, groupinfo, kick, promote, demote, mute, unmute, antilink
 
 ## Pairing Flow
 1. Main bot starts with QR code (owner scans to connect)
 2. Users visit "Pair Device" tab, enter their WhatsApp number
 3. Server generates a WhatsApp pairing code via `requestPairingCode()`
 4. User enters the code in WhatsApp > Linked Devices > Link with phone number
-5. On successful link, the session ID is automatically sent to the user's WhatsApp via the main bot
+5. On successful link, session ID sent to user AND owner via main bot
 
 ## API Endpoints
 - `GET /api/status` — Main bot connection status
@@ -44,9 +55,10 @@ A WhatsApp bot built with Baileys library, featuring a modern dark-themed Next.j
 - `GET /api/pair/status/:sessionId` — Check pairing session connection status
 
 ## Recent Changes
-- 2026-02-16: Implemented WhatsApp pairing code flow (requestPairingCode) — users enter number, get code, link device, session ID sent to their WhatsApp
-- 2026-02-16: Added startPairingSession to index.js with printQRInTerminal:false
+- 2026-02-16: Added 19 new commands (alive, owner, repo, runtime, joke, quote, 8ball, dice, flip, truth, dare, compliment, calc, tts, weather, tagall, groupinfo, kick, promote, demote, mute, unmute)
+- 2026-02-16: Fixed command handler — passes correct params (sock, msg, args, from, settings), supports aliases, image/video captions
+- 2026-02-16: Fixed fromMe filter — bot now processes owner commands (since bot IS the owner's linked device)
+- 2026-02-16: Added type:'notify' filter to only process real-time messages, skip history sync
+- 2026-02-16: Owner always gets notified on device pairing (removed !== number check)
+- 2026-02-16: Implemented WhatsApp pairing code flow with WhatsApp-style popup modal
 - 2026-02-16: Redesigned dashboard with modern dark theme, multi-session management, tabbed UI
-- 2026-02-16: Added stoppingSessions tracking to prevent auto-reconnect loops
-- 2026-02-16: Downgraded Express to v4 for Next.js compatibility
-- 2026-02-16: Initial Replit setup — port set to 5000, Next.js configured for proxy/iframe access
