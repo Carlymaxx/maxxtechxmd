@@ -20,10 +20,13 @@ if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 
 const activeSessions = {};
 const stoppingSessions = new Set();
+const latestQR = {};
+
 async function startBotSession(sessionId = 'main') {
     if (activeSessions[sessionId]) return activeSessions[sessionId];
 
     stoppingSessions.delete(sessionId);
+    delete latestQR[sessionId];
 
     const sessionFolder = path.join(SESSIONS_DIR, sessionId);
     if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
@@ -42,13 +45,16 @@ async function startBotSession(sessionId = 'main') {
     sock.ev.on('connection.update', update => {
         const { connection, lastDisconnect, qr } = update;
         if (qr) {
+            latestQR[sessionId] = qr;
             qrcodeTerminal.generate(qr, { small: true });
-            console.log(`📲 [${sessionId}] Scan this QR with WhatsApp (first time only)`);
+            console.log(`📲 [${sessionId}] Scan this QR with WhatsApp`);
         }
         if (connection === 'open') {
+            delete latestQR[sessionId];
             console.log(`✅ [${sessionId}] MAXX-XMD connected!`);
         }
         if (connection === 'close') {
+            delete latestQR[sessionId];
             if (stoppingSessions.has(sessionId)) {
                 console.log(`⏹️ [${sessionId}] Session stopped by user.`);
                 delete activeSessions[sessionId];
@@ -159,4 +165,4 @@ async function startPairingSession(sessionId, phoneNumber) {
     return { sock, pairingCode };
 }
 
-module.exports = { startBotSession, startPairingSession, activeSessions, stoppingSessions };
+module.exports = { startBotSession, startPairingSession, activeSessions, stoppingSessions, latestQR };

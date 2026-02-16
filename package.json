@@ -25,6 +25,7 @@
     "node-fetch": "^3.3.2",
     "pino": "^10.1.0",
     "play-dl": "^1.9.7",
+    "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

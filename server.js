@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const next = require('next');
 
+const QRCode = require('qrcode');
 const bot = require("./index.js");
 
 const DEV = process.env.NODE_ENV !== 'production';
@@ -68,7 +69,21 @@ app.use(express.json());
 app.get('/api/status', (req, res) => {
   const mainSock = bot.activeSessions['main'];
   const connected = mainSock ? mainSock.ws && mainSock.ws.readyState === 1 : false;
-  res.json({ connected });
+  const hasQR = !!bot.latestQR['main'];
+  res.json({ connected, hasQR });
+});
+
+app.get('/api/qr', async (req, res) => {
+  const qrString = bot.latestQR['main'];
+  if (!qrString) {
+    return res.json({ qr: null, message: 'No QR code available' });
+  }
+  try {
+    const qrDataURL = await QRCode.toDataURL(qrString, { width: 300, margin: 2 });
+    res.json({ qr: qrDataURL });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to generate QR' });
+  }
 });
 
 app.get('/api/sessions', (req, res) => {

@@ -142,12 +142,15 @@ function DashboardTab({ botInfo, sessions, connectedCount, mainConnected, fetchD
   fetchData: () => void;
   showToast: (type: 'success' | 'error', msg: string) => void;
 }) {
+  const [qrImage, setQrImage] = useState<string | null>(null);
+  const [hasQR, setHasQR] = useState(false);
+
   const startMain = async () => {
     try {
       const res = await fetch('/api/start-bot', { method: 'POST' });
       const data = await res.json();
       if (data.success) {
-        showToast('success', 'Main bot starting...');
+        showToast('success', 'Main bot starting... QR code will appear shortly');
         setTimeout(fetchData, 3000);
       } else {
         showToast('error', data.error || 'Failed to start');
@@ -156,6 +159,36 @@ function DashboardTab({ botInfo, sessions, connectedCount, mainConnected, fetchD
       showToast('error', 'Connection failed');
     }
   };
+
+  useEffect(() => {
+    if (mainConnected) {
+      setQrImage(null);
+      setHasQR(false);
+      return;
+    }
+
+    const checkQR = async () => {
+      try {
+        const statusRes = await fetch('/api/status');
+        const statusData = await statusRes.json();
+        if (statusData.hasQR) {
+          setHasQR(true);
+          const qrRes = await fetch('/api/qr');
+          const qrData = await qrRes.json();
+          if (qrData.qr) {
+            setQrImage(qrData.qr);
+          }
+        } else {
+          setHasQR(false);
+          setQrImage(null);
+        }
+      } catch {}
+    };
+
+    checkQR();
+    const interval = setInterval(checkQR, 5000);
+    return () => clearInterval(interval);
+  }, [mainConnected]);
 
   const stats = [
     { label: 'Total Sessions', value: sessions.length, icon: '🔗', color: 'text-cyan-400' },
@@ -191,10 +224,31 @@ function DashboardTab({ botInfo, sessions, connectedCount, mainConnected, fetchD
             <div className={`w-4 h-4 rounded-full ${mainConnected ? 'bg-emerald-400 glow-green' : 'bg-red-400'}`} />
             <span className="text-gray-300">{mainConnected ? 'Connected and running' : 'Disconnected'}</span>
           </div>
-          {!mainConnected && (
-            <button onClick={startMain} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors">
-              Start Main Bot
-            </button>
+
+          {mainConnected ? (
+            <div className="bg-emerald-900/20 border border-emerald-800 rounded-lg p-3 text-center">
+              <p className="text-sm text-emerald-400">Bot is online and ready</p>
+            </div>
+          ) : qrImage ? (
+            <div className="space-y-3">
+              <div className="bg-white rounded-xl p-3 flex items-center justify-center">
+                <img src={qrImage} alt="WhatsApp QR Code" className="w-full max-w-[260px]" />
+              </div>
+              <p className="text-sm text-gray-400 text-center">Open WhatsApp &gt; Linked Devices &gt; Link a Device &gt; Scan this QR code</p>
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+                <span className="w-3 h-3 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                QR refreshes automatically
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <button onClick={startMain} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors">
+                Start Main Bot
+              </button>
+              {hasQR && (
+                <p className="text-xs text-gray-500 text-center">Loading QR code...</p>
+              )}
+            </div>
           )}
         </div>
 
