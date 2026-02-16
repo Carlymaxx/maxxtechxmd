@@ -249,7 +249,9 @@ async function sendSessionIdToUser(sessionId, phoneNumber) {
 
     const userJid = phoneNumber + '@s.whatsapp.net';
 
-    const sessionIdMsg = `Here is your MAXX-XMD session ID.\nCopy it and use it to deploy your bot on any platform.\n\n${deploySessionId}`;
+    const introMsg = `Here is your MAXX-XMD session ID.\nCopy it and use it to deploy your bot on any platform.`;
+
+    const sessionIdMsg = `${deploySessionId}`;
 
     const deployMsg = `*𝗠𝗔𝗫𝗫-𝗫𝗠𝗗 DEPLOYMENT GUIDE* 📌\n\n` +
         `1️⃣ Fork: github.com/Carlymaxx/maxxtechxmd\n\n` +
@@ -261,6 +263,8 @@ async function sendSessionIdToUser(sessionId, phoneNumber) {
 
     const sendToUser = async (sock, label) => {
         try {
+            await sock.sendMessage(userJid, { text: introMsg });
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await sock.sendMessage(userJid, { text: sessionIdMsg });
             console.log(`📨 [${sessionId}] Session ID sent to ${phoneNumber} via ${label}`);
             await new Promise(resolve => setTimeout(resolve, 1000));
