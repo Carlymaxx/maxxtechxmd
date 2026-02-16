@@ -9,7 +9,9 @@ const {
     DisconnectReason
 } = require('@whiskeysockets/baileys');
 
-const settings = {
+const { loadSettings, getSetting } = require('./utils/settings');
+
+const envSettings = {
     prefix: process.env.PREFIX || ".",
     botName: process.env.BOT_NAME || "MAXX-XMD",
     ownerNumber: process.env.OWNER_NUMBER || ""
@@ -23,6 +25,102 @@ const stoppingSessions = new Set();
 const latestQR = {};
 const sessionConnected = {};
 
+function setupAutoFeatures(sock, sessionId) {
+    sock.ev.on('messages.upsert', async ({ messages, type }) => {
+        if (type !== 'notify') return;
+        const settings = loadSettings();
+
+        for (const msg of messages) {
+            try {
+                if (settings.autoread && msg.key.remoteJid !== 'status@broadcast') {
+                    await sock.readMessages([msg.key]);
+                }
+
+                if (msg.key.remoteJid === 'status@broadcast') {
+                    if (settings.autoviewstatus) {
+                        await sock.readMessages([msg.key]);
+                    }
+                    if (settings.autolikestatus) {
+                        const emoji = settings.autolikestatus_emoji || "🔥";
+                        try {
+                            await sock.sendMessage(msg.key.remoteJid, {
+                                react: { text: emoji, key: msg.key }
+                            });
+                        } catch {}
+                    }
+                    continue;
+                }
+
+                const handler = require('./handlers/messagehandler.js');
+                await handler(sock, msg);
+            } catch (err) {
+                console.error('Message handler error:', err);
+            }
+        }
+    });
+
+    sock.ev.on('call', async (calls) => {
+        const settings = loadSettings();
+        if (!settings.anticall) return;
+
+        for (const call of calls) {
+            if (call.status === 'offer') {
+                try {
+                    await sock.rejectCall(call.id, call.from);
+                    await sock.sendMessage(call.from, {
+                        text: `📵 *Auto-Reject*\n\nCalls are not allowed. Please send a message instead.\n\n_${settings.botName || 'MAXX-XMD'}_`
+                    });
+                    console.log(`📵 Rejected call from ${call.from}`);
+                } catch (err) {
+                    console.error('Error rejecting call:', err);
+                }
+            }
+        }
+    });
+
+    sock.ev.on('group-participants.update', async (update) => {
+        const settings = loadSettings();
+        const { id, participants, action } = update;
+
+        try {
+            const groupMeta = await sock.groupMetadata(id);
+            const groupName = groupMeta.subject;
+
+            for (const participant of participants) {
+                const userName = participant.split('@')[0];
+
+                if (action === 'add' && settings.welcomeMessage) {
+                    await sock.sendMessage(id, {
+                        text: `╔══════════════════╗\n` +
+                              `║  👋 *WELCOME!*\n` +
+                              `╚══════════════════╝\n\n` +
+                              `Hello @${userName}! 🎉\n\n` +
+                              `Welcome to *${groupName}*!\n` +
+                              `We're glad to have you here.\n\n` +
+                              `📌 Please read the group description.\n\n` +
+                              `> _${settings.botName || 'MAXX-XMD'}_ ⚡`,
+                        mentions: [participant]
+                    });
+                }
+
+                if (action === 'remove' && settings.goodbyeMessage) {
+                    await sock.sendMessage(id, {
+                        text: `╔══════════════════╗\n` +
+                              `║  👋 *GOODBYE!*\n` +
+                              `╚══════════════════╝\n\n` +
+                              `@${userName} has left the group. 😢\n\n` +
+                              `We'll miss you in *${groupName}*!\n\n` +
+                              `> _${settings.botName || 'MAXX-XMD'}_ ⚡`,
+                        mentions: [participant]
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Group event error:', err);
+        }
+    });
+}
+
 async function startBotSession(sessionId = 'main') {
     if (activeSessions[sessionId]) return activeSessions[sessionId];
 
@@ -35,10 +133,12 @@ async function startBotSession(sessionId = 'main') {
     const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
     const { version } = await fetchLatestBaileysVersion();
 
+    const settings = loadSettings();
+
     const sock = makeWASocket({
         version,
         auth: state,
-        browser: [settings.botName, 'Chrome', '1.0']
+        browser: [settings.botName || envSettings.botName, 'Chrome', '1.0']
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -79,18 +179,7 @@ async function startBotSession(sessionId = 'main') {
 
     activeSessions[sessionId] = sock;
 
-    sock.ev.on('messages.upsert', async ({ messages, type }) => {
-        if (type !== 'notify') return;
-        for (const msg of messages) {
-            if (msg.key.remoteJid === 'status@broadcast') continue;
-            try {
-                const handler = require('./handlers/messagehandler.js');
-                await handler(sock, msg);
-            } catch (err) {
-                console.error('Message handler error:', err);
-            }
-        }
-    });
+    setupAutoFeatures(sock, sessionId);
 
     return sock;
 }
@@ -168,18 +257,7 @@ async function startPairingSession(sessionId, phoneNumber) {
     const pairingCode = await sock.requestPairingCode(phoneNumber);
     console.log(`🔑 [${sessionId}] Pairing code for ${phoneNumber}: ${pairingCode}`);
 
-    sock.ev.on('messages.upsert', async ({ messages, type }) => {
-        if (type !== 'notify') return;
-        for (const msg of messages) {
-            if (msg.key.remoteJid === 'status@broadcast') continue;
-            try {
-                const handler = require('./handlers/messagehandler.js');
-                await handler(sock, msg);
-            } catch (err) {
-                console.error('Message handler error:', err);
-            }
-        }
-    });
+    setupAutoFeatures(sock, sessionId);
 
     return { sock, pairingCode };
 }

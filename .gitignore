@@ -47,3 +47,4 @@ auth_info_baileys/
 auth_info/
 sessions/
 db.json
+settings.json
