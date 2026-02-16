@@ -5,7 +5,7 @@ const SETTINGS_FILE = path.join(__dirname, '..', 'settings.json');
 
 const DEFAULTS = {
   prefix: process.env.PREFIX || ".",
-  botName: process.env.BOT_NAME || "MAXX-XMD",
+  botName: "MAXX-XMD",
   ownerName: process.env.OWNER_NAME || "Carly Maxx",
   ownerNumber: process.env.OWNER_NUMBER || "254725979273",
   author: process.env.OWNER_NAME || "Carly Maxx",
@@ -31,7 +31,9 @@ function loadSettings() {
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
       const data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
-      return { ...DEFAULTS, ...data };
+      const merged = { ...DEFAULTS, ...data };
+      merged.botName = "MAXX-XMD";
+      return merged;
     }
   } catch (err) {
     console.error('Error loading settings:', err.message);
@@ -54,7 +56,10 @@ function getSetting(key) {
   return settings[key];
 }
 
+const LOCKED_KEYS = ['botName'];
+
 function setSetting(key, value) {
+  if (LOCKED_KEYS.includes(key)) return false;
   const settings = loadSettings();
   settings[key] = value;
   return saveSettings(settings);

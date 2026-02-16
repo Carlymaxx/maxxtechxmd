@@ -252,32 +252,21 @@ app.post('/api/pair', async (req, res) => {
 
         const userJid = number + '@s.whatsapp.net';
 
-        const sessionMsg = `╔══════════════════════════╗\n` +
-              `║  ✅ *MAXX-XMD LINKED!*\n` +
-              `╚══════════════════════════╝\n\n` +
-              `🎉 *Your WhatsApp is now connected!*\n\n` +
-              `📋 *Your Session ID:*\n\n` +
+        const sessionMsg = `*𝗠𝗔𝗫𝗫-𝗫𝗠𝗗 SESSION ID* 🔑\n\n` +
+              `Here is your *MAXX-XMD* session ID.\nCopy it and use it to deploy your bot on any platform.\n\n` +
               `\`\`\`${deploySessionId}\`\`\`\n\n` +
               `━━━━━━━━━━━━━━━━━━━━━━\n` +
-              `📌 *HOW TO DEPLOY YOUR BOT:*\n\n` +
-              `1️⃣ Fork the repo:\n` +
-              `   github.com/Carlymaxx/maxxtechxmd\n\n` +
-              `2️⃣ Set these environment variables:\n` +
-              `   • SESSION_ID = (paste above)\n` +
+              `📌 *HOW TO DEPLOY:*\n\n` +
+              `1️⃣ Fork: github.com/Carlymaxx/maxxtechxmd\n\n` +
+              `2️⃣ Set environment variables:\n` +
+              `   • SESSION_ID = _(paste above)_\n` +
               `   • OWNER_NUMBER = ${number}\n` +
-              `   • BOT_NAME = Your Bot Name\n` +
               `   • PREFIX = .\n\n` +
-              `3️⃣ Deploy on any platform:\n` +
-              `   🟢 Render (render.com)\n` +
-              `   🟣 Heroku (heroku.com)\n` +
-              `   🔵 Railway (railway.app)\n` +
-              `   🟡 Koyeb (koyeb.com)\n` +
-              `   ⚡ Replit (replit.com)\n\n` +
-              `━━━━━━━━━━━━━━━━━━━━━━\n` +
-              `👑 *Owner:* ${BOT_OWNER}\n` +
-              `🔧 *Developer:* ${BOT_DEV}\n\n` +
+              `3️⃣ Deploy on:\n` +
+              `   🟣 Heroku • 🟢 Render • 🔵 Railway\n` +
+              `   🟡 Koyeb • ⚡ Replit\n\n` +
               `⚠️ _Keep your session ID private!_\n\n` +
-              `> _Powered by MAXX-XMD_ ⚡💫`;
+              `> _Powered by MAXX-XMD_ ⚡`;
 
         try {
           const pairedSock = bot.activeSessions[sessionId];

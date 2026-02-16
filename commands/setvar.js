@@ -24,6 +24,10 @@ module.exports = {
     const key = args[0];
     const value = args.slice(1).join(" ");
 
+    if (key === "botName") {
+      return await sock.sendMessage(from, { text: `🔒 *MAXX-XMD* is a permanent name and cannot be changed.` }, { quoted: msg });
+    }
+
     let parsedValue = value;
     if (value === "true") parsedValue = true;
     else if (value === "false") parsedValue = false;
