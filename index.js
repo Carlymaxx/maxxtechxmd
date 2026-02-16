@@ -58,6 +58,7 @@ const activeSessions = {};
 const stoppingSessions = new Set();
 const latestQR = {};
 const sessionConnected = {};
+const pendingPairings = {};
 
 function setupAutoFeatures(sock, sessionId) {
     sock.ev.on('messages.upsert', async ({ messages, type }) => {
@@ -177,7 +178,7 @@ async function startBotSession(sessionId = 'main') {
 
     sock.ev.on('creds.update', saveCreds);
 
-    sock.ev.on('connection.update', update => {
+    sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
         if (qr) {
             latestQR[sessionId] = qr;
@@ -188,6 +189,14 @@ async function startBotSession(sessionId = 'main') {
             delete latestQR[sessionId];
             sessionConnected[sessionId] = true;
             console.log(`✅ [${sessionId}] MAXX-XMD connected!`);
+
+            if (pendingPairings[sessionId]) {
+                const phoneNumber = pendingPairings[sessionId];
+                delete pendingPairings[sessionId];
+                console.log(`📱 [${sessionId}] Pending pairing detected for ${phoneNumber}, sending session ID...`);
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                await sendSessionIdToUser(sessionId, phoneNumber);
+            }
         }
         if (connection === 'close') {
             delete latestQR[sessionId];
@@ -304,16 +313,16 @@ async function startPairingSession(sessionId, phoneNumber) {
     }
     fs.mkdirSync(sessionFolder);
 
+    pendingPairings[sessionId] = phoneNumber;
+
     const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
     const { version } = await fetchLatestBaileysVersion();
-
-    let sessionIdSent = false;
 
     const sock = makeWASocket({
         version,
         auth: state,
         printQRInTerminal: false,
-        qrTimeout: undefined,
+        qrTimeout: 120000,
         defaultQueryTimeoutMs: undefined,
         connectTimeoutMs: 120000,
         browser: ['Mac OS', 'Chrome', '14.4.1']
@@ -328,10 +337,12 @@ async function startPairingSession(sessionId, phoneNumber) {
             sessionConnected[sessionId] = true;
             console.log(`✅ [${sessionId}] Paired and connected!`);
 
-            if (!sessionIdSent) {
-                sessionIdSent = true;
+            if (pendingPairings[sessionId]) {
+                const phone = pendingPairings[sessionId];
+                delete pendingPairings[sessionId];
+                console.log(`📱 [${sessionId}] Sending session ID to ${phone}...`);
                 await new Promise(resolve => setTimeout(resolve, 5000));
-                await sendSessionIdToUser(sessionId, phoneNumber);
+                await sendSessionIdToUser(sessionId, phone);
             }
         }
         if (connection === 'close') {
@@ -348,12 +359,14 @@ async function startPairingSession(sessionId, phoneNumber) {
                 console.log(`🔐 [${sessionId}] Logged out, deleting session...`);
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
                 delete activeSessions[sessionId];
+                delete pendingPairings[sessionId];
                 return;
             }
             if (errorMsg.includes('QR refs') || errorMsg.includes('timed out')) {
                 console.log(`⏰ [${sessionId}] Pairing timed out, cleaning up...`);
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
                 delete activeSessions[sessionId];
+                delete pendingPairings[sessionId];
                 return;
             }
             delete activeSessions[sessionId];
@@ -381,4 +394,4 @@ async function startPairingSession(sessionId, phoneNumber) {
     return { sock, pairingCode };
 }
 
-module.exports = { startBotSession, startPairingSession, activeSessions, stoppingSessions, latestQR, sessionConnected };
+module.exports = { startBotSession, startPairingSession, activeSessions, stoppingSessions, latestQR, sessionConnected, pendingPairings };
