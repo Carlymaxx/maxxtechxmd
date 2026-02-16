@@ -20,44 +20,24 @@ if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 const nextApp = next({ dev: DEV });
 const nextHandle = nextApp.getRequestHandler();
 
-const sessionStatus = {};
-
 async function startBotSession(sessionId = 'main') {
-  if (bot.activeSessions[sessionId]) {
-    const existing = bot.activeSessions[sessionId];
-    if (existing.ws && existing.ws.readyState === 1) {
-      sessionStatus[sessionId] = 'connected';
-      return existing;
-    }
+  if (bot.activeSessions[sessionId] && bot.sessionConnected[sessionId]) {
+    return bot.activeSessions[sessionId];
   }
-
-  sessionStatus[sessionId] = 'connecting';
 
   try {
     const sock = await bot.startBotSession(sessionId);
-
-    sock.ev.on('connection.update', (update) => {
-      const { connection } = update;
-      if (connection === 'open') {
-        sessionStatus[sessionId] = 'connected';
-      } else if (connection === 'close') {
-        sessionStatus[sessionId] = 'disconnected';
-      }
-    });
-
     return sock;
   } catch (err) {
-    sessionStatus[sessionId] = 'error';
     throw err;
   }
 }
 
 function getSessionInfo(sessionId) {
-  const sock = bot.activeSessions[sessionId];
-  const isConnected = sock && sock.ws && sock.ws.readyState === 1;
+  const isConnected = !!bot.sessionConnected[sessionId];
   return {
     id: sessionId,
-    status: isConnected ? 'connected' : (sessionStatus[sessionId] || 'disconnected'),
+    status: isConnected ? 'connected' : 'disconnected',
     connected: isConnected
   };
 }
@@ -67,8 +47,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/api/status', (req, res) => {
-  const mainSock = bot.activeSessions['main'];
-  const connected = mainSock ? mainSock.ws && mainSock.ws.readyState === 1 : false;
+  const connected = !!bot.sessionConnected['main'];
   const hasQR = !!bot.latestQR['main'];
   res.json({ connected, hasQR });
 });
@@ -141,7 +120,7 @@ app.post('/api/sessions/:id/stop', async (req, res) => {
     if (sock) {
       sock.end(undefined);
       delete bot.activeSessions[id];
-      sessionStatus[id] = 'disconnected';
+      bot.sessionConnected[id] = false;
     }
     res.json({ success: true, message: `Session ${id} stopped` });
   } catch (e) {
@@ -159,7 +138,7 @@ app.delete('/api/sessions/:id', async (req, res) => {
       sock.end(undefined);
       delete bot.activeSessions[id];
     }
-    delete sessionStatus[id];
+    delete bot.sessionConnected[id];
 
     const sessionFolder = path.join(SESSIONS_DIR, id);
     if (fs.existsSync(sessionFolder)) {
@@ -182,7 +161,7 @@ app.post('/api/sessions/:id/send', async (req, res) => {
     }
 
     const sock = bot.activeSessions[id];
-    if (!sock || !sock.ws || sock.ws.readyState !== 1) {
+    if (!sock || !bot.sessionConnected[id]) {
       return res.status(503).json({ error: 'Session not connected' });
     }
 
@@ -212,7 +191,7 @@ app.post('/api/send', async (req, res) => {
     }
 
     const mainSock = bot.activeSessions['main'];
-    if (!mainSock || !mainSock.ws || mainSock.ws.readyState !== 1) {
+    if (!mainSock || !bot.sessionConnected['main']) {
       return res.status(503).json({ success: false, error: 'Bot not connected' });
     }
 
@@ -233,13 +212,14 @@ app.post('/api/pair', async (req, res) => {
     }
 
     const mainSock = bot.activeSessions['main'];
-    if (!mainSock || !mainSock.ws || mainSock.ws.readyState !== 1) {
+    if (!mainSock || !bot.sessionConnected['main']) {
       return res.status(503).json({ error: 'Main bot not connected. Start the main bot first.' });
     }
 
     const sessionId = `${SESSION_PREFIX}-${number.slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-    sessionStatus[sessionId] = 'pairing';
+    const pairingStatus = {};
+    pairingStatus[sessionId] = 'pairing';
 
     const { sock, pairingCode } = await bot.startPairingSession(sessionId, number);
 
@@ -250,12 +230,12 @@ app.post('/api/pair', async (req, res) => {
     sock.ev.on('connection.update', async (update) => {
       const { connection } = update;
       if (connection === 'open') {
-        sessionStatus[sessionId] = 'connected';
+        bot.sessionConnected[sessionId] = true;
         console.log(`✅ [${sessionId}] User ${number} paired successfully!`);
 
         try {
           const mainSockNow = bot.activeSessions['main'];
-          if (mainSockNow && mainSockNow.ws && mainSockNow.ws.readyState === 1) {
+          if (mainSockNow && bot.sessionConnected['main']) {
             const jid = number + '@s.whatsapp.net';
             await mainSockNow.sendMessage(jid, {
               text: `✅ *MAXX-XMD Bot Linked Successfully!*\n\n📋 *Your Session ID:*\n\`${sessionId}\`\n\n👤 Owner: ${BOT_OWNER}\n🔧 Developer: ${BOT_DEV}\n\n_Keep this session ID safe. Your bot is now active!_`
@@ -266,11 +246,7 @@ app.post('/api/pair', async (req, res) => {
           console.error('Failed to send session ID:', sendErr);
         }
       } else if (connection === 'close') {
-        if (sessionStatus[sessionId] === 'pairing') {
-          sessionStatus[sessionId] = 'failed';
-        } else {
-          sessionStatus[sessionId] = 'disconnected';
-        }
+        bot.sessionConnected[sessionId] = false;
       }
     });
 
@@ -290,11 +266,10 @@ app.post('/api/pair', async (req, res) => {
 
 app.get('/api/pair/status/:sessionId', (req, res) => {
   const { sessionId } = req.params;
-  const sock = bot.activeSessions[sessionId];
-  const isConnected = sock && sock.ws && sock.ws.readyState === 1;
+  const isConnected = !!bot.sessionConnected[sessionId];
   res.json({
     sessionId,
-    status: isConnected ? 'connected' : (sessionStatus[sessionId] || 'unknown'),
+    status: isConnected ? 'connected' : 'waiting',
     connected: isConnected
   });
 });

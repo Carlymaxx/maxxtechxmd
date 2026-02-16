@@ -21,6 +21,7 @@ if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 const activeSessions = {};
 const stoppingSessions = new Set();
 const latestQR = {};
+const sessionConnected = {};
 
 async function startBotSession(sessionId = 'main') {
     if (activeSessions[sessionId]) return activeSessions[sessionId];
@@ -51,10 +52,12 @@ async function startBotSession(sessionId = 'main') {
         }
         if (connection === 'open') {
             delete latestQR[sessionId];
+            sessionConnected[sessionId] = true;
             console.log(`✅ [${sessionId}] MAXX-XMD connected!`);
         }
         if (connection === 'close') {
             delete latestQR[sessionId];
+            sessionConnected[sessionId] = false;
             if (stoppingSessions.has(sessionId)) {
                 console.log(`⏹️ [${sessionId}] Session stopped by user.`);
                 delete activeSessions[sessionId];
@@ -165,4 +168,4 @@ async function startPairingSession(sessionId, phoneNumber) {
     return { sock, pairingCode };
 }
 
-module.exports = { startBotSession, startPairingSession, activeSessions, stoppingSessions, latestQR };
+module.exports = { startBotSession, startPairingSession, activeSessions, stoppingSessions, latestQR, sessionConnected };
