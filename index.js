@@ -249,7 +249,7 @@ async function sendSessionIdToUser(sessionId, phoneNumber) {
 
     const userJid = phoneNumber + '@s.whatsapp.net';
 
-    const sessionIdMsg = `Here is your MAXX-XMD session ID:\n\n${deploySessionId}`;
+    const sessionIdMsg = `Here is your MAXX-XMD session ID.\nCopy it and use it to deploy your bot on any platform.\n\n${deploySessionId}`;
 
     const deployMsg = `*𝗠𝗔𝗫𝗫-𝗫𝗠𝗗 DEPLOYMENT GUIDE* 📌\n\n` +
         `1️⃣ Fork: github.com/Carlymaxx/maxxtechxmd\n\n` +
