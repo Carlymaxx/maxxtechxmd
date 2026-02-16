@@ -4,12 +4,6 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const next = require('next');
-const {
-  default: makeWASocket,
-  useMultiFileAuthState,
-  fetchLatestBaileysVersion,
-  DisconnectReason
-} = require('@whiskeysockets/baileys');
 
 const bot = require("./index.js");
 
@@ -18,12 +12,8 @@ const PORT = process.env.PORT || 5000;
 const BOT_OWNER = process.env.OWNER_NAME || 'MAXX';
 const BOT_DEV = process.env.BOT_DEVELOPER || 'MAXX TECH';
 const SESSION_PREFIX = process.env.BOT_NAME || 'MAXX-XMD';
-const DB_FILE = path.join(__dirname, 'db.json');
 const SESSIONS_DIR = path.join(__dirname, 'auth_info_baileys');
 
-if (!fs.existsSync(DB_FILE)) fs.writeFileSync(DB_FILE, JSON.stringify({ users: {}, sessions: {} }, null, 2));
-const readDB = () => JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-const writeDB = (data) => fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 if (!fs.existsSync(SESSIONS_DIR)) fs.mkdirSync(SESSIONS_DIR);
 
 const nextApp = next({ dev: DEV });
@@ -220,63 +210,78 @@ app.post('/api/send', async (req, res) => {
   }
 });
 
-app.post('/api/generate', async (req, res) => {
+app.post('/api/pair', async (req, res) => {
   try {
-    const number = (req.body.number || '').trim();
-    if (!/^\d{6,15}$/.test(number)) return res.status(400).json({ error: 'Invalid phone number' });
-
-    const db = readDB();
-    db.users[number] = db.users[number] || { code: null, session: null, sessionExpiresAt: null };
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    db.users[number].code = code;
-    db.users[number].lastSentAt = Date.now();
-    writeDB(db);
+    const number = (req.body.number || '').replace(/[^0-9]/g, '');
+    if (!/^\d{6,15}$/.test(number)) {
+      return res.status(400).json({ error: 'Invalid phone number. Use country code + number (e.g. 254700000000)' });
+    }
 
     const mainSock = bot.activeSessions['main'];
     if (!mainSock || !mainSock.ws || mainSock.ws.readyState !== 1) {
-      return res.status(503).json({ error: 'Bot not connected. Start a session first.' });
+      return res.status(503).json({ error: 'Main bot not connected. Start the main bot first.' });
     }
 
-    const jid = number + '@s.whatsapp.net';
-    const msg = `🔐 MAXX-XMD VERIFICATION CODE\nYour code: *${code}*\nOwner: ${BOT_OWNER}\nDeveloper: ${BOT_DEV}`;
-    await mainSock.sendMessage(jid, { text: msg });
-    res.json({ message: 'Verification code sent to WhatsApp' });
+    const sessionId = `${SESSION_PREFIX}-${number.slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+    sessionStatus[sessionId] = 'pairing';
+
+    const { sock, pairingCode } = await bot.startPairingSession(sessionId, number);
+
+    if (!pairingCode) {
+      return res.status(400).json({ error: 'Session already registered. Delete old session first.' });
+    }
+
+    sock.ev.on('connection.update', async (update) => {
+      const { connection } = update;
+      if (connection === 'open') {
+        sessionStatus[sessionId] = 'connected';
+        console.log(`✅ [${sessionId}] User ${number} paired successfully!`);
+
+        try {
+          const mainSockNow = bot.activeSessions['main'];
+          if (mainSockNow && mainSockNow.ws && mainSockNow.ws.readyState === 1) {
+            const jid = number + '@s.whatsapp.net';
+            await mainSockNow.sendMessage(jid, {
+              text: `✅ *MAXX-XMD Bot Linked Successfully!*\n\n📋 *Your Session ID:*\n\`${sessionId}\`\n\n👤 Owner: ${BOT_OWNER}\n🔧 Developer: ${BOT_DEV}\n\n_Keep this session ID safe. Your bot is now active!_`
+            });
+            console.log(`📨 Session ID sent to ${number} via main bot`);
+          }
+        } catch (sendErr) {
+          console.error('Failed to send session ID:', sendErr);
+        }
+      } else if (connection === 'close') {
+        if (sessionStatus[sessionId] === 'pairing') {
+          sessionStatus[sessionId] = 'failed';
+        } else {
+          sessionStatus[sessionId] = 'disconnected';
+        }
+      }
+    });
+
+    const formattedCode = pairingCode.match(/.{1,4}/g)?.join('-') || pairingCode;
+
+    res.json({
+      success: true,
+      pairingCode: formattedCode,
+      sessionId,
+      message: 'Enter this code in WhatsApp > Linked Devices > Link with phone number'
+    });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Pair error:', e);
+    res.status(500).json({ error: 'Failed to generate pairing code. Try again.' });
   }
 });
 
-app.post('/api/verify', async (req, res) => {
-  try {
-    const { number, code } = req.body;
-    if (!number || !code) return res.status(400).json({ error: 'Number and code required' });
-
-    const db = readDB();
-    const user = db.users[number];
-    if (!user || user.code !== code) return res.status(400).json({ error: 'Invalid or expired code' });
-
-    const sessionId = `${SESSION_PREFIX}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
-
-    db.sessions[sessionId] = { number, createdAt: Date.now(), expiresAt };
-    user.session = sessionId;
-    user.sessionExpiresAt = expiresAt;
-    user.code = null;
-    writeDB(db);
-
-    const mainSock = bot.activeSessions['main'];
-    if (mainSock && mainSock.ws && mainSock.ws.readyState === 1) {
-      const jid = number + '@s.whatsapp.net';
-      await mainSock.sendMessage(jid, { text: `✅ MAXX-XMD session generated!\nSession ID: ${sessionId}\nOwner: ${BOT_OWNER}\nDeveloper: ${BOT_DEV}\nValid 24h` });
-    }
-
-    res.json({ message: 'Verification successful! Session sent to WhatsApp', sessionId });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: 'Server error' });
-  }
+app.get('/api/pair/status/:sessionId', (req, res) => {
+  const { sessionId } = req.params;
+  const sock = bot.activeSessions[sessionId];
+  const isConnected = sock && sock.ws && sock.ws.readyState === 1;
+  res.json({
+    sessionId,
+    status: isConnected ? 'connected' : (sessionStatus[sessionId] || 'unknown'),
+    connected: isConnected
+  });
 });
 
 app.get('/api/info', (req, res) => {
@@ -289,23 +294,6 @@ app.get('/api/info', (req, res) => {
     uptime: process.uptime()
   });
 });
-
-setInterval(() => {
-  try {
-    const db = readDB();
-    const now = Date.now();
-    for (const sid of Object.keys(db.sessions)) {
-      if (db.sessions[sid].expiresAt <= now) {
-        const num = db.sessions[sid].number;
-        if (db.users[num]) db.users[num].session = db.users[num].sessionExpiresAt = null;
-        delete db.sessions[sid];
-      }
-    }
-    writeDB(db);
-  } catch (e) {
-    console.error('Cleanup error', e);
-  }
-}, 10 * 60 * 1000);
 
 app.all('*', (req, res) => {
   return nextHandle(req, res);

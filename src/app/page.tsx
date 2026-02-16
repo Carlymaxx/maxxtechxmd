@@ -498,29 +498,32 @@ function PairTab({ mainConnected, showToast }: {
   showToast: (type: 'success' | 'error', msg: string) => void;
 }) {
   const [phone, setPhone] = useState('');
-  const [code, setCode] = useState('');
-  const [step, setStep] = useState<'phone' | 'verify' | 'done'>('phone');
+  const [pairingCode, setPairingCode] = useState('');
+  const [step, setStep] = useState<'phone' | 'code' | 'done'>('phone');
   const [sessionId, setSessionId] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const generateCode = async () => {
-    if (!phone.trim()) {
-      showToast('error', 'Enter your WhatsApp number');
+  const requestPairing = async () => {
+    const cleanNumber = phone.replace(/[^0-9]/g, '');
+    if (!cleanNumber || cleanNumber.length < 6) {
+      showToast('error', 'Enter a valid WhatsApp number with country code');
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/generate', {
+      const res = await fetch('/api/pair', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number: phone.trim() })
+        body: JSON.stringify({ number: cleanNumber })
       });
       const data = await res.json();
       if (data.error) {
         showToast('error', data.error);
       } else {
-        showToast('success', 'Code sent to your WhatsApp!');
-        setStep('verify');
+        setPairingCode(data.pairingCode);
+        setSessionId(data.sessionId);
+        showToast('success', 'Pairing code generated!');
+        setStep('code');
       }
     } catch {
       showToast('error', 'Connection failed');
@@ -528,51 +531,65 @@ function PairTab({ mainConnected, showToast }: {
     setLoading(false);
   };
 
-  const verifyCode = async () => {
-    if (!code.trim()) {
-      showToast('error', 'Enter the verification code');
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await fetch('/api/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number: phone.trim(), code: code.trim() })
-      });
-      const data = await res.json();
-      if (data.error) {
-        showToast('error', data.error);
-      } else {
-        showToast('success', 'Device paired successfully!');
-        setSessionId(data.sessionId);
-        setStep('done');
+  useEffect(() => {
+    if (step !== 'code' || !sessionId) return;
+
+    let elapsed = 0;
+    const interval = setInterval(async () => {
+      elapsed += 3;
+      try {
+        const res = await fetch(`/api/pair/status/${sessionId}`);
+        const data = await res.json();
+        if (data.connected) {
+          setStep('done');
+          showToast('success', 'WhatsApp linked successfully!');
+          clearInterval(interval);
+        } else if (data.status === 'failed' || data.status === 'disconnected') {
+          showToast('error', 'Pairing failed. Please try again.');
+          setStep('phone');
+          setPairingCode('');
+          setSessionId('');
+          clearInterval(interval);
+        }
+      } catch {}
+      if (elapsed >= 120) {
+        showToast('error', 'Pairing timed out. Please try again.');
+        setStep('phone');
+        setPairingCode('');
+        setSessionId('');
+        clearInterval(interval);
       }
-    } catch {
-      showToast('error', 'Connection failed');
-    }
-    setLoading(false);
-  };
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [step, sessionId, showToast]);
+
+  const steps = [
+    { key: 'phone', label: 'Enter Number' },
+    { key: 'code', label: 'Link Device' },
+    { key: 'done', label: 'Complete' },
+  ];
+  const currentIndex = steps.findIndex(s => s.key === step);
 
   return (
     <div className="max-w-lg mx-auto animate-fade-in">
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-2">Pair WhatsApp Device</h2>
-        <p className="text-sm text-gray-400 mb-6">Link your WhatsApp number without scanning a QR code</p>
+        <h2 className="text-lg font-semibold text-white mb-2">Pair Your WhatsApp</h2>
+        <p className="text-sm text-gray-400 mb-6">Link your WhatsApp to get your own bot session</p>
 
         {!mainConnected && (
           <div className="bg-amber-900/30 border border-amber-700 rounded-lg p-4 mb-6">
-            <p className="text-sm text-amber-300">The main bot needs to be connected before you can pair devices. Go to Dashboard and start the bot first.</p>
+            <p className="text-sm text-amber-300">The main bot must be connected first. Go to Dashboard and start the bot.</p>
           </div>
         )}
 
         <div className="flex items-center gap-2 mb-6">
-          {['phone', 'verify', 'done'].map((s, i) => (
-            <div key={s} className="flex items-center gap-2 flex-1">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step === s || ['phone', 'verify', 'done'].indexOf(step) > i ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
-                {i + 1}
+          {steps.map((s, i) => (
+            <div key={s.key} className="flex items-center gap-2 flex-1">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${currentIndex >= i ? 'bg-emerald-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                {currentIndex > i ? '✓' : i + 1}
               </div>
-              {i < 2 && <div className={`flex-1 h-0.5 ${['phone', 'verify', 'done'].indexOf(step) > i ? 'bg-emerald-600' : 'bg-gray-700'}`} />}
+              {i < steps.length - 1 && <div className={`flex-1 h-0.5 ${currentIndex > i ? 'bg-emerald-600' : 'bg-gray-700'}`} />}
             </div>
           ))}
         </div>
@@ -580,69 +597,76 @@ function PairTab({ mainConnected, showToast }: {
         {step === 'phone' && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-1.5">WhatsApp Number</label>
+              <label className="block text-sm text-gray-400 mb-1.5">Your WhatsApp Number</label>
               <input
                 type="text"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 placeholder="e.g. 254700000000"
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                onKeyDown={e => e.key === 'Enter' && requestPairing()}
               />
-              <p className="text-xs text-gray-500 mt-1">Include country code without + sign</p>
+              <p className="text-xs text-gray-500 mt-1">Country code + number, no + or spaces</p>
             </div>
             <button
-              onClick={generateCode}
+              onClick={requestPairing}
               disabled={loading || !mainConnected}
               className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-medium py-3 rounded-lg transition-colors"
             >
-              {loading ? 'Sending...' : 'Send Verification Code'}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Generating code...
+                </span>
+              ) : 'Get Pairing Code'}
             </button>
           </div>
         )}
 
-        {step === 'verify' && (
-          <div className="space-y-4">
-            <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-300">A 6-digit code was sent to</p>
-              <p className="text-lg font-mono text-emerald-400 mt-1">{phone}</p>
+        {step === 'code' && (
+          <div className="space-y-5">
+            <div className="bg-gray-800 rounded-xl p-6 text-center">
+              <p className="text-sm text-gray-400 mb-3">Your Pairing Code</p>
+              <p className="text-4xl font-mono font-bold text-emerald-400 tracking-[0.3em]">{pairingCode}</p>
             </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1.5">Verification Code</label>
-              <input
-                type="text"
-                value={code}
-                onChange={e => setCode(e.target.value)}
-                placeholder="Enter 6-digit code"
-                maxLength={6}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white text-center text-xl tracking-widest font-mono placeholder-gray-500 focus:outline-none focus:border-emerald-500 transition-colors"
-              />
+
+            <div className="bg-gray-800/50 rounded-lg p-4 space-y-2">
+              <p className="text-sm font-medium text-white">How to link:</p>
+              <ol className="text-sm text-gray-400 space-y-1.5 list-decimal list-inside">
+                <li>Open WhatsApp on your phone</li>
+                <li>Go to <span className="text-white">Settings</span> &gt; <span className="text-white">Linked Devices</span></li>
+                <li>Tap <span className="text-white">Link a Device</span></li>
+                <li>Select <span className="text-emerald-400">&quot;Link with phone number instead&quot;</span></li>
+                <li>Enter the code shown above</li>
+              </ol>
             </div>
-            <div className="flex gap-3">
-              <button onClick={() => setStep('phone')} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 rounded-lg transition-colors">
-                Back
-              </button>
-              <button
-                onClick={verifyCode}
-                disabled={loading}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-medium py-3 rounded-lg transition-colors"
-              >
-                {loading ? 'Verifying...' : 'Verify'}
-              </button>
+
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
+              <span className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              Waiting for you to enter the code...
             </div>
+
+            <button
+              onClick={() => { setStep('phone'); setPairingCode(''); setSessionId(''); }}
+              className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
+            >
+              Cancel & Start Over
+            </button>
           </div>
         )}
 
         {step === 'done' && (
           <div className="text-center space-y-4">
             <div className="text-5xl">🎉</div>
-            <h3 className="text-xl font-semibold text-white">Paired Successfully!</h3>
+            <h3 className="text-xl font-semibold text-white">Linked Successfully!</h3>
+            <p className="text-sm text-gray-400">Your WhatsApp is now connected to MAXX-XMD</p>
             <div className="bg-gray-800 rounded-lg p-4">
               <p className="text-xs text-gray-400 mb-1">Your Session ID</p>
-              <p className="text-emerald-400 font-mono text-sm break-all">{sessionId}</p>
+              <p className="text-emerald-400 font-mono text-sm break-all select-all">{sessionId}</p>
             </div>
-            <p className="text-sm text-gray-400">This session ID was also sent to your WhatsApp.</p>
+            <p className="text-sm text-gray-400">Your session ID was also sent to your WhatsApp via the main bot.</p>
             <button
-              onClick={() => { setStep('phone'); setPhone(''); setCode(''); setSessionId(''); }}
+              onClick={() => { setStep('phone'); setPhone(''); setPairingCode(''); setSessionId(''); }}
               className="w-full bg-gray-700 hover:bg-gray-600 text-white font-medium py-3 rounded-lg transition-colors"
             >
               Pair Another Device
