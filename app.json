@@ -1,0 +1,85 @@
+{
+  "name": "MAXX-XMD",
+  "description": "MAXX-XMD WhatsApp Bot - Multi-device bot with 50+ commands, auto-features, and web dashboard",
+  "logo": "https://raw.githubusercontent.com/Carlymaxx/maxxtechxmd/main/media/maxx-xmd.png.jpg",
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "maxx-xmd",
+    "baileys",
+    "nodejs"
+  ],
+  "repository": "https://github.com/Carlymaxx/maxxtechxmd",
+  "website": "https://github.com/Carlymaxx/maxxtechxmd",
+  "stack": "heroku-22",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "env": {
+    "SESSION_ID": {
+      "description": "Your MAXX-XMD session ID (get it from the pairing page)",
+      "required": true
+    },
+    "OWNER_NUMBER": {
+      "description": "Your WhatsApp number with country code (e.g. 254700000000)",
+      "required": true
+    },
+    "OWNER_NAME": {
+      "description": "Bot owner display name",
+      "value": "MAXX",
+      "required": false
+    },
+    "BOT_NAME": {
+      "description": "Bot display name",
+      "value": "MAXX-XMD",
+      "required": false
+    },
+    "PREFIX": {
+      "description": "Command prefix character",
+      "value": ".",
+      "required": false
+    },
+    "PUBLIC_MODE": {
+      "description": "Allow all users to use commands (yes/no)",
+      "value": "yes",
+      "required": false
+    },
+    "AUTO_READ": {
+      "description": "Auto-read incoming messages (yes/no)",
+      "value": "no",
+      "required": false
+    },
+    "AUTO_READ_STATUS": {
+      "description": "Auto-view WhatsApp statuses (yes/no)",
+      "value": "yes",
+      "required": false
+    },
+    "CHATBOT": {
+      "description": "Enable AI chatbot in DMs (yes/no)",
+      "value": "no",
+      "required": false
+    },
+    "WELCOME_MESSAGE": {
+      "description": "Send welcome messages in groups (yes/no)",
+      "value": "yes",
+      "required": false
+    },
+    "GOODBYE_MESSAGE": {
+      "description": "Send goodbye messages in groups (yes/no)",
+      "value": "yes",
+      "required": false
+    }
+  },
+  "scripts": {
+    "postdeploy": "echo 'MAXX-XMD deployed successfully!'"
+  },
+  "addons": []
+}

@@ -2,7 +2,16 @@ const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const { loadSettings, isOwner } = require("../utils/settings");
-const { sendBotSticker } = require("../utils/sticker");
+
+const REACT_EMOJIS = [
+  "😂", "😎", "😍", "🔥", "💯", "⚡", "🎉", "✨", "💪", "👑",
+  "🥳", "😆", "🤩", "💫", "🌟", "🏆", "💎", "🚀", "🎯", "💥",
+  "😇", "🤗", "😏", "🥶", "🤯", "😈", "👏", "🫡", "🦋", "🌈"
+];
+
+function getRandomEmoji() {
+  return REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
+}
 
 const commands = {};
 const aliases = {};
@@ -97,7 +106,11 @@ module.exports = async function handleMessage(sock, msg) {
     console.log(`[⚡] Executing command: ${prefix}${resolvedName} from ${from}`);
     await command.execute(sock, msg, args, from, handlerSettings);
 
-    sendBotSticker(sock, from).catch(() => {});
+    try {
+      await sock.sendMessage(from, {
+        react: { text: getRandomEmoji(), key: msg.key }
+      });
+    } catch {}
 
   } catch (err) {
     console.error("❌ Error in handleMessage:", err);

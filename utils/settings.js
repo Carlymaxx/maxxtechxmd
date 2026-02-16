@@ -12,7 +12,7 @@ const DEFAULTS = {
   packname: process.env.BOT_NAME || "MAXX-XMD",
   timezone: "Africa/Nairobi",
   botpic: "",
-  mode: "public",
+  mode: (process.env.PUBLIC_MODE || "yes").toLowerCase() === "yes" ? "public" : "private",
   greet: false,
   welcomeMessage: true,
   goodbyeMessage: true,
