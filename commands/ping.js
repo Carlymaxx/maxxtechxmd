@@ -28,9 +28,7 @@ Enjoy the power ✨💫🔥
 
 ━━━━━━━━━━━━━━━━━━━
 🌟 Made with ❤️ by Maxx
-━━━━━━━━━━━━━━━━━━━
-📣 *Join our WhatsApp Channel:*  
-👉 [Click Here](https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J) 🔗
+━━━━━━━━━━━━━━━━━━━🔗
 `;
 
         await sock.sendMessage(jid, { text: message });
