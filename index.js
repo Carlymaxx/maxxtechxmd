@@ -208,9 +208,16 @@ async function startBotSession(sessionId = 'main') {
             }
 
             const reason = lastDisconnect?.error?.output?.statusCode;
+            const errorMsg = lastDisconnect?.error?.message || '';
             if (reason === DisconnectReason.loggedOut) {
                 console.log(`🔐 [${sessionId}] Logged out, deleting session...`);
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
+                delete activeSessions[sessionId];
+                return;
+            }
+            if (reason === DisconnectReason.connectionReplaced || errorMsg.includes('conflict')) {
+                console.log(`⚠️ [${sessionId}] Connection replaced by another instance. NOT reconnecting to avoid loop.`);
+                console.log(`💡 This means another server/deployment is using the same WhatsApp session.`);
                 delete activeSessions[sessionId];
                 return;
             }
@@ -352,6 +359,12 @@ async function startPairingSession(sessionId, phoneNumber) {
             if (errorMsg.includes('QR refs') || errorMsg.includes('timed out')) {
                 console.log(`⏰ [${sessionId}] Pairing timed out, cleaning up...`);
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
+                delete activeSessions[sessionId];
+                delete pendingPairings[sessionId];
+                return;
+            }
+            if (reason === DisconnectReason.connectionReplaced || errorMsg.includes('conflict')) {
+                console.log(`⚠️ [${sessionId}] Connection replaced by another instance. NOT reconnecting.`);
                 delete activeSessions[sessionId];
                 delete pendingPairings[sessionId];
                 return;
