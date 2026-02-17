@@ -109,7 +109,7 @@ Deploy your own bot easily using one of the platforms below:
 ### 🪄 Get your Session ID easily:
 
 
-[![Session ID](https://img.shields.io/badge/SESSIONID-GET-ffb703?style=for-the-badge&logo=javascript)](https://pairmaxxxmd.onrender.com/)
+[![Session ID](https://img.shields.io/badge/SESSIONID-GET-ffb703?style=for-the-badge&logo=javascript)]([https://pairmaxxxmd.onrender.com/](https://maxxtechxmd-mkuuwamo.replit.app/pair))
 
 
 🚀 CAILLMAXX WhatsApp Bot 🤖
@@ -339,4 +339,5 @@ We appreciate your support and encourage you to:
 
 <p align="center">
   <img src="https://i.imgur.com/dBaSKWF.gif" height="40" width="100%">
+
 </p>
