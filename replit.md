@@ -36,29 +36,33 @@ A WhatsApp bot built with Baileys library, featuring a modern dark-themed Next.j
 - Private mode: only owner can use commands; Public mode: everyone can use commands
 - Chatbot: auto-reply in DMs using SimSimi API when enabled
 
-## Available Commands (50 files)
+## Available Commands (61 files)
 ### Utilities: menu, ping, alive, botinfo, owner, repo, runtime
 ### Fun: joke, quote, 8ball, dice, flip, truth, dare, compliment
-### Tools: calc, tts, weather, sticker, toimg, reshare
-### Group: tagall, groupinfo, kick, promote, demote, mute, unmute, antilink
-### Settings: setvar, mode, setprefix, setbotname, setauthor, setpackname, settimezone, setbotpic
-### Automation: anticall, chatbot, autoread, autoviewstatus, autolikestatus, greet
-### Owner: block, unblock, deploy
+### Tools: calc, tts, weather, sticker, toimg, reshare, vv, song, video, clearchat
+### Group: tagall, groupinfo, kick, promote, demote, mute, unmute, antilink, listonline
+### Settings: setvar, mode, setprefix, setbotname, setauthor, setpackname, settimezone, setbotpic, bio
+### Automation: anticall, chatbot, autoread, autoviewstatus, autolikestatus, greet, alwaysonline, autotyping, autobio, autoreaction
+### Owner: block, unblock, deploy, broadcast
 
 ## Auto-Features (index.js)
 - **Anticall**: Auto-reject incoming calls and send message
 - **Autoread**: Auto-mark messages as read
 - **Autoviewstatus**: Auto-view WhatsApp statuses
 - **Autolikestatus**: Auto-react to statuses with configurable emoji
+- **AlwaysOnline**: Keep bot presence as online 24/7
+- **AutoTyping**: Show typing indicator before replies
+- **AutoBio**: Auto-update WhatsApp bio with uptime
+- **AutoReaction**: Auto-react to incoming messages with random emojis
 - **Welcome/Goodbye**: Send greeting messages when users join/leave groups
 - **Chatbot**: AI auto-reply in DMs (SimSimi API)
-- **Mode**: Public (all users) or Private (owner only)
+- **Mode**: Public (all users can command) or Private (owner only)
 
 ## Settings System
 - Persistent JSON storage at `settings.json` (gitignored)
 - Runtime-modifiable via `.setvar` command
-- Toggle commands for each feature (anticall, chatbot, autoread, etc.)
-- Owner-only access for all settings changes
+- Toggle commands for each feature (anticall, chatbot, autoread, alwaysonline, autotyping, autobio, autoreaction, etc.)
+- Public access for automation toggles, owner-only for sensitive settings
 - Falls back to config.env defaults if settings.json doesn't exist
 
 ## Pairing Flow

@@ -60,6 +60,41 @@ const stoppingSessions = new Set();
 const latestQR = {};
 const sessionConnected = {};
 const pendingPairings = {};
+const sessionIntervals = {};
+
+function clearSessionIntervals(sessionId) {
+    if (sessionIntervals[sessionId]) {
+        for (const id of sessionIntervals[sessionId]) {
+            clearInterval(id);
+        }
+        delete sessionIntervals[sessionId];
+    }
+}
+
+function setupAlwaysOnline(sock, sessionId) {
+    clearSessionIntervals(sessionId);
+    sessionIntervals[sessionId] = [];
+
+    const presenceInterval = setInterval(() => {
+        const s = loadSettings();
+        if (s.alwaysonline) {
+            try { sock.sendPresenceUpdate('available'); } catch {}
+        }
+    }, 30000);
+    sessionIntervals[sessionId].push(presenceInterval);
+
+    const bioInterval = setInterval(async () => {
+        const s = loadSettings();
+        if (!s.autobio) return;
+        const uptime = process.uptime();
+        const h = Math.floor(uptime / 3600);
+        const m = Math.floor((uptime % 3600) / 60);
+        try {
+            await sock.updateProfileStatus(`${s.botName || 'MAXX-XMD'} | ⏱️ ${h}h ${m}m | Powered by Maxx Tech ⚡`);
+        } catch {}
+    }, 60000);
+    sessionIntervals[sessionId].push(bioInterval);
+}
 
 function setupAutoFeatures(sock, sessionId) {
     sock.ev.on('messages.upsert', async ({ messages, type }) => {
@@ -70,6 +105,24 @@ function setupAutoFeatures(sock, sessionId) {
             try {
                 if (settings.autoread && msg.key.remoteJid !== 'status@broadcast') {
                     await sock.readMessages([msg.key]);
+                }
+
+                if (settings.autotyping && msg.key.remoteJid !== 'status@broadcast' && !msg.key.fromMe) {
+                    try {
+                        await sock.sendPresenceUpdate('composing', msg.key.remoteJid);
+                        setTimeout(() => {
+                            try { sock.sendPresenceUpdate('paused', msg.key.remoteJid); } catch {}
+                        }, 2000);
+                    } catch {}
+                }
+
+                if (settings.autoreaction && !msg.key.fromMe && msg.key.remoteJid !== 'status@broadcast') {
+                    const reactEmojis = ["😂", "😎", "😍", "🔥", "💯", "⚡", "🎉", "✨", "💪", "👑", "🥳", "😆", "🤩", "💫", "🌟"];
+                    try {
+                        await sock.sendMessage(msg.key.remoteJid, {
+                            react: { text: reactEmojis[Math.floor(Math.random() * reactEmojis.length)], key: msg.key }
+                        });
+                    } catch {}
                 }
 
                 if (msg.key.remoteJid === 'status@broadcast') {
@@ -192,6 +245,12 @@ async function startBotSession(sessionId = 'main') {
             console.log(`✅ [${sessionId}] MAXX-XMD connected!`);
             sessionStore.saveSession(sessionId, { autoRestart: true, lastConnected: Date.now() });
 
+            setupAlwaysOnline(sock, sessionId);
+            const s = loadSettings();
+            if (s.alwaysonline) {
+                try { await sock.sendPresenceUpdate('available'); } catch {}
+            }
+
             if (pendingPairings[sessionId]) {
                 const phoneNumber = pendingPairings[sessionId];
                 delete pendingPairings[sessionId];
@@ -203,6 +262,7 @@ async function startBotSession(sessionId = 'main') {
         if (connection === 'close') {
             delete latestQR[sessionId];
             sessionConnected[sessionId] = false;
+            clearSessionIntervals(sessionId);
             if (stoppingSessions.has(sessionId)) {
                 console.log(`⏹️ [${sessionId}] Session stopped by user.`);
                 delete activeSessions[sessionId];

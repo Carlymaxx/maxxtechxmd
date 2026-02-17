@@ -73,6 +73,9 @@ ${greeting}, *${msg.pushName || "User"}*! ${randEmoji()}
 ║ ${p}sticker - Make sticker ${randEmoji()}
 ║ ${p}toimg - Sticker to image ${randEmoji()}
 ║ ${p}reshare - Forward message ${randEmoji()}
+║ ${p}vv - View once message ${randEmoji()}
+║ ${p}song - Search song ${randEmoji()}
+║ ${p}video - Search video ${randEmoji()}
 ╚════════════════════╝
 
 ╔═══ 👥 *GROUP* ═══╗
@@ -84,6 +87,7 @@ ${greeting}, *${msg.pushName || "User"}*! ${randEmoji()}
 ║ ${p}mute - Mute group ${randEmoji()}
 ║ ${p}unmute - Unmute group ${randEmoji()}
 ║ ${p}antilink - Toggle antilink ${randEmoji()}
+║ ${p}listonline - List members ${randEmoji()}
 ╚════════════════════╝
 
 ╔═══ ⚙️ *SETTINGS* ═══╗
@@ -95,6 +99,7 @@ ${greeting}, *${msg.pushName || "User"}*! ${randEmoji()}
 ║ ${p}setpackname - Pack name ${randEmoji()}
 ║ ${p}settimezone - Timezone ${randEmoji()}
 ║ ${p}setbotpic - Bot picture ${randEmoji()}
+║ ${p}bio - Set WhatsApp bio ${randEmoji()}
 ╚════════════════════╝
 
 ╔═══ 🤖 *AUTOMATION* ═══╗
@@ -103,12 +108,18 @@ ${greeting}, *${msg.pushName || "User"}*! ${randEmoji()}
 ║ ${p}autoread - Auto-read msgs ${randEmoji()}
 ║ ${p}autoviewstatus - View statuses ${randEmoji()}
 ║ ${p}autolikestatus - React statuses ${randEmoji()}
+║ ${p}alwaysonline - Always online ${randEmoji()}
+║ ${p}autotyping - Typing indicator ${randEmoji()}
+║ ${p}autobio - Auto-update bio ${randEmoji()}
+║ ${p}autoreaction - React to msgs ${randEmoji()}
 ║ ${p}greet - Welcome/goodbye ${randEmoji()}
 ╚════════════════════╝
 
 ╔═══ 🔐 *OWNER* ═══╗
 ║ ${p}block - Block user ${randEmoji()}
 ║ ${p}unblock - Unblock user ${randEmoji()}
+║ ${p}broadcast - Broadcast msg ${randEmoji()}
+║ ${p}clearchat - Clear chat ${randEmoji()}
 ║ ${p}deploy - Server info ${randEmoji()}
 ╚════════════════════╝
 

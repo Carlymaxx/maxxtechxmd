@@ -283,7 +283,7 @@ function DashboardTab({ botInfo, sessions, connectedCount, mainConnected, fetchD
       </div>
 
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Available Commands (50+)</h2>
+        <h2 className="text-lg font-semibold text-white mb-4">Available Commands (60+)</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
           {[
             { cmd: '.menu', desc: 'Full command menu' },
@@ -298,6 +298,14 @@ function DashboardTab({ botInfo, sessions, connectedCount, mainConnected, fetchD
             { cmd: '.kick', desc: 'Remove member' },
             { cmd: '.mode', desc: 'Public/Private' },
             { cmd: '.chatbot', desc: 'AI auto-reply' },
+            { cmd: '.alwaysonline', desc: 'Always online' },
+            { cmd: '.autotyping', desc: 'Typing indicator' },
+            { cmd: '.vv', desc: 'View once message' },
+            { cmd: '.song', desc: 'Search song' },
+            { cmd: '.video', desc: 'Search video' },
+            { cmd: '.broadcast', desc: 'Broadcast msg' },
+            { cmd: '.autobio', desc: 'Auto-update bio' },
+            { cmd: '.autoreaction', desc: 'React to msgs' },
           ].map(c => (
             <div key={c.cmd} className="flex items-center gap-3 bg-gray-800/50 rounded-lg p-3">
               <span className="bg-emerald-600/20 text-emerald-400 px-2 py-0.5 rounded font-mono text-sm font-medium">{c.cmd}</span>

@@ -12,7 +12,7 @@ const DEFAULTS = {
   packname: process.env.BOT_NAME || "MAXX-XMD",
   timezone: "Africa/Nairobi",
   botpic: "",
-  mode: (process.env.PUBLIC_MODE || "yes").toLowerCase() === "yes" ? "public" : "private",
+  mode: "public",
   greet: false,
   welcomeMessage: true,
   goodbyeMessage: true,
@@ -24,6 +24,10 @@ const DEFAULTS = {
   autolikestatus_emoji: "🔥",
   statusReactEmojis: "😂,😎,😍,😆,😭,😡,🥳,🤩,😇,💀",
   antilink: false,
+  alwaysonline: true,
+  autotyping: false,
+  autobio: false,
+  autoreaction: false,
   blockedNumbers: []
 };
 
