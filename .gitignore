@@ -48,3 +48,4 @@ auth_info/
 sessions/
 db.json
 settings.json
+session_store.json

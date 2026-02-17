@@ -6,6 +6,11 @@ interface Session {
   id: string;
   status: string;
   connected: boolean;
+  phoneNumber?: string | null;
+  type?: string;
+  createdAt?: number | null;
+  lastConnected?: number | null;
+  autoRestart?: boolean;
 }
 
 interface BotInfo {
@@ -430,44 +435,62 @@ function SessionsTab({ sessions, fetchData, showToast }: {
       </div>
 
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-800">
-          <h2 className="text-lg font-semibold text-white">Active Sessions ({sessions.length})</h2>
+        <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">All Sessions ({sessions.length})</h2>
+          <div className="flex gap-3 text-xs">
+            <span className="text-emerald-400">{sessions.filter(s => s.connected).length} online</span>
+            <span className="text-gray-500">{sessions.filter(s => !s.connected).length} offline</span>
+          </div>
         </div>
 
         {sessions.length === 0 ? (
           <div className="px-6 py-12 text-center text-gray-500">
-            No sessions yet. Create one above to get started.
+            No sessions yet. Create one above or use the Pair Device tab.
           </div>
         ) : (
           <div className="divide-y divide-gray-800">
             {sessions.map(session => (
-              <div key={session.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${session.connected ? 'bg-emerald-400' : session.status === 'connecting' ? 'bg-amber-400 animate-pulse' : 'bg-gray-500'}`} />
-                  <div>
-                    <p className="text-white font-medium">{session.id}</p>
-                    <p className="text-xs text-gray-400 capitalize">{session.status}</p>
+              <div key={session.id} className="px-6 py-4 hover:bg-gray-800/50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-3 h-3 rounded-full shrink-0 ${session.connected ? 'bg-emerald-400' : 'bg-gray-500'}`} />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-white font-medium truncate">{session.id}</p>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded ${session.type === 'main' ? 'bg-cyan-600/20 text-cyan-400' : session.type === 'paired' ? 'bg-purple-600/20 text-purple-400' : 'bg-gray-700 text-gray-400'}`}>
+                          {session.type === 'main' ? 'MAIN' : session.type === 'paired' ? 'PAIRED' : 'MANUAL'}
+                        </span>
+                        {session.autoRestart && <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-600/20 text-emerald-400">AUTO</span>}
+                      </div>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        <p className="text-xs text-gray-400 capitalize">{session.status}</p>
+                        {session.phoneNumber && <p className="text-xs text-gray-500">+{session.phoneNumber}</p>}
+                        {session.createdAt && <p className="text-xs text-gray-600">{new Date(session.createdAt).toLocaleDateString()}</p>}
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {actionLoading === session.id ? (
-                    <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      {!session.connected ? (
-                        <button onClick={() => startSession(session.id)} className="text-xs bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 px-3 py-1.5 rounded-md transition-colors">
-                          Start
-                        </button>
-                      ) : (
-                        <button onClick={() => stopSession(session.id)} className="text-xs bg-amber-600/20 text-amber-400 hover:bg-amber-600/30 px-3 py-1.5 rounded-md transition-colors">
-                          Stop
-                        </button>
-                      )}
-                      <button onClick={() => deleteSession(session.id)} className="text-xs bg-red-600/20 text-red-400 hover:bg-red-600/30 px-3 py-1.5 rounded-md transition-colors">
-                        Delete
-                      </button>
-                    </>
-                  )}
+                  <div className="flex items-center gap-2 shrink-0 ml-3">
+                    {actionLoading === session.id ? (
+                      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        {!session.connected ? (
+                          <button onClick={() => startSession(session.id)} className="text-xs bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 px-3 py-1.5 rounded-md transition-colors">
+                            Start
+                          </button>
+                        ) : (
+                          <button onClick={() => stopSession(session.id)} className="text-xs bg-amber-600/20 text-amber-400 hover:bg-amber-600/30 px-3 py-1.5 rounded-md transition-colors">
+                            Stop
+                          </button>
+                        )}
+                        {session.id !== 'main' && (
+                          <button onClick={() => deleteSession(session.id)} className="text-xs bg-red-600/20 text-red-400 hover:bg-red-600/30 px-3 py-1.5 rounded-md transition-colors">
+                            Delete
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

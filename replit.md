@@ -13,11 +13,14 @@ A WhatsApp bot built with Baileys library, featuring a modern dark-themed Next.j
 - **GitHub**: https://github.com/Carlymaxx/maxxtechxmd.git
 
 ## Key Files
-- `server.js` — Main server (Express + Next.js + Bot startup + Multi-session API + Pairing API)
+- `server.js` — Main server (Express + Next.js + Bot startup + Multi-session API + Pairing API + auto-restart)
 - `index.js` — WhatsApp bot multi-session logic with auto-features (anticall, autoread, autoviewstatus, autolikestatus, welcome/goodbye)
 - `config.env` — Bot configuration (prefix, owner, features)
 - `settings.json` — Runtime persistent settings (generated at first run, gitignored)
+- `session_store.json` — Session metadata store (phone, created date, auto-restart flag, gitignored)
 - `utils/settings.js` — Settings manager (load/save/toggle JSON-backed settings)
+- `utils/sessionStore.js` — Session metadata manager (tracks phone numbers, creation dates, auto-restart flags)
+- `src/app/pair/page.tsx` — Standalone pairing page (separate URL at /pair)
 - `utils/grouphelper.js` — Group admin permission checks (getSenderJid, isGroupAdmin, isBotAdmin)
 - `handlers/messagehandler.js` — Command router with mode support (public/private), chatbot, aliases
 - `commands/` — 50 bot command modules (each exports {name, alias?, description, execute})
@@ -95,3 +98,9 @@ A WhatsApp bot built with Baileys library, featuring a modern dark-themed Next.j
 - 2026-02-16: Added deployable session ID encoding — paired users receive base64-compressed session IDs on WhatsApp
 - 2026-02-16: Updated dashboard with deployment instructions, GitHub fork link, "Get Your Own Bot" section
 - 2026-02-16: Pushed all updates to GitHub including session restore, sticker system, 50+ commands
+- 2026-02-17: Added standalone /pair page — separate URL for pairing only (no dashboard)
+- 2026-02-17: Fixed WhatsApp conflict crash loop — bot stops gracefully when another instance takes over
+- 2026-02-17: Added session metadata store (utils/sessionStore.js + session_store.json) — tracks phone numbers, creation dates, auto-restart flags
+- 2026-02-17: Added auto-restart for saved sessions on server startup — sessions with autoRestart flag reconnect automatically
+- 2026-02-17: Enhanced Sessions tab — shows session type (MAIN/PAIRED/MANUAL), phone number, dates, auto-restart badge
+- 2026-02-17: Updated README with full MAXX-XMD branding and corrected all repo links

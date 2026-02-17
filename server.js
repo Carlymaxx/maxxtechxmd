@@ -7,6 +7,7 @@ const next = require('next');
 
 const QRCode = require('qrcode');
 const bot = require("./index.js");
+const sessionStore = require('./utils/sessionStore');
 
 const DEV = process.env.NODE_ENV !== 'production';
 const PORT = process.env.PORT || 5000;
@@ -36,10 +37,16 @@ async function startBotSession(sessionId = 'main') {
 
 function getSessionInfo(sessionId) {
   const isConnected = !!bot.sessionConnected[sessionId];
+  const meta = sessionStore.getSession(sessionId) || {};
   return {
     id: sessionId,
     status: isConnected ? 'connected' : 'disconnected',
-    connected: isConnected
+    connected: isConnected,
+    phoneNumber: meta.phoneNumber || null,
+    type: meta.type || (sessionId === 'main' ? 'main' : 'manual'),
+    createdAt: meta.createdAt || null,
+    lastConnected: meta.lastConnected || null,
+    autoRestart: meta.autoRestart || false
   };
 }
 
@@ -94,6 +101,7 @@ app.post('/api/sessions', async (req, res) => {
     const sessionId = name || `session-${Date.now()}`;
     const safeName = sessionId.replace(/[^a-zA-Z0-9_-]/g, '_');
 
+    sessionStore.saveSession(safeName, { type: 'manual', autoRestart: true });
     await startBotSession(safeName);
     res.json({ success: true, session: getSessionInfo(safeName) });
   } catch (e) {
@@ -123,6 +131,7 @@ app.post('/api/sessions/:id/stop', async (req, res) => {
       delete bot.activeSessions[id];
       bot.sessionConnected[id] = false;
     }
+    sessionStore.saveSession(id, { autoRestart: false });
     res.json({ success: true, message: `Session ${id} stopped` });
   } catch (e) {
     console.error('Stop session error:', e);
@@ -145,6 +154,7 @@ app.delete('/api/sessions/:id', async (req, res) => {
     if (fs.existsSync(sessionFolder)) {
       fs.rmSync(sessionFolder, { recursive: true, force: true });
     }
+    sessionStore.deleteSessionMeta(id);
 
     res.json({ success: true, message: `Session ${id} deleted` });
   } catch (e) {
@@ -269,7 +279,11 @@ app.all('*', (req, res) => {
 
 nextApp.prepare().then(() => {
   app.listen(PORT, '0.0.0.0', () => console.log(`🚀 MAXX-XMD server listening on port ${PORT}`));
-  startBotSession('main').catch(console.error);
+  startBotSession('main').then(() => {
+    setTimeout(() => {
+      bot.restartSavedSessions().catch(err => console.error('Failed to restart saved sessions:', err));
+    }, 5000);
+  }).catch(console.error);
 }).catch(err => {
   console.error('Failed to start Next.js:', err);
   process.exit(1);

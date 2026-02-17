@@ -11,6 +11,7 @@ const {
 } = require('@whiskeysockets/baileys');
 
 const { loadSettings, getSetting } = require('./utils/settings');
+const sessionStore = require('./utils/sessionStore');
 
 const envSettings = {
     prefix: process.env.PREFIX || ".",
@@ -189,6 +190,7 @@ async function startBotSession(sessionId = 'main') {
             delete latestQR[sessionId];
             sessionConnected[sessionId] = true;
             console.log(`✅ [${sessionId}] MAXX-XMD connected!`);
+            sessionStore.saveSession(sessionId, { autoRestart: true, lastConnected: Date.now() });
 
             if (pendingPairings[sessionId]) {
                 const phoneNumber = pendingPairings[sessionId];
@@ -204,6 +206,7 @@ async function startBotSession(sessionId = 'main') {
             if (stoppingSessions.has(sessionId)) {
                 console.log(`⏹️ [${sessionId}] Session stopped by user.`);
                 delete activeSessions[sessionId];
+                sessionStore.saveSession(sessionId, { autoRestart: false });
                 return;
             }
 
@@ -213,12 +216,14 @@ async function startBotSession(sessionId = 'main') {
                 console.log(`🔐 [${sessionId}] Logged out, deleting session...`);
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
                 delete activeSessions[sessionId];
+                sessionStore.deleteSessionMeta(sessionId);
                 return;
             }
             if (reason === DisconnectReason.connectionReplaced || errorMsg.includes('conflict')) {
                 console.log(`⚠️ [${sessionId}] Connection replaced by another instance. NOT reconnecting to avoid loop.`);
                 console.log(`💡 This means another server/deployment is using the same WhatsApp session.`);
                 delete activeSessions[sessionId];
+                sessionStore.saveSession(sessionId, { autoRestart: false });
                 return;
             }
             delete activeSessions[sessionId];
@@ -308,6 +313,7 @@ async function startPairingSession(sessionId, phoneNumber) {
     fs.mkdirSync(sessionFolder);
 
     pendingPairings[sessionId] = phoneNumber;
+    sessionStore.saveSession(sessionId, { phoneNumber, type: 'paired', autoRestart: false });
 
     const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
     const { version } = await fetchLatestBaileysVersion();
@@ -330,6 +336,7 @@ async function startPairingSession(sessionId, phoneNumber) {
         if (connection === 'open') {
             sessionConnected[sessionId] = true;
             console.log(`✅ [${sessionId}] Paired and connected!`);
+            sessionStore.saveSession(sessionId, { autoRestart: true, lastConnected: Date.now() });
 
             if (pendingPairings[sessionId]) {
                 const phone = pendingPairings[sessionId];
@@ -344,6 +351,7 @@ async function startPairingSession(sessionId, phoneNumber) {
             if (stoppingSessions.has(sessionId)) {
                 console.log(`⏹️ [${sessionId}] Session stopped by user.`);
                 delete activeSessions[sessionId];
+                sessionStore.saveSession(sessionId, { autoRestart: false });
                 return;
             }
 
@@ -354,6 +362,7 @@ async function startPairingSession(sessionId, phoneNumber) {
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
                 delete activeSessions[sessionId];
                 delete pendingPairings[sessionId];
+                sessionStore.deleteSessionMeta(sessionId);
                 return;
             }
             if (errorMsg.includes('QR refs') || errorMsg.includes('timed out')) {
@@ -361,12 +370,14 @@ async function startPairingSession(sessionId, phoneNumber) {
                 fs.rmSync(sessionFolder, { recursive: true, force: true });
                 delete activeSessions[sessionId];
                 delete pendingPairings[sessionId];
+                sessionStore.deleteSessionMeta(sessionId);
                 return;
             }
             if (reason === DisconnectReason.connectionReplaced || errorMsg.includes('conflict')) {
                 console.log(`⚠️ [${sessionId}] Connection replaced by another instance. NOT reconnecting.`);
                 delete activeSessions[sessionId];
                 delete pendingPairings[sessionId];
+                sessionStore.saveSession(sessionId, { autoRestart: false });
                 return;
             }
             delete activeSessions[sessionId];
@@ -394,4 +405,36 @@ async function startPairingSession(sessionId, phoneNumber) {
     return { sock, pairingCode };
 }
 
-module.exports = { startBotSession, startPairingSession, activeSessions, stoppingSessions, latestQR, sessionConnected, pendingPairings };
+async function restartSavedSessions() {
+    const store = sessionStore.getAllSessions();
+    const sessionIds = Object.keys(store).filter(id => id !== 'main');
+    if (sessionIds.length === 0) return;
+
+    console.log(`📂 Found ${sessionIds.length} saved session(s) to check...`);
+    for (const sid of sessionIds) {
+        const meta = store[sid];
+        const sessionFolder = path.join(SESSIONS_DIR, sid);
+        const credsPath = path.join(sessionFolder, 'creds.json');
+
+        if (!fs.existsSync(credsPath)) {
+            console.log(`⏭️ [${sid}] No creds found, skipping.`);
+            sessionStore.deleteSessionMeta(sid);
+            continue;
+        }
+
+        if (!meta.autoRestart) {
+            console.log(`⏭️ [${sid}] Auto-restart disabled, skipping.`);
+            continue;
+        }
+
+        console.log(`🔄 [${sid}] Restarting session...`);
+        try {
+            await startBotSession(sid);
+            await new Promise(resolve => setTimeout(resolve, 3000));
+        } catch (err) {
+            console.error(`❌ [${sid}] Failed to restart:`, err.message);
+        }
+    }
+}
+
+module.exports = { startBotSession, startPairingSession, restartSavedSessions, activeSessions, stoppingSessions, latestQR, sessionConnected, pendingPairings };
