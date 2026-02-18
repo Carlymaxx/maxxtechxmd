@@ -1,94 +1,75 @@
-# 🟢⚡ MAXX~XMD ⚡🟢
-### _Cyberpunk WhatsApp Bot • Hacker Green Edition_
+MAXX~XMD
 
-<p align="center">
-  <img src="https://i.imgur.com/LyHic3i.gif"/>
-</p>
 
-<h1 align="center">⚡🔥 𝐌𝐀𝐗𝐗 𝐓𝐄𝐂𝐇 — VERSION 5.0.0 🔥⚡</h1>
 
-<p align="center">
-  🚀 <b>Safe for Heroku</b> — No questions, just deploy & enjoy! 💎
-</p>
 
----
+<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
 
-## ⚠️ IMPORTANT NOTICE
+<h1 align="center">⚡🔥 𝐌𝐀𝐗𝐗 𝐓𝐄𝐂𝐇 𝐕𝐄𝐑𝐒𝐈𝐎𝐍 5.0.0 🔥⚡</h1>
+
+<p align="center">🚀 **Safe for Heroku** – No questions, just deploy & enjoy! 💎</p>
 
 <details>
-<summary>🚨 TAP TO READ IMPORTANT NOTICE 🚨</summary>
+<summary>⚠️ 🚨 TAP TO READ IMPORTANT NOTICE 🚨 ⚠️</summary>
 
-### ⚡ VPS / PANEL DEPLOYMENT
-- You **MUST download the ZIP** from GitHub or panel  
-- Failure to do this will cause **YouTube & media tools NOT to work**
+- ⚡ **For VPS/Panel Deployment:** You **must download the ZIP** from the panel sections or from the link below, otherwise your **YouTube tools won’t work**!  
 
-<p> align="center">
-  <a href="https://github.com/Carlymaxx/maxxtechxmd">
-    <img src="https://img.shields.io/badge/DOWNLOAD%20ZIP-00FF00?style=for-the-badge&logo=github&logoColor=black" width="220">
-  </a>
-</p>
+<a href="https://github.com/Carlymaxx/maxxtechxmd">
+  <img src="https://img.shields.io/badge/DOWNLOAD%20ZIP-blue" alt="Panel Zip File" width="150">
+</a>
 
-### 💡 PRO TIP
-Add your **Premium / Unlimited API key** to:
-- `config.js`
-- `.env`
-- `app.json` (Heroku)
-
-➡️ Prevents **free API limits & errors**
+- 💡 **Pro Tip:** Add your **premium/unlimited API key** in `config.js` / `.env` / `app.json` (Heroku) to **avoid free API limits**.  
 
 </details>
 
----
+<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
 
 <p align="center">
-  <img src="https://i.imgur.com/LyHic3i.gif"/>
+<a href="https://github.com/Carlymaxx/Maxxytechxmd">
+  <img title="GITHUB" src="https://img.shields.io/badge/GITHUB-MAXX TECH-red.svg?style=for-the-badge&logo=github">
+</a>
 </p>
 
-## 🧠 COMMAND MATRIX (HACKER GREEN)
-
-### ⚙️ CORE SYSTEM
-```diff
-+ .alive        → Check bot status
-+ .ping         → Speed test
-+ .runtime      → Bot uptime
-+ .menu         → Show full menu
-# Maxx-tech
-A WhatsApp bot with rich and multiple features created by carlymaxx.
-<a href="https://cooltext.com"><img src="https://images.cooltext.com/5741905.gif" width="415" height="94" alt="MAXX~XMD" /></a>
-
-<a href="https://cooltext.com"><img src="https://images.cooltext.com/5741908.png" width="184" height="68" alt="Maxx~xmd" /></a>
-
-<div align="center"> 
-  <a href="https://git.io/typing-svg"> 
-    <img src="https://readme-typing-svg.demolab.com?font=Rockwell&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=MAXX~OFFICIAL;Multi+Device+Whatsapp+Bot;Made+by+Maxx" alt="Typing SVG" />
-  </a> 
-</div> 
-
-<div align="center"> 
-  <a href=""> 
-    <img src="https://files.catbox.moe/8jx0q3.jpg" alt="MAXX~XMD" height="300"> 
-  </a> 
-</div>
-</div>
-
----
-
-   1. DEPLOYMENT
-[![Typing SVG](https://readme-typing-svg.demolab.com/?lines=Tap+fork+button+Bellow+To+Fork;MAXX+XMD+REPO+On+Github)](https://git.io/typing-svg)
-<div align="center">
-  <a href="https://github.com/Carlymaxx/maxxtechxmd/fork">
-    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=scan&logoColor=red&labelColoryellow&color=darkblue" alt="FORK REPO"/>
-  </a>
-</div>
-<!-- Glowing Header -->
 <p align="center">
-  <img src="https://i.imgur.com/dBaSKWF.gif" height="40" width="100%">
+<a href="https://github.com/Carlymaxx?tab=followers">
+  <img title="Followers" src="https://img.shields.io/github/followers/Carlymaxx?label=Followers&style=social">
+</a>
+<a href="https://github.com/Carlymaxx/maxxtechxmd/stargazers/">
+  <img title="STARS" src="https://img.shields.io/github/stars/Carlymaxx/maxxtechxmd?&style=social">
+</a>
+<a href="https://github.com/Carlymaxx/maxxtechxmd/network/members">
+  <img title="Forks" src="https://img.shields.io/github/forks/Carlymaxx/maxxtechxmd?style=social">
+</a>
+<a href="https://github.com/Carlymaxx/maxxtechxmd/watchers">
+  <img title="Watching" src="https://img.shields.io/github/watchers/Carlymaxx/maxxtechxmd?label=Watching&style=social">
+</a>
 </p>
 
-<h1 align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=25&duration=3000&color=00FF00&background=000000&center=true&vCenter=true&width=600&lines=⚡+MAXX+XMD+VERSION;🔥+The+Most+Powerful+WhatsApp+Bot;💻+Crafted+by+CARLY+MAXX;🚀+Next-Gen+Maxx+Technology;🌈+Fast+⚡+Secure+🔒+Reliable+✅" alt="Typing Animation">
+<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
 
-</div>
+This repository contains a WhatsApp bot project and related scripts.
+
+Quick start
+
+Prerequisites:
+- Node.js installed
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run (if the project defines a start script):
+
+```bash
+npm start
+```
+
+Notes:
+- Sensitive files such as `config.env` and `Maxx/creds.json` are excluded from the repository via `.gitignore`.
+
+License: MIT
 
 
 
