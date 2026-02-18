@@ -34,10 +34,10 @@
 <a href="https://github.com/Carlymaxx?tab=followers">
   <img title="Followers" src="https://img.shields.io/github/followers/Carlymaxx?label=Followers&style=social">
 </a>
-<a href="https://github.com/Carlymaxx/Maxx-tech/stargazers/">
+<a href="https://github.com/Carlymaxx/maxxtechxmd/stargazers/">
   <img title="STARS" src="https://img.shields.io/github/stars/CarlymaxxMaxxtechxmd?&style=social">
 </a>
-<a href="https://github.com/Carlymaxx/Maxx-tech/network/members">
+<a href="https://github.com/Carlymaxx/maxxtechxmd/network/members">
   <img title="Forks" src="https://img.shields.io/github/forks/Carlymaxx/Maxxtechxmd?style=social">
 </a>
 <a href="https://github.com/Carlymaxx/Maxx-tech/watchers">
