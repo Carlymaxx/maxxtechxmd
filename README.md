@@ -71,6 +71,133 @@ Notes:
 
 License: MIT
 
+<a><img src="https://i.imgur.com/LyHic3i.gif" /></a>
+
+<h1 align="center">
+⚡🔥 <span style="color:#00ffff">MAXX TECH 5.0.0</span> 🔥⚡
+</h1>
+
+<p align="center">
+🚀 <b>Safe for Heroku</b> – Deploy, chill, and let the bot do the magic! 💎🤖  
+💡 <i>Next-Gen Multi-device WhatsApp Bot – Funny, Techy & Super Fast ⚡</i>
+</p>
+
+<details>
+<summary>⚠️ Important Notice</summary>
+
+- ⚡ **For VPS/Panel Deployment:** You **must download the ZIP** from the panel sections or link below, otherwise your **YouTube tools won’t work**! 😢  
+
+<a href="https://github.com/Carlymaxx/Maxx-tech.git">
+  <img src="https://img.shields.io/badge/DOWNLOAD%20ZIP-blue?style=for-the-badge&logo=zip" alt="Panel Zip File">
+</a>
+
+- 💡 **Pro Tip:** Add your **premium/unlimited API key** in `config.js` / `.env` / `app.json` (Heroku) to avoid free API limits ⚡💰.  
+
+</details>
+
+<p align="center">
+<a href="https://github.com/Carlymaxx/Maxx-tech.git">
+  <img title="GITHUB" src="https://img.shields.io/badge/GITHUB-MAXX%20TECH-red.svg?style=for-the-badge&logo=github">
+</a>
+</p>
+
+<p align="center">
+<a href="https://github.com/Carlymaxx?tab=followers">
+  <img title="Followers" src="https://img.shields.io/github/followers/Carlymaxx?label=Followers&style=social&color=green">
+</a>
+<a href="https://github.com/Carlymaxx/Maxx-tech/stargazers/">
+  <img title="STARS" src="https://img.shields.io/github/stars/Carlymaxx/Maxx-tech?style=social&color=yellow">
+</a>
+<a href="https://github.com/Carlymaxx/Maxx-tech/network/members">
+  <img title="Forks" src="https://img.shields.io/github/forks/Carlymaxx/Maxx-tech?style=social&color=blue">
+</a>
+<a href="https://github.com/Carlymaxx/Maxx-tech/watchers">
+  <img title="Watching" src="https://img.shields.io/github/watchers/Carlymaxx/Maxx-tech?label=Watching&style=social&color=orange">
+</a>
+</p>
+
+---
+
+<p align="center">
+<img src="https://media.giphy.com/media/3o7aCSPqXE6GJ6cH8E/giphy.gif" width="100%" alt="Neon Divider">
+</p>
+
+# 🤖 About MAXX TECH
+**MAXX TECH** is a **multi-device WhatsApp bot** packed with features that make your chats 💥fun💥 and notifications never lonely again!  
+
+<div align="center">
+  <img src="https://files.catbox.moe/8jx0q3.jpg" alt="MAXX XMD" height="300">
+</div>
+
+<div align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Rockwell&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=MAXX~OFFICIAL;Multi+Device+Whatsapp+Bot;Made+by+Maxx;💻Tech+Savvy+&+Funny+Bot" alt="Typing SVG" />
+</div>
+
+---
+
+## 🌈 Features (Rainbow Mode 🌈)
+- Multi-device WhatsApp support 🌍  
+- Auto typing & auto reacting 💬✨  
+- Anti-link protection 🚫🔗  
+- Always online & lightning-fast ⚡  
+- Full YouTube integration 🎥 (API key required)  
+- Responds to memes 😎  
+- Makes your chat group hilarious 😁  
+- Works best with coffee ☕ in hand  
+
+<p align="center">
+<img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=2000&pause=500&color=FF00FF&background=000000&center=true&vCenter=true&width=400&lines=🟢+Maxx+bot:+Alive;💬+Responding+to+messages;💯+Auto+typing;🔥+Auto+react+ready;😁+Meme+Mode+Enabled;🚀+Deploy+in+Style!" alt="Quantum Pulse Animation">
+</p>
+
+<p align="center">
+<img src="https://media.giphy.com/media/l0MYKnyNZl1bA1RBe/giphy.gif" width="100%" alt="Glowing Neon Divider">
+</p>
+
+---
+
+## 🚀 Deployment (Easy & Fun 🍋)
+1. **Fork the repository** (Click that fork button 🍴)  
+
+<div align="center">
+  <a href="https://github.com/Carlymaxx/Maxx-tech/fork">
+    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=github&logoColor=white&color=cyan" alt="FORK REPO"/>
+  </a>
+</div>
+
+2. **Download the ZIP** for VPS/Panel deployment (required for YouTube tools).  
+3. **Add your API keys** in `config.js` / `.env` / `app.json`.  
+4. **Deploy on Heroku / VPS / Panel** and watch the magic happen 🌟🪄  
+
+<p align="center">
+<img src="https://media.giphy.com/media/xT0xeJpnrWC4XWblEk/giphy.gif" width="100%" alt="Tech Animation">
+</p>
+
+---
+
+### 🎉 Funny Notes & Tech Jokes
+- “Why did the bot cross the WiFi? To get to the other node!” 🤓  
+- “Error 404: Fun not found… but MAXX fixes it!” 💥  
+- Works best with coffee ☕ in hand and WiFi on 🔥  
+- Chat with MAXX TECH, and it might reply with **tech jokes** or **random memes** 😹  
+
+<p align="center">
+<img src="https://media.giphy.com/media/3oKIPwoeGErMmaI43C/giphy.gif" width="100%" alt="Neon Fun Divider">
+</p>
+
+---
+
+**DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO**
+
+<div align="center">
+  <a href="https://github.com/Carlymaxx/Maxx-tech/fork">
+    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=github&logoColor=white&color=magenta" alt="FORK REPO"/>
+  </a>
+</div>
+
+<p align="center">
+<img src="https://media.giphy.com/media/26xBwdIuRJiAIqHwA/giphy.gif" width="100%" alt="Neon Footer Divider">
+</p>
+
 
 
 
