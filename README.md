@@ -280,6 +280,29 @@ We appreciate your support and encourage you to:
 <p align="center">
   <img src="https://img.shields.io/github/stars/Carlymaxx/MAXX-XMD?style=social" alt="GitHub Stars"/>
 </p>
+</p>
+
+<p align="left">
+  <img src="https://img.shields.io/github/license/Carlymaxx/Maxx-tech?style=for-the-badge&color=9900ff&logo=github&logoColor=white&logoWidth=20" alt="License"/><br/>
+  📝 License
+</p>
+
+<p align="left">
+  <img src="https://heroku-badge.herokuapp.com/lake" alt="Bot Status"/><br/>
+  🤖 Bot Alive Status
+</p>
+
+🌐 WhatsApp Channel:  
+[![Channel](https://img.shields.io/badge/WhatsApp-Channel-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J)  
+
+💬 WhatsApp Group:  
+[![Group](https://img.shields.io/badge/WhatsApp-Group-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ)  
+
+📧 Email: [maxxtechxmd@gmail.com](mailto:maxxtechxmd@gmail.com)  
+ 📞 Support: [+254725979273](tel:+254725979273)   
+🏷️ GitHub Repo: [Maxx Tech](https://github.com/Carlymaxx/Maxxtechxmd.git)  
+
 
 <p align="center"><strong>Made with 💥 by Carly Maxx | Powered by 🔥MAXX TECH 🔥</strong></p>
+
 
