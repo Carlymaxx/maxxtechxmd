@@ -232,8 +232,8 @@ A WhatsApp bot built with **Node.js** and **Baileys**, fully deployable and read
 
 ## 📊 GitHub Status
 
-![Profile views](https://komarev.com/ghpvc/?username=maxxy1470)  
-![Followers](https://img.shields.io/github/followers/maxxy1470?label=Followers&style=social)  
+![Profile views](https://komarev.com/ghpvc/?username/carlymaxx)  
+![Followers](https://img.shields.io/github/followers/carlymaxx/maxxtechxmd?label=Followers&style=social)  
 ![Stars](https://img.shields.io/github/stars/Carlymaxx/maxxtechxmd?label=Stars&style=social)  
 ![Forks](https://img.shields.io/github/forks/Carlymaxx/maxxtechxmd?label=Forks&style=social)  
 ![Open Issues](https://img.shields.io/github/issues/Carlymaxx/maxxtechxmd?label=Open%20Issues&style=flat)  
