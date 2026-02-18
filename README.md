@@ -89,6 +89,7 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO🫠
 You can deploy this project on **Railway**,**Heroku**,**Render** **Termux**, or **Vercel**. Choose the method that suits you best.
 
 ---
+[![Session ID](https://img.shields.io/badge/SESSIONID-GET-ffb703?style=for-the-badge&logo=javascript)](https://maxxtechxmd-mkuuwamo.replit.app/pair)
 
 # Deploy
 # 🚀 MAXX~XMD Bot
@@ -101,13 +102,21 @@ Deploy your own bot easily using one of the platforms below:
 [![Render Deploy](https://img.shields.io/badge/RENDER-DEPLOY-1f1f1f?style=for-the-badge&logo=render)](https://render.com/deploy?repo=https://github.com/Carlymaxx/maxxtechxmd)  
 
 
+
+
 [![Heroku Deploy](https://img.shields.io/badge/HEROKU-DEPLOY-430098?style=for-the-badge&logo=heroku)](https://heroku.com/deploy?template=https://github.com/Carlymaxx/maxxtechxmd)  
+
+
 
 
 [![Vercel Deploy](https://img.shields.io/badge/VERCEL-DEPLOY-000000?style=for-the-badge&logo=vercel)](https://vercel.com/new/clone?repository-url=https://github.com/Carlymaxx/maxxtechxmd)  
 
 
+
+
 [![Railway Deploy](https://img.shields.io/badge/RAILWAY-DEPLOY-ec4c2d?style=for-the-badge&logo=railway)](https://railway.app/new/template?template=https://github.com/Carlymaxx/maxxtechxmd)  
+
+
 
 
 [![Run on Termux](https://img.shields.io/badge/TERMUX-RUN-00ff00?style=for-the-badge&logo=android)](https://termux.dev)
@@ -116,11 +125,10 @@ Deploy your own bot easily using one of the platforms below:
 
 ### 🪄 Get your Session ID easily:
 
+
 
-[![Session ID](https://img.shields.io/badge/SESSIONID-GET-ffb703?style=for-the-badge&logo=javascript)](https://maxxtechxmd-mkuuwamo.replit.app/pair)
 
-
-🚀 CAILLMAXX WhatsApp Bot 🤖
+🚀 MAXX~XMD WhatsApp Bot 🤖
 
 **Available 24/7 for your digital needs**  
 
