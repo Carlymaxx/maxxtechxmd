@@ -245,7 +245,7 @@ A WhatsApp bot built with **Node.js** and **Baileys**, fully deployable and read
 <!-- ===================== -->
 
 <p align="center">
-  <img src="https://komarev.com/ghpvc/?username=Maxxy1470&label=PROFILE%20VIEWS&color=00ffe4&style=for-the-badge" />
+  <img src="https://komarev.com/ghpvc/?username=Maxxy1470&label=PROFILE%20VIEWS&color=000000&style=for-the-badge" />
 </p>
 
 ---
