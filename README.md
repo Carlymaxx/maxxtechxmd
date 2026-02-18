@@ -230,15 +230,114 @@ A WhatsApp bot built with **Node.js** and **Baileys**, fully deployable and read
 ---
 
 
-## 📊 GitHub Status
+<!-- ===================== -->
+<!-- 🔥 ANIMATED HEADER 🔥 -->
+<!-- ===================== -->
 
-![Profile views](https://komarev.com/ghpvc/username/Maxxy1470)  
-![Followers](https://img.shields.io/github/followers/Carlymaxx/maxxtechxmd?label=Followers&style=social)  
-![Stars](https://img.shields.io/github/stars/Carlymaxx/maxxtechxmd?label=Stars&style=social)  
-![Forks](https://img.shields.io/github/forks/Carlymaxx/maxxtechxmd?label=Forks&style=social)  
-![Open Issues](https://img.shields.io/github/issues/Carlymaxx/maxxtechxmd?label=Open%20Issues&style=flat)  
-![License](https://img.shields.io/github/license/Carlymaxx/maxxtechxmd?style=flat)  
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Orbitron&size=28&duration=3000&pause=800&color=00FFE4&center=true&vCenter=true&width=750&lines=👋+Hi%2C+I'm+Carlymaxx;🚀+MAXX-XMD+Developer;🤖+WhatsApp+Bot+Engineer;💻+Node.js+%7C+APIs+%7C+Automation;⚡+Always+Building+Something+Cool" />
+</p>
 
+---
+
+<!-- ===================== -->
+<!-- 👀 PROFILE VIEWS -->
+<!-- ===================== -->
+
+<p align="center">
+  <img src="https://komarev.com/ghpvc/?username=Maxxy1470&label=PROFILE%20VIEWS&color=00ffe4&style=for-the-badge" />
+</p>
+
+---
+
+<!-- ===================== -->
+<!-- 📊 GITHUB STATUS -->
+<!-- ===================== -->
+
+<p align="center">
+  <img src="https://img.shields.io/github/followers/Carlymaxx?label=Followers&style=for-the-badge&logo=github&color=00ffe4" />
+  <img src="https://img.shields.io/github/stars/Carlymaxx/maxxtechxmd?label=Stars&style=for-the-badge&logo=github&color=ffcc00" />
+  <img src="https://img.shields.io/github/forks/Carlymaxx/maxxtechxmd?label=Forks&style=for-the-badge&logo=github&color=ff4d4d" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/github/issues/Carlymaxx/maxxtechxmd?label=Open%20Issues&style=for-the-badge&logo=github&color=9b59b6" />
+  <img src="https://img.shields.io/github/license/Carlymaxx/maxxtechxmd?label=License&style=for-the-badge&color=2ecc71" />
+</p>
+
+---
+
+<!-- ===================== -->
+<!-- 🌐 MOST USED LANGUAGES -->
+<!-- ===================== -->
+
+## 🌐 Most Used Languages
+
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=Carlymaxx&layout=compact&theme=tokyonight&hide_border=true&border_radius=20" />
+</p>
+
+---
+
+<!-- ===================== -->
+<!-- ⚡ GITHUB STATS -->
+<!-- ===================== -->
+
+## ⚡ GitHub Stats (Live & Animated)
+
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=Carlymaxx&show_icons=true&theme=tokyonight&hide_border=true&border_radius=20" />
+</p>
+
+<p align="center">
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=Carlymaxx&theme=tokyonight&hide_border=true&border_radius=20" />
+</p>
+
+---
+
+<!-- ===================== -->
+<!-- 🏆 TROPHIES -->
+<!-- ===================== -->
+
+## 🏆 GitHub Trophies
+
+<p align="center">
+  <img src="https://github-profile-trophy.vercel.app/?username=Carlymaxx&theme=algolia&no-frame=true&row=1&column=7" />
+</p>
+
+---
+
+<!-- ===================== -->
+<!-- 🧠 SKILLS -->
+<!-- ===================== -->
+
+## 🧠 Tech Stack
+
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=nodejs,javascript,html,css,express,mongodb,linux,git,github,vscode&theme=dark" />
+</p>
+
+---
+
+<!-- ===================== -->
+<!-- 🐍 CONTRIBUTION SNAKE -->
+<!-- ===================== -->
+
+## ✨ Contribution Glow Snake (Animated)
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Platane/snk/output/github-contribution-grid-snake-dark.svg" />
+</p>
+
+---
+
+<!-- ===================== -->
+<!-- 🌌 FOOTER -->
+<!-- ===================== -->
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=00ffe4&height=120&section=footer" />
+</p>
 
 ## ⚡ Features
 
