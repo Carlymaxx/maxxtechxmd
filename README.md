@@ -22,7 +22,7 @@
 - You **MUST download the ZIP** from GitHub or panel  
 - Failure to do this will cause **YouTube & media tools NOT to work**
 
-<p align="center">
+<p> align="center">
   <a href="https://github.com/Carlymaxx/maxxtechxmd">
     <img src="https://img.shields.io/badge/DOWNLOAD%20ZIP-00FF00?style=for-the-badge&logo=github&logoColor=black" width="220">
   </a>
@@ -68,6 +68,7 @@ A WhatsApp bot with rich and multiple features created by carlymaxx.
   <a href=""> 
     <img src="https://files.catbox.moe/8jx0q3.jpg" alt="MAXX~XMD" height="300"> 
   </a> 
+</div>
 </div>
 
 ---
