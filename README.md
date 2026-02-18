@@ -152,15 +152,8 @@ A WhatsApp bot built with **Node.js** and **Baileys**, fully deployable and read
 
 ---
 
-## 🛠️ Installation & Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Carlymaxx/maxxtechxmd.git
-   cd CAILLMAXX://github.com/Carlymaxx/maxxtechxmd.git
- 🤖caillmaxx  Smart assistant for tech, tools &amp; APIs ⚙️ Web solutions &amp; automation Available 24/7 for your digital need.
-
-# CAILLMAXX WhatsApp Bot 🤖
+# MAXX~XMD WhatsApp Bot 🤖
 
 [![Live Demo](https://img.shields.io/badge/Live-Bot-green)](https://whatsapp-bot-site.vercel.app/)
 
