@@ -25,7 +25,7 @@
 <a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
 
 <p align="center">
-<a href="https://github.com/Carlymaxx/Maxx-tech.git">
+<a href="https://github.com/Carlymaxx/Maxxytechxmd">
   <img title="GITHUB" src="https://img.shields.io/badge/GITHUB-MAXX TECH-red.svg?style=for-the-badge&logo=github">
 </a>
 </p>
@@ -35,13 +35,13 @@
   <img title="Followers" src="https://img.shields.io/github/followers/Carlymaxx?label=Followers&style=social">
 </a>
 <a href="https://github.com/Carlymaxx/Maxx-tech/stargazers/">
-  <img title="STARS" src="https://img.shields.io/github/stars/Carlymaxx/Maxx-tech?&style=social">
+  <img title="STARS" src="https://img.shields.io/github/stars/CarlymaxxMaxxtechxmd?&style=social">
 </a>
 <a href="https://github.com/Carlymaxx/Maxx-tech/network/members">
-  <img title="Forks" src="https://img.shields.io/github/forks/Carlymaxx/Maxx-tech?style=social">
+  <img title="Forks" src="https://img.shields.io/github/forks/Carlymaxx/Maxxtechxmd?style=social">
 </a>
 <a href="https://github.com/Carlymaxx/Maxx-tech/watchers">
-  <img title="Watching" src="https://img.shields.io/github/watchers/Carlymaxx/Maxx-tech?label=Watching&style=social">
+  <img title="Watching" src="https://img.shields.io/github/watchers/Carlymaxx/maxxtechxmd?label=Watching&style=social">
 </a>
 </p>
 
