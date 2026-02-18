@@ -119,10 +119,7 @@ Deploy your own bot easily using one of the platforms below:
 
 A WhatsApp bot built with **Node.js** and **Baileys**, fully deployable and ready to connect to your WhatsApp account. Automates messaging and interactions, making WhatsApp management easier.
 
----
-
-## 🌐 Live Demo
-Check out the bot live here: [https://whatsapp-bot-site.vercel.app/](https://whatsapp-bot-site.vercel.app/)  
+---
 
 ---
 
@@ -169,14 +166,9 @@ Check out the bot live here: [https://whatsapp-bot-site.vercel.app/](https://wha
 
 A WhatsApp bot built with **Node.js** and **Baileys**, fully deployable and ready to connect to your WhatsApp account. Automates messaging and interactions, making WhatsApp management easier.
 
----
+---
 
-## 🌐 Live Demo
-
-Check out the bot live here: [https://whatsapp-bot-site.vercel.app/](https://whatsapp-bot-site.vercel.app/)
-
----
-CAILLMAXX  
+---
 
 ## 📊 GitHub Status
 
