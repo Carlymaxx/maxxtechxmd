@@ -4,7 +4,7 @@ module.exports = {
   description: "Show bot repository link",
   execute: async (sock, msg, args, from, settings) => {
     const text = `╔══════════════════════╗
-║  📦 *MAXX-XMD REPO* 📦
+║  📦 *MAXX- REPO* 📦
 ╚══════════════════════╝
 
 🔗 *Repository:* https://github.com/Carlymaxx/Maxx-tech
