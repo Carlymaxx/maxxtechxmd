@@ -4,7 +4,6 @@ MAXX~XMD
 
 
 <a><img src=<a><img src="https://i.imgur.com/LyHic3i.gif" /></a>
-
 <a><img src="https://i.imgur.com/LyHic3i.gif" /></a>
 
 <h1 align="center">
@@ -124,6 +123,19 @@ MAXX~XMD
 <img src="https://media.giphy.com/media/3oKIPwoeGErMmaI43C/giphy.gif" width="100%" alt="Neon Fun Divider">
 </p>
 
+---
+
+**DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO**
+
+<div align="center">
+  <a href="https://github.com/Carlymaxx/maxxtechxmd/fork">
+    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=github&logoColor=white&color=magenta" alt="FORK REPO"/>
+  </a>
+</div>
+
+<p align="center">
+<img src="https://media.giphy.com/media/26xBwdIuRJiAIqHwA/giphy.gif" width="100%" alt="Neon Footer Divider">
+</p>
 ---
 
 **DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO**
