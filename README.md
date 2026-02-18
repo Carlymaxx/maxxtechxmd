@@ -35,12 +35,12 @@
   <img title="Followers" src="https://img.shields.io/github/followers/Carlymaxx?label=Followers&style=social">
 </a>
 <a href="https://github.com/Carlymaxx/maxxtechxmd/stargazers/">
-  <img title="STARS" src="https://img.shields.io/github/stars/CarlymaxxMaxxtechxmd?&style=social">
+  <img title="STARS" src="https://img.shields.io/github/stars/Carlymaxx/maxxtechxmd?&style=social">
 </a>
 <a href="https://github.com/Carlymaxx/maxxtechxmd/network/members">
-  <img title="Forks" src="https://img.shields.io/github/forks/Carlymaxx/Maxxtechxmd?style=social">
+  <img title="Forks" src="https://img.shields.io/github/forks/Carlymaxx/maxxtechxmd?style=social">
 </a>
-<a href="https://github.com/Carlymaxx/Maxx-tech/watchers">
+<a href="https://github.com/Carlymaxx/maxxtechxmd/watchers">
   <img title="Watching" src="https://img.shields.io/github/watchers/Carlymaxx/maxxtechxmd?label=Watching&style=social">
 </a>
 </p>
