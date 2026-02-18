@@ -300,7 +300,7 @@ We appreciate your support and encourage you to:
 
 📧 Email: [maxxtechxmd@gmail.com](mailto:maxxtechxmd@gmail.com)  
  📞 Support: [+254725979273](tel:+254725979273)   
-🏷️ GitHub Repo: [Maxx Tech](https://github.com/Carlymaxx/Maxxtechxmd.git)  
+🏷️ GitHub Repo: [Maxx Tech](https://github.com/Carlymaxx/Maxxtechxmd)  
 
 
 <p align="center"><strong>Made with 💥 by Carly Maxx | Powered by 🔥MAXX TECH 🔥</strong></p>
