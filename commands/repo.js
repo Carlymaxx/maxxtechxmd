@@ -7,8 +7,8 @@ module.exports = {
 ║  📦 *MAXX-XMD REPO* 📦
 ╚══════════════════════╝
 
-🔗 *Repository:* https://github.com/Carlymaxx/Maxxtech
-⭐ *Star the repo to support us!*
+🔗 *Repository:* https://github.com/Carlymaxx/Maxxtechxmd
+⭐ *Star the repo to support us THANK YOU!*
 
 👑 *Owner:* ${settings.owner}
 🤖 *Bot:* ${settings.botName}
