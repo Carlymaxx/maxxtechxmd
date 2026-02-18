@@ -5,6 +5,8 @@ MAXX~XMD
 
 <a><img src=<a><img src="https://i.imgur.com/LyHic3i.gif" /></a>
 
+<a><img src="https://i.imgur.com/LyHic3i.gif" /></a>
+
 <h1 align="center">
 ⚡🔥 <span style="color:#00ffff">MAXX TECH 5.0.0</span> 🔥⚡
 </h1>
@@ -19,7 +21,7 @@ MAXX~XMD
 
 - ⚡ **For VPS/Panel Deployment:** You **must download the ZIP** from the panel sections or link below, otherwise your **YouTube tools won’t work**! 😢  
 
-<a href="https://github.com/Carlymaxx/maxxtechxmd.git">
+<a href="https://github.com/Carlymaxx/maxxtechxmd/archive/refs/heads/main.zip">
   <img src="https://img.shields.io/badge/DOWNLOAD%20ZIP-blue?style=for-the-badge&logo=zip" alt="Panel Zip File">
 </a>
 
@@ -28,7 +30,7 @@ MAXX~XMD
 </details>
 
 <p align="center">
-<a href="https://github.com/Carlymaxx/maxxtechxmd.git">
+<a href="https://github.com/Carlymaxx/maxxtechxmd">
   <img title="GITHUB" src="https://img.shields.io/badge/GITHUB-MAXX%20TECH-red.svg?style=for-the-badge&logo=github">
 </a>
 </p>
@@ -61,9 +63,9 @@ MAXX~XMD
   <img src="https://files.catbox.moe/8jx0q3.jpg" alt="MAXX XMD" height="300">
 </div>
 
-<div align="center"> 
+<div align="center">
   <img src="https://readme-typing-svg.demolab.com?font=Rockwell&size=50&pause=500&color=33ff00&center=true&width=910&height=100&lines=MAXX~OFFICIAL;Multi+Device+Whatsapp+Bot;Made+by+Maxx;💻Tech+Savvy+&+Funny+Bot;⚡Fast+&+Secure;🌐Cloud+Connected;🤖AI+Powered" alt="Typing SVG" />
-</div> 
+</div>
 
 ---
 
@@ -80,7 +82,9 @@ MAXX~XMD
 - 🌟 **Dynamic tech words, glowing animations & futuristic vibes**  
 
 <p align="center">
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=2000&pause=500&color=FF00FF&background=000000&center=true&vCenter=true&width=600&lines=🟢+Maxx+Bot:+Online;💬+Responding+to+messages;⚡+Auto+typing;🔥+Auto+react+ready;😁+Meme+Mode+Enabled;🌈+Tech+Mode+Active;🚀+Deploy+in+Style!" alt="Tech Pulse Animation">
+<div align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=40&pause=1000&color=33ff00,ff33ff,33d4ff,ffdd33&center=true&width=900&height=100&lines=AI+Powered;Cloud+Connected;Tech+Mode+Active;Futuristic+Interactions;Cyber+Automation;Next-Gen+WhatsApp+Bot" alt="Rainbow Tech Words" />
+</div>
 </p>
 
 <p align="center">
@@ -98,7 +102,9 @@ MAXX~XMD
   </a>
 </div>
 
-2. **Download the ZIP** for VPS/Panel deployment (required for YouTube tools).  
+2. **Download the ZIP** for VPS/Panel deployment (required for YouTube tools):  
+   [Download ZIP](https://github.com/Carlymaxx/maxxtechxmd/archive/refs/heads/main.zip)  
+
 3. **Add your API keys** in `config.js` / `.env` / `app.json`.  
 4. **Deploy on Heroku / VPS / Panel** and watch the magic happen 🌟🪄  
 
@@ -131,31 +137,8 @@ MAXX~XMD
 <p align="center">
 <img src="https://media.giphy.com/media/26xBwdIuRJiAIqHwA/giphy.gif" width="100%" alt="Neon Footer Divider">
 </p>
-<p align="center">
-<img src="https://media.giphy.com/media/3oKIPwoeGErMmaI43C/giphy.gif" width="100%" alt="Neon Fun Divider">
-</p>
-
----
-
-**DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO**
-
-<div align="center">
-  <a href="https://github.com/Carlymaxx/Maxx-tech/fork">
-    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=github&logoColor=white&color=magenta" alt="FORK REPO"/>
-  </a>
-</div>
-
-<p align="center">
-<img src="https://media.giphy.com/media/26xBwdIuRJiAIqHwA/giphy.gif" width="100%" alt="Neon Footer Divider">
-</p>
 
 
-
-
-<!-- Quantum Pulse - Activity Animation -->
-<p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=2000&pause=500&color=FF00FF&background=000000&center=true&vCenter=true&width=400&lines=🟢+Maxx+bot:+Alive;💬+Responding+to+your+messages;💯Auto+typing+on;🔥Auto+react+status+ready;😁anti+link+sensitive;🚀+Deploying+WhatsApp+Bots;🔔+Always+Online!" alt="Quantum Pulse Animation">
-</p>
 
 ```
 DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO🫠
