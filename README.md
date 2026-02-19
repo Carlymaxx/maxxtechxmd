@@ -3,6 +3,77 @@ MAXX~XMD
 
 
 
+<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+
+<h1 align="center">⚡🔥 𝐌𝐀𝐗𝐗 𝐓𝐄𝐂𝐇 𝐕𝐄𝐑𝐒𝐈𝐎𝐍 5.0.0 🔥⚡</h1>
+
+<p align="center">🚀 **Safe for Heroku** – No questions, just deploy & enjoy! 💎</p>
+
+<details>
+<summary>⚠️ 🚨 TAP TO READ IMPORTANT NOTICE 🚨 ⚠️</summary>
+
+- ⚡ **For VPS/Panel Deployment:** You **must download the ZIP** from the panel sections or from the link below, otherwise your **YouTube tools won’t work**!  
+
+<a href="https://github.com/Carlymaxx/maxxtechxmd">
+  <img src="https://img.shields.io/badge/DOWNLOAD%20ZIP-blue" alt="Panel Zip File" width="150">
+</a>
+
+- 💡 **Pro Tip:** Add your **premium/unlimited API key** in `config.js` / `.env` / `app.json` (Heroku) to **avoid free API limits**.  
+
+</details>
+
+<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+
+<p align="center">
+<a href="https://github.com/Carlymaxx/Maxxytechxmd">
+  <img title="GITHUB" src="https://img.shields.io/badge/GITHUB-MAXX TECH-red.svg?style=for-the-badge&logo=github">
+</a>
+</p>
+
+<p align="center">
+<a href="https://github.com/Carlymaxx?tab=followers">
+  <img title="Followers" src="https://img.shields.io/github/followers/Carlymaxx?label=Followers&style=social">
+</a>
+<a href="https://github.com/Carlymaxx/maxxtechxmd/stargazers/">
+  <img title="STARS" src="https://img.shields.io/github/stars/Carlymaxx/maxxtechxmd?&style=social">
+</a>
+<a href="https://github.com/Carlymaxx/maxxtechxmd/network/members">
+  <img title="Forks" src="https://img.shields.io/github/forks/Carlymaxx/maxxtechxmd?style=social">
+</a>
+<a href="https://github.com/Carlymaxx/maxxtechxmd/watchers">
+  <img title="Watching" src="https://img.shields.io/github/watchers/Carlymaxx/maxxtechxmd?label=Watching&style=social">
+</a>
+</p>
+
+<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+
+This repository contains a WhatsApp bot project and related scripts.
+
+Quick start
+
+Prerequisites:
+- Node.js installed
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run (if the project defines a start script):
+
+```bash
+npm start
+```
+
+Notes:
+- Sensitive files such as `config.env` and `Maxx/creds.json` are excluded from the repository via `.gitignore`.
+
+License: MITMAXX~XMD
+
+
+
+
 <a><img src=<a><img src="https://i.imgur.com/LyHic3i.gif" /></a>
 <a><img src="https://i.imgur.com/LyHic3i.gif" /></a>
 
@@ -477,3 +548,4 @@ We appreciate your support! You can help by:
 ---
 
 <p align="center"><strong>Made with 💥 by Carly Maxx | Powered by 🔥 MAXX TECH 🔥</strong></p>
+
