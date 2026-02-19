@@ -226,7 +226,7 @@ After forking, configure your environment and deploy the bot to your preferred h
 
 <div align="center">
   <a href="https://github.com/Carlymaxx/maxxtechxmd/fork">
-    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=github&logoColor=white&color=magenta" alt="FORK REPO"/>
+    src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=github&logoColor=white&color=magenta" alt="FORK REPO"/>
   </a>
 </div>
 
