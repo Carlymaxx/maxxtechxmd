@@ -135,119 +135,108 @@ This repository contains a WhatsApp bot project and related scripts.
 
 ---
 
-## Overview
 
-**xx-md (MAXX-XMD)** is a Multi-Device WhatsApp bot created by **carlymaxx**, designed with rich, powerful, and flexible features for WhatsApp automation.
 
-The project is structured for easy deployment and long-term use on supported hosting platforms.  
-Sensitive configuration and session files are intentionally excluded for security purposes.
+<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
 
----
+<h1 align="center">⚡🔥 𝐌𝐀𝐗𝐗 𝐓𝐄𝐂𝐇 𝐕𝐄𝐑𝐒𝐈𝐎𝐍 5.0.0 🔥⚡</h1>
 
-## Requirements
+<p align="center">🚀 **Safe for Heroku** – No questions, just deploy & enjoy! 💎</p>
 
-To use this project, you need:
-- Node.js installed on your system
-- A hosting environment or server that supports Node.js
-- WhatsApp Multi-Device support
+<details>
+<summary>⚠️ 🚨 TAP TO READ IMPORTANT NOTICE 🚨 ⚠️</summary>
 
----
+- ⚡ **For VPS/Panel Deployment:** You **must download the ZIP** from the panel sections or from the link below, otherwise your **YouTube tools won’t work**!  
 
-## Security & Privacy
+<a href="https://github.com/Carlymaxx/Maxx-tech.git">
+  <img src="https://img.shields.io/badge/DOWNLOAD%20ZIP-blue" alt="Panel Zip File" width="150">
+</a>
 
-For safety reasons, the following files are excluded from the repository using `.gitignore`:
-- `config.env`
-- `Maxx/creds.json`
+- 💡 **Pro Tip:** Add your **premium/unlimited API key** in `config.js` / `.env` / `app.json` (Heroku) to **avoid free API limits**.  
 
-These files must be created manually by the user during setup and should never be shared publicly.
+</details>
 
----
+<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
 
-## License
+<p align="center">
+<a href="https://github.com/Carlymaxx/Maxx-tech.git">
+  <img title="GITHUB" src="https://img.shields.io/badge/GITHUB-MAXX TECH-red.svg?style=for-the-badge&logo=github">
+</a>
+</p>
 
-This project is released under the **MIT License**.
+<p align="center">
+<a href="https://github.com/Carlymaxx?tab=followers">
+  <img title="Followers" src="https://img.shields.io/github/followers/Carlymaxx?label=Followers&style=social">
+</a>
+<a href="https://github.com/Carlymaxx/Maxx-tech/stargazers/">
+  <img title="STARS" src="https://img.shields.io/github/stars/Carlymaxx/Maxx-tech?&style=social">
+</a>
+<a href="https://github.com/Carlymaxx/Maxx-tech/network/members">
+  <img title="Forks" src="https://img.shields.io/github/forks/Carlymaxx/Maxx-tech?style=social">
+</a>
+<a href="https://github.com/Carlymaxx/Maxx-tech/watchers">
+  <img title="Watching" src="https://img.shields.io/github/watchers/Carlymaxx/Maxx-tech?label=Watching&style=social">
+</a>
+</p>
 
----
+<a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
+
+
 
 # Maxx-tech
-
 A WhatsApp bot with rich and multiple features created by carlymaxx.
+<a href="https://cooltext.com"><img src="https://images.cooltext.com/5741905.gif" width="415" height="94" alt="MAXX~XMD" /></a>
 
-<p align="center">
-  <a href="https://cooltext.com">
-    <img src="https://images.cooltext.com/5741905.gif" width="415" height="94" alt="MAXX~XMD" />
-  </a>
-</p>
+<a href="https://cooltext.com"><img src="https://images.cooltext.com/5741908.png" width="184" height="68" alt="Maxx~xmd" /></a>
 
-<p align="center">
-  <a href="https://cooltext.com">
-    <img src="https://images.cooltext.com/5741908.png" width="184" height="68" alt="Maxx~xmd" />
-  </a>
-</p>
+<div align="center"> 
+  <a href="https://git.io/typing-svg"> 
+    <img src="https://readme-typing-svg.demolab.com?font=Rockwell&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=MAXX~OFFICIAL;Multi+Device+Whatsapp+Bot;Made+by+Maxx" alt="Typing SVG" />
+  </a> 
+</div> 
 
-<div align="center">
-  <a href="https://git.io/typing-svg">
-    <img src="https://readme-typing-svg.demolab.com?font=Rockwell&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=MAXX~OFFICIAL;Multi+Device+Whatsapp+Bot;Made+by+Maxx" alt="Typing SVG" />
-  </a>
-</div>
-
-<div align="center">
-  <img src="https://files.catbox.moe/8jx0q3.jpg" alt="MAXX~XMD" height="300" />
+<div align="center"> 
+  <a href=""> 
+    <img src="https://files.catbox.moe/8jx0q3.jpg" alt="MAXX~XMD" height="300"> 
+  </a> 
 </div>
 
 ---
 
-## Deployment Guide
-
-Fork the repository on GitHub to get your own copy.  
-After forking, configure your environment and deploy the bot to your preferred hosting platform.
-
-<p align="center">
-  <img src="https://readme-typing-svg.demolab.com/?lines=Tap+fork+button+Bellow+To+Fork;MAXX+XMD+REPO+On+Github" />
-</p>
-
+   1. DEPLOYMENT
+[![Typing SVG](https://readme-typing-svg.demolab.com/?lines=Tap+fork+button+Bellow+To+Fork;MAXX+XMD+REPO+On+Github)](https://git.io/typing-svg)
 <div align="center">
-  <a href="https://github.com/vinpink2/maxx-xmd/fork">
-    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=scan&logoColor=red&color=darkblue" alt="FORK REPO"/>
-  </a>
+  <a href="https://github.com/Carlymaxx/Maxx-tech/fork">
+    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=scan&logoColor=red&labelColoryellow&color=darkblue" alt="FORK REPO"/>
+  </a>
 </div>
-
+<!-- Glowing Header -->
 <p align="center">
-  <img src="https://i.imgur.com/dBaSKWF.gif" height="40" width="100%" />
+  <img src="https://i.imgur.com/dBaSKWF.gif" height="40" width="100%">
 </p>
 
 <h1 align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=25&duration=3000&color=00FF00&background=000000&center=true&vCenter=true&width=600&lines=⚡+MAXX+XMD+VERSION;🔥+The+Most+Powerful+WhatsApp+Bot;💻+Crafted+by+CARLY+MAXX;🚀+Next-Gen+Maxx+Technology;🌈+Fast+⚡+Secure+🔒+Reliable+✅" alt="Typing Animation" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=25&duration=3000&color=00FF00&background=000000&center=true&vCenter=true&width=600&lines=⚡+MAXX+XMD+VERSION;🔥+The+Most+Powerful+WhatsApp+Bot;💻+Crafted+by+CARLY+MAXX;🚀+Next-Gen+Maxx+Technology;🌈+Fast+⚡+Secure+🔒+Reliable+✅" alt="Typing Animation">
 </h1>
 
+
+
+
+
+<!-- Quantum Pulse - Activity Animation -->
 <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=2000&pause=500&color=FF00FF&background=000000&center=true&vCenter=true&width=400&lines=🟢+Maxx+bot:+Alive;💬+Responding+to+your+messages;💯Auto+typing+on;🔥Auto+react+status+ready;😁anti+link+sensitive;🚀+Deploying+WhatsApp+Bots;🔔+Always+Online!" alt="Quantum Pulse Animation" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=2000&pause=500&color=FF00FF&background=000000&center=true&vCenter=true&width=400&lines=🟢+Maxx+bot:+Alive;💬+Responding+to+your+messages;💯Auto+typing+on;🔥Auto+react+status+ready;😁anti+link+sensitive;🚀+Deploying+WhatsApp+Bots;🔔+Always+Online!" alt="Quantum Pulse Animation">
 </p>
 
-<div align="center">
-  <a href="https://github.com/Carlymaxx/maxxtechxmd/fork">
-    src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=github&logoColor=white&color=magenta" alt="FORK REPO"/>
-  </a>
-</div>
-
-<p align="center">
-<img src="https://media.giphy.com/media/26xBwdIuRJiAIqHwA/giphy.gif" width="100%" alt="Neon Footer Divider">
-</p>
+```
+DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO🫠
+```
 ---
-
-**DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO**
-
 <div align="center">
-  <a href="https://github.com/Carlymaxx/maxxtechxmd/fork">
-    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=github&logoColor=white&color=magenta" alt="FORK REPO"/>
+  <a href="https://github.com/Carlymaxx/Maxx-tech/fork">
+    <img src="https://img.shields.io/badge/Fork%20The%20Repo-100000?style=for-the-badge&logo=github&logoColor=white&color=blue" alt="FORK REPO"/>
   </a>
 </div>
-
-<p align="center">
-<img src="https://media.giphy.com/media/26xBwdIuRJiAIqHwA/giphy.gif" width="100%" alt="Neon Footer Divider">
-</p>
-
-
 
 ```
 DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO🫠
