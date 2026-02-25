@@ -71,7 +71,7 @@ Failure to follow these rules may result in DMCA action.
 </div>
 
 
-MAXX~XMD
+## MAXX~XMD
 
 
 
