@@ -59,7 +59,6 @@ If you fork this repository:
 
 Failure to follow these rules may result in DMCA action.
 ---
-
 ## 🌌 Premium Branding
 
 ```diff
@@ -67,7 +66,7 @@ Failure to follow these rules may result in DMCA action.
 + Designed for Stability
 + Structured for Scalability
 + Engineered for Power
-
+```
 
 ## MAXX~XMD
 
