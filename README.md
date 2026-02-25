@@ -1,42 +1,73 @@
+<img src="https://capsule-render.vercel.app/api?type=waving&height=240&color=0:6a0dad,100:ab47bc&text=MAXX~XMD&fontColor=ffffff&fontSize=85&fontAlignY=40&animation=twinkling&desc=Official%20Multi-Device%20WhatsApp%20Bot&descSize=20&descAlignY=65&stroke=ffffff&strokeWidth=1.5" width="100%"/>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&height=230&color=0:6a0dad,100:ab47bc&text=KHAN%20MD&fontColor=ffffff&fontSize=85&fontAlignY=40&animation=twinkling&desc=Powered%20By%20Jawad%20TechX&descSize=20&descAlignY=65&stroke=ffffff&strokeWidth=1.2" width="100%"/>
+<h3 align="center" style="margin-top:-20px;">
+⚡ Built on Baileys • Optimized for Performance • Ultra Stable Core ⚡
+</h3>
 
-<div style="
-  margin-top: -60px;
-  text-align: center;
-  font-size: 32px;
-  font-weight: 1000;  /* Nuclear bold - no skimping */
-  letter-spacing: 3px;  /* Extra spacing for bold punch */
-  background: linear-gradient(90deg, #6a0dad, #ab47bc, #d896ff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow:
-    0 0 12px #6a0dad,
-    0 0 24px #ab47bc,
-    0 0 36px #d896ff,
-    0 0 48px #ab47bc;
-  padding: 12px 0;
-"> Built on Baileys • Designed for Speed • Enhanced for Stability • Powered by Jawad TechX
-</div>
+<p align="center">
+  <a href="https://github.com/Carlymaxx">
+    <img src="https://img.shields.io/badge/👑_Official_Owner-Carly_Maxx-9d4edd?style=for-the-badge&logo=github&logoColor=white">
+  </a>
 </p>
 
 <h1 align="center">
-  <img src="https://img.shields.io/badge/-✨_KHAN--MD_INSIGHTS_✨-purple?style=for-the-badge&logo=sparkles&logoColor=white&labelColor=0d1117&color=9d4edd&label=&link=https://github.com/KHAN-MD&link=https://github.com/KHAN-MD" />
+  <img src="https://img.shields.io/badge/-✨_MAXX--XMD_PREMIUM_✨-purple?style=for-the-badge&logo=sparkles&logoColor=white&labelColor=0d1117&color=ab47bc" />
 </h1>
-</p>
-</p>
-    <img src="https://komarev.com/ghpvc/?username=JawadYT36&label=Views&color=9D00FF&style=flat" alt="Profile Views" />
-    <img src="https://img.shields.io/github/stars/JawadYT36/KHAN-MD?color=9D00FF&label=Stars&style=flat" alt="GitHub Stars" />
-    <img src="https://img.shields.io/github/forks/JawadYT36/KHAN-MD?style=flat&color=1E88E5&logo=github&logoColor=white&label=Forks" alt="GitHub Forks" />
-    <img src="https://img.shields.io/github/followers/JawadYT36?style=flat&color=43A047&logo=github&logoColor=white&label=Followers" alt="GitHub Followers" />
-    <img src="https://img.shields.io/github/last-commit/JawadYT36/KHAN-MD?style=flat&color=8E24AA&logo=git&logoColor=white&label=Last%20Commit" alt="Last Commit" />
-    <img src="https://img.shields.io/github/repo-size/JawadYT36/KHAN-MD?style=flat&color=0097A7&logo=database&logoColor=white&label=Repo%20Size" alt="Repo Size" />
-    <img src="https://img.shields.io/github/package-json/v/JawadYT36/KHAN-MD?style=flat&color=F57C00&logo=npm&logoColor=white&label=Version" alt="Package Version" />
-  </p>
-  
-</div>
 
+<p align="center">
+    <img src="https://komarev.com/ghpvc/?username=Carlymaxx&label=Profile+Views&color=9D00FF&style=flat" />
+    <img src="https://img.shields.io/github/stars/Carlymaxx/maxxtechxmd?color=9D00FF&label=Stars&style=flat" />
+    <img src="https://img.shields.io/github/forks/Carlymaxx/maxxtechxmd?style=flat&color=1E88E5&logo=github&logoColor=white&label=Forks" />
+    <img src="https://img.shields.io/github/followers/Carlymaxx?style=flat&color=43A047&logo=github&logoColor=white&label=Followers" />
+    <img src="https://img.shields.io/github/last-commit/Carlymaxx/maxxtechxmd?style=flat&color=8E24AA&logo=git&logoColor=white&label=Last%20Commit" />
+    <img src="https://img.shields.io/github/repo-size/Carlymaxx/maxxtechxmd?style=flat&color=0097A7&logo=database&logoColor=white&label=Repo%20Size" />
+</p>
+
+---
+
+## 🚀 About MAXX~XMD
+
+**MAXX~XMD** is a powerful Multi-Device WhatsApp Bot built using Baileys.  
+Engineered for speed ⚡ stability 🛡 and premium performance 💎  
+
+✔ Anti-Ban Structure  
+✔ High-Speed Response System  
+✔ Modular Plugin Support  
+✔ Stable Multi-Device Base  
+✔ Clean & Optimized Codebase  
+
+---
+
+## 👑 Official Owner
+
+> Developed & Maintained by **Carly Maxx**
+
+No secondary owners.  
+No resellers.  
+No fake edits.
+
+---
+
+## ⚠️ Fork Warning
+
+If you fork this repository:
+
+- Do NOT remove credits.
+- Do NOT claim original ownership.
+- Do NOT resell without permission.
+- Always keep proper attribution.
+
+Failure to follow these rules may result in DMCA action.
+
+---
+
+## 🌌 Premium Branding
+
+```diff
++ Built for Performance
++ Designed for Stability
++ Structured for Scalability
++ Engineered for Power
 
 
 
