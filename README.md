@@ -58,7 +58,6 @@ If you fork this repository:
 - Always keep proper attribution.
 
 Failure to follow these rules may result in DMCA action.
-
 ---
 
 ## 🌌 Premium Branding
@@ -68,6 +67,7 @@ Failure to follow these rules may result in DMCA action.
 + Designed for Stability
 + Structured for Scalability
 + Engineered for Power
+
 </div>
 
 
