@@ -67,9 +67,7 @@ Failure to follow these rules may result in DMCA action.
 + Designed for Stability
 + Structured for Scalability
 + Engineered for Power
-
-</div>
-
+
 
 ## MAXX~XMD
 
