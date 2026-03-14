@@ -1,59 +1,116 @@
 import { NextResponse } from 'next/server';
+import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
+import { Boom } from '@hapi/boom';
 
-interface PairingRequest {
-  phone: string;
-  code: string;
-  createdAt: number;
+const SESSION_DIR = process.env.RENDER ? '/app/sessions' : './sessions';
+import { existsSync, mkdirSync } from 'fs';
+
+if (!existsSync(SESSION_DIR)) {
+  mkdirSync(SESSION_DIR, { recursive: true });
 }
 
-const pendingPairings: Map<string, PairingRequest> = new Map();
+interface PairingSession {
+  phone: string;
+  socket: any;
+  connected: boolean;
+  pairingCode?: string;
+}
+
+const activeSessions: Map<string, PairingSession> = new Map();
 
 export async function POST(request: Request) {
   try {
-    const { phone, code } = await request.json();
+    const { phone } = await request.json();
     
-    const pairing: PairingRequest = {
-      phone,
-      code,
-      createdAt: Date.now()
+    if (!phone) {
+      return NextResponse.json({ error: 'Phone number required' }, { status: 400 });
+    }
+
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    if (activeSessions.has(cleanPhone)) {
+      const existing = activeSessions.get(cleanPhone);
+      if (existing?.socket) {
+        try {
+          existing.socket.end({ error: undefined, reason: 'New pairing request' });
+        } catch {}
+      }
+      activeSessions.delete(cleanPhone);
+    }
+
+    const { state, saveCreds } = await useMultiFileAuthState(`${SESSION_DIR}/${cleanPhone}`);
+
+    const sock = makeWASocket({
+      auth: state,
+      printQRInTerminal: false,
+      browser: ['MaxX Tech', 'Chrome', '120.0.0'],
+      logger: console as any,
+    });
+
+    const sessionData: PairingSession = { 
+      phone: cleanPhone, 
+      socket: sock, 
+      connected: false 
     };
+    activeSessions.set(cleanPhone, sessionData);
 
-    pendingPairings.set(phone, pairing);
-    pendingPairings.set(code, pairing);
+    sock.ev.on('creds.update', saveCreds);
 
-    setTimeout(() => {
-      pendingPairings.delete(phone);
-      pendingPairings.delete(code);
-    }, 300000);
+    sock.ev.on('connection.update', (update) => {
+      const { connection, lastDisconnect, qr } = update;
+      
+      if (qr) {
+        console.log('QR received');
+      }
 
-    return NextResponse.json({ success: true, message: "Pairing code generated" });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to register pairing" }, { status: 500 });
+      if (connection === 'close') {
+        const reason = (lastDisconnect?.error as Boom)?.output?.statusCode;
+        if (reason !== DisconnectReason.loggedOut) {
+          console.log('Reconnecting...');
+        } else {
+          activeSessions.delete(cleanPhone);
+        }
+      }
+
+      if (connection === 'open') {
+        console.log('Connected to WhatsApp!');
+        sessionData.connected = true;
+      }
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Pairing timeout'));
+      }, 60000);
+
+      const checkConnection = setInterval(() => {
+        if (sessionData.connected) {
+          clearInterval(checkConnection);
+          clearTimeout(timeout);
+          resolve();
+        }
+      }, 1000);
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Successfully connected to WhatsApp!',
+      phone: cleanPhone
+    });
+
+  } catch (error: any) {
+    console.error('Pairing error:', error);
+    return NextResponse.json({ 
+      error: error.message || 'Failed to connect' 
+    }, { status: 500 });
   }
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const phone = searchParams.get('phone');
-  const code = searchParams.get('code');
-
-  if (phone && pendingPairings.has(phone)) {
-    const pairing = pendingPairings.get(phone)!;
-    return NextResponse.json({ 
-      phone: pairing.phone, 
-      code: pairing.code, 
-      createdAt: pairing.createdAt 
-    });
-  }
-
-  if (code && pendingPairings.has(code)) {
-    const pairing = pendingPairings.get(code)!;
-    return NextResponse.json({ 
-      phone: pairing.phone, 
-      code: pairing.code, 
-      createdAt: pairing.createdAt 
-    });
-  }
-
-  return NextResponse.json({ error: "No pending pairing found" }, { status: 404 });
+export async function GET() {
+  const sessions = Array.from(activeSessions.entries()).map(([phone, data]) => ({
+    phone,
+    connected: data.connected
+  }));
+  
+  return NextResponse.json({ sessions });
 }

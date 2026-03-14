@@ -5,6 +5,10 @@ services:
     region: oregon
     buildCommand: npm install && npm run build
     startCommand: npm run start
+    disk:
+      name: sessions
+      mountPath: /app/sessions
+      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: "20"
