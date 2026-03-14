@@ -2,11 +2,8 @@ services:
   - type: web
     name: maxxtechxmd
     env: node
-    region: oregon
     buildCommand: npm install && npm run build
-    startCommand: npm run start
+    startCommand: npm start
     envVars:
       - key: NODE_VERSION
         value: "20"
-      - key: MONGO_URI
-        value: "mongodb+srv://maxxbot:masharia2020@clustersessions.pcz8pqh.mongodb.net/maxx-xmd?retryWrites=true&w=majority"
