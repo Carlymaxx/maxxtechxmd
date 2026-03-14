@@ -3,7 +3,12 @@ import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeys
 import { Boom } from '@hapi/boom';
 import { MongoClient, ObjectId } from 'mongodb';
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://maxxbot:masharia2020@clustersessions.pcz8pqh.mongodb.net/maxx-xmd?retryWrites=true&w=majority';
+const MONGO_URI = process.env.MONGO_URI || '';
+const DB_NAME = process.env.MONGO_DB || 'maxx-xmd';
+
+if (!MONGO_URI) {
+  throw new Error('MONGO_URI environment variable is not set');
+}
 
 let client: MongoClient | null = null;
 
@@ -12,7 +17,7 @@ async function getDb() {
     client = new MongoClient(MONGO_URI);
     await client.connect();
   }
-  return client.db();
+  return client.db(DB_NAME);
 }
 
 interface PairingSession {
