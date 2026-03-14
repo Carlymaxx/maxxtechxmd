@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
-import { Boom } from '@hapi/boom';
-import { MongoClient, ObjectId } from 'mongodb';
+import makeWASocket, { AuthenticationState, BufferJSON, initAuthCreds } from '@whiskeysockets/baileys';
+import { MongoClient } from 'mongodb';
 
 let client: MongoClient | null = null;
 
@@ -19,11 +18,26 @@ async function getDb() {
 interface PairingSession {
   phone: string;
   socket: any;
+  pairingCode?: string;
   connected: boolean;
-  creds?: any;
 }
 
-const activeSessions: Map<string, PairingSession> = new Map();
+const pendingPairing: Map<string, { socket: any; timeout: NodeJS.Timeout }> = new Map();
+
+function createAuthState(creds?: any): { state: AuthenticationState; saveCreds: () => Promise<void> } {
+  const credsObj = creds || initAuthCreds();
+  
+  return {
+    state: {
+      creds: credsObj,
+      keys: {
+        get: async () => ({}),
+        set: async () => {},
+      }
+    },
+    saveCreds: async () => {}
+  };
+}
 
 export async function POST(request: Request) {
   try {
@@ -36,105 +50,81 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Phone number required' }, { status: 400 });
     }
 
-    const cleanPhone = phone.replace(/\D/g, '');
-    
-    if (activeSessions.has(cleanPhone)) {
-      const existing = activeSessions.get(cleanPhone);
-      if (existing?.socket) {
-        try {
-          existing.socket.end({ error: undefined, reason: 'New pairing request' });
-        } catch {}
+    const cleanPhone = phone.replace(/[^\d]/g, '');
+    const fullPhone = cleanPhone.startsWith('+') ? cleanPhone : `+${cleanPhone}`;
+
+    if (pendingPairing.has(cleanPhone)) {
+      const existing = pendingPairing.get(cleanPhone);
+      if (existing) {
+        existing.socket.end(undefined);
+        clearTimeout(existing.timeout);
       }
-      activeSessions.delete(cleanPhone);
+      pendingPairing.delete(cleanPhone);
     }
 
     const existingSession = await sessionsCollection.findOne({ phone: cleanPhone });
     
-    let authState: any;
+    let authState: { state: AuthenticationState; saveCreds: () => Promise<void> };
     if (existingSession && existingSession.creds) {
-      authState = {
-        creds: existingSession.creds,
-        keys: {}
-      };
+      authState = createAuthState(existingSession.creds);
     } else {
-      authState = { creds: {}, keys: {} };
+      authState = createAuthState();
     }
 
     const sock = makeWASocket({
-      auth: authState,
+      auth: authState.state,
       printQRInTerminal: false,
       browser: ['MaxX Tech', 'Chrome', '120.0.0'],
-      logger: console as any,
     });
 
-    const sessionData: PairingSession = { 
-      phone: cleanPhone, 
-      socket: sock, 
-      connected: false,
-      creds: authState.creds
+    const pairingInfo: { socket: any; timeout: NodeJS.Timeout } = {
+      socket: sock,
+      timeout: setTimeout(() => {
+        try {
+          sock.end(undefined);
+        } catch {}
+        pendingPairing.delete(cleanPhone);
+      }, 120000)
     };
-    activeSessions.set(cleanPhone, sessionData);
+    pendingPairing.set(cleanPhone, pairingInfo);
 
     sock.ev.on('creds.update', async (creds: any) => {
-      sessionData.creds = { ...sessionData.creds, ...creds };
       await sessionsCollection.updateOne(
         { phone: cleanPhone },
-        { $set: { phone: cleanPhone, creds: sessionData.creds, updatedAt: new Date() } },
+        { $set: { phone: cleanPhone, creds, updatedAt: new Date() } },
         { upsert: true }
       );
     });
 
-    sock.ev.on('connection.update', (update) => {
-      const { connection, lastDisconnect } = update;
+    sock.ev.on('connection.update', async (update) => {
+      const { connection } = update;
       
-      if (connection === 'close') {
-        const reason = (lastDisconnect?.error as Boom)?.output?.statusCode;
-        if (reason !== DisconnectReason.loggedOut) {
-          console.log('Reconnecting...');
-        } else {
-          activeSessions.delete(cleanPhone);
-        }
-      }
-
       if (connection === 'open') {
+        clearTimeout(pairingInfo.timeout);
+        pendingPairing.delete(cleanPhone);
         console.log('Connected to WhatsApp!');
-        sessionData.connected = true;
       }
     });
 
-    await new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Pairing timeout'));
-      }, 60000);
-
-      const checkConnection = setInterval(() => {
-        if (sessionData.connected) {
-          clearInterval(checkConnection);
-          clearTimeout(timeout);
-          resolve();
-        }
-      }, 1000);
-    });
+    const code = await sock.requestPairingCode(fullPhone);
+    const formattedCode = code.match(/.{1,4}/g)?.join('-') || code;
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Successfully connected to WhatsApp!',
-      phone: cleanPhone
+      pairingCode: formattedCode,
+      phone: fullPhone,
+      message: `Enter this code on your WhatsApp: ${formattedCode}`
     });
 
   } catch (error: any) {
     console.error('Pairing error:', error);
     return NextResponse.json({ 
-      error: error.message || 'Failed to connect' 
+      error: error.message || 'Failed to generate pairing code' 
     }, { status: 500 });
   }
 }
 
 export async function GET() {
-  const sessions = Array.from(activeSessions.entries()).map(([phone, data]) => ({
-    phone,
-    connected: data.connected
-  }));
-  
-  return NextResponse.json({ sessions });
+  const sessions = Array.from(pendingPairing.keys());
+  return NextResponse.json({ pending: sessions });
 }

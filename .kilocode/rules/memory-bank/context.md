@@ -1,87 +1,57 @@
-# Active Context: Next.js Starter Template
+# Active Context: WhatsApp Bot (MaxX Tech)
 
 ## Current State
 
-**Template Status**: ✅ Ready for development
+**Project Status**: ✅ WhatsApp pairing functionality implemented
 
-The template is a clean Next.js 16 starter with TypeScript and Tailwind CSS 4. It's ready for AI-assisted expansion to build any type of application.
+The project is a WhatsApp bot built with Next.js 16, Baileys, and MongoDB. Users can generate a pairing code to link their WhatsApp account.
 
 ## Recently Completed
 
-- [x] Base Next.js 16 setup with App Router
-- [x] TypeScript configuration with strict mode
-- [x] Tailwind CSS 4 integration
-- [x] ESLint configuration
-- [x] Memory bank documentation
-- [x] Recipe system for common features
+- [x] Fix all commands (bun install, build, lint, typecheck)
+- [x] Remove npm lockfile to fix Next.js workspace warning
+- [x] Add turbopack.root config in next.config.ts
+- [x] Implement WhatsApp pairing code functionality
+- [x] Update frontend to display pairing code UI
 
 ## Current Structure
 
 | File/Directory | Purpose | Status |
 |----------------|---------|--------|
-| `src/app/page.tsx` | Home page | ✅ Ready |
-| `src/app/layout.tsx` | Root layout | ✅ Ready |
-| `src/app/globals.css` | Global styles | ✅ Ready |
-| `.kilocode/` | AI context & recipes | ✅ Ready |
+| `src/app/page.tsx` | Home page with pairing UI | ✅ Active |
+| `src/app/api/pair/register/route.ts` | WhatsApp pairing API | ✅ Active |
+| `src/app/api/pair/route.ts` | QR code (legacy) | ✅ Available |
+| MongoDB | Session storage | ✅ Configured |
 
 ## Current Focus
 
-The template is ready. Next steps depend on user requirements:
+WhatsApp pairing feature is working. Users can:
+1. Enter their WhatsApp phone number
+2. Receive a pairing code
+3. Enter the code in WhatsApp (Settings → Linked Devices → Link a Device)
 
-1. What type of application to build
-2. What features are needed
-3. Design/branding preferences
+## Quick Start
 
-## Quick Start Guide
+### Commands:
+- `bun install` - Install dependencies
+- `bun run build` - Build for production
+- `bun run lint` - Run ESLint
+- `bun run typecheck` - TypeScript check
 
-### To add a new page:
-
-Create a file at `src/app/[route]/page.tsx`:
-```tsx
-export default function NewPage() {
-  return <div>New page content</div>;
-}
-```
-
-### To add components:
-
-Create `src/components/` directory and add components:
-```tsx
-// src/components/ui/Button.tsx
-export function Button({ children }: { children: React.ReactNode }) {
-  return <button className="px-4 py-2 bg-blue-600 text-white rounded">{children}</button>;
-}
-```
-
-### To add a database:
-
-Follow `.kilocode/recipes/add-database.md`
-
-### To add API routes:
-
-Create `src/app/api/[route]/route.ts`:
-```tsx
-import { NextResponse } from "next/server";
-
-export async function GET() {
-  return NextResponse.json({ message: "Hello" });
-}
-```
+### Environment Variables:
+- `MONGO_URI` - MongoDB connection string
+- `MONGO_DB` - Database name
 
 ## Available Recipes
 
 | Recipe | File | Use Case |
 |--------|------|----------|
-| Add Database | `.kilocode/recipes/add-database.md` | Data persistence with Drizzle + SQLite |
-
-## Pending Improvements
-
-- [ ] Add more recipes (auth, email, etc.)
-- [ ] Add example components
-- [ ] Add testing setup recipe
+| Add Database | `.kilocode/recipes/add-database.md` | Data persistence |
 
 ## Session History
 
 | Date | Changes |
 |------|---------|
-| Initial | Template created with base setup |
+| Initial | Template created |
+| Mar 2026 | Fixed all build commands |
+| Mar 2026 | Implemented WhatsApp pairing code |

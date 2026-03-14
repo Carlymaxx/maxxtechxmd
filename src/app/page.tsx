@@ -2,20 +2,22 @@
 
 import { useState } from "react";
 
-type Step = "input" | "connecting" | "success" | "error";
+type Step = "input" | "generating" | "pairing" | "success" | "error";
 
 export default function Home() {
   const [phone, setPhone] = useState("");
   const [step, setStep] = useState<Step>("input");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [pairingCode, setPairingCode] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (phone.length < 10) return;
 
-    setStep("connecting");
-    setMessage("Connecting to WhatsApp...");
+    setStep("generating");
+    setMessage("Generating pairing code...");
     setError("");
 
     try {
@@ -27,12 +29,14 @@ export default function Home() {
 
       const data = await res.json();
 
-      if (data.success) {
-        setStep("success");
-        setMessage(data.message);
+      if (data.success && data.pairingCode) {
+        setPairingCode(data.pairingCode);
+        setPhoneNumber(data.phone);
+        setStep("pairing");
+        setMessage("Enter this code on your WhatsApp");
       } else {
         setStep("error");
-        setError(data.error || "Connection failed");
+        setError(data.error || "Failed to generate pairing code");
       }
     } catch (err) {
       setStep("error");
@@ -40,11 +44,24 @@ export default function Home() {
     }
   };
 
+  const checkConnection = async () => {
+    try {
+      const res = await fetch('/api/pair/register', { method: 'GET' });
+      const data = await res.json();
+      if (data.sessions?.some((s: any) => s.phone === phoneNumber && s.connected)) {
+        setStep("success");
+        setMessage("Successfully connected to WhatsApp!");
+      }
+    } catch {}
+  };
+
   const reset = () => {
     setStep("input");
     setPhone("");
     setMessage("");
     setError("");
+    setPairingCode("");
+    setPhoneNumber("");
   };
 
   return (
@@ -67,22 +84,56 @@ export default function Home() {
                 className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-xl text-white text-lg focus:outline-none focus:border-purple-500 text-center"
                 required
               />
+              <p className="text-gray-500 text-xs mt-2 text-center">Include country code (e.g., +1 for US)</p>
             </div>
 
             <button 
               type="submit"
               className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition font-medium"
             >
-              Connect to WhatsApp
+              Generate Pairing Code
             </button>
           </form>
         )}
 
-        {step === "connecting" && (
+        {step === "generating" && (
           <div className="flex flex-col items-center">
             <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-6"></div>
             <p className="text-white text-lg mb-2">{message}</p>
             <p className="text-gray-400 text-sm">Please wait...</p>
+          </div>
+        )}
+
+        {step === "pairing" && (
+          <div className="flex flex-col items-center">
+            <p className="text-white text-lg mb-4">Enter this code on WhatsApp</p>
+            
+            <div className="bg-gray-900/80 rounded-2xl p-6 mb-6 border border-purple-500/50">
+              <p className="text-purple-400 text-sm text-center mb-2">{phoneNumber}</p>
+              <p className="text-5xl font-mono font-bold text-white text-center tracking-widest">
+                {pairingCode}
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                onClick={checkConnection}
+                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl transition font-medium"
+              >
+                Check Connection
+              </button>
+              <button 
+                onClick={reset}
+                className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl transition font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <p className="text-gray-400 text-sm mt-4 text-center">
+              Open WhatsApp → Settings → Linked Devices → Link a Device<br/>
+              Enter the code above to connect
+            </p>
           </div>
         )}
 
