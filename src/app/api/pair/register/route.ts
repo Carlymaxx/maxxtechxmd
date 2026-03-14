@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import makeWASocket, { DisconnectReason, useMultiFileAuthState } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
-
-const SESSION_DIR = process.env.RENDER ? '/app/sessions' : './sessions';
 import { existsSync, mkdirSync } from 'fs';
 
-if (!existsSync(SESSION_DIR)) {
-  mkdirSync(SESSION_DIR, { recursive: true });
+const SESSION_DIR = process.env.RENDER ? '/app/sessions' : './sessions';
+
+function ensureSessionDir() {
+  if (!existsSync(SESSION_DIR)) {
+    mkdirSync(SESSION_DIR, { recursive: true });
+  }
 }
 
 interface PairingSession {
@@ -20,6 +22,8 @@ const activeSessions: Map<string, PairingSession> = new Map();
 
 export async function POST(request: Request) {
   try {
+    ensureSessionDir();
+    
     const { phone } = await request.json();
     
     if (!phone) {
