@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "bot": "npx tsx bot.ts"
   },
   "dependencies": {
     "@hapi/boom": "^10.0.1",
@@ -33,6 +34,7 @@
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.0",
     "tailwindcss": "^4.1.17",
+    "tsx": "^4.7.0",
     "typescript": "^5.9.3"
   }
 }
