@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import makeWASocket, { AuthenticationState, initAuthCreds } from '@whiskeysockets/baileys';
-import { MongoClient } from 'mongodb';
+import { MongoClient, Binary } from 'mongodb';
 
 let client: MongoClient | null = null;
 
@@ -15,11 +15,26 @@ async function getDb() {
   return client.db(DB_NAME);
 }
 
-const pendingPairing: Map<string, { socket: any; timeout: NodeJS.Timeout; phone: string }> = new Map();
+function convertBuffers(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (obj instanceof Binary) return obj.buffer;
+  if (Buffer.isBuffer(obj)) return obj;
+  if (Array.isArray(obj)) return obj.map(convertBuffers);
+  if (typeof obj === 'object') {
+    const converted: any = {};
+    for (const key of Object.keys(obj)) {
+      converted[key] = convertBuffers(obj[key]);
+    }
+    return converted;
+  }
+  return obj;
+}
+
+const pendingPairing: Map<string, { socket: any; timeout: NodeJS.Timeout }> = new Map();
 const connectedDevices: Map<string, { phone: string; connected: boolean }> = new Map();
 
 function createAuthState(creds?: any): { state: AuthenticationState; saveCreds: () => Promise<void> } {
-  const credsObj = creds || initAuthCreds();
+  const credsObj = creds ? convertBuffers(creds) : initAuthCreds();
   
   return {
     state: {
@@ -47,7 +62,7 @@ export async function POST(request: Request) {
     const cleanPhone = phone.replace(/[^\d]/g, '');
     const fullPhone = cleanPhone.startsWith('+') ? cleanPhone : `+${cleanPhone}`;
 
-    console.log('Generating pairing code for:', fullPhone);
+    console.log('[PAIR] Generating pairing code for:', fullPhone);
 
     if (pendingPairing.has(cleanPhone)) {
       const existing = pendingPairing.get(cleanPhone);
@@ -64,10 +79,10 @@ export async function POST(request: Request) {
     
     let authState: { state: AuthenticationState; saveCreds: () => Promise<void> };
     if (existingSession && existingSession.creds) {
-      console.log('Using existing credentials');
+      console.log('[PAIR] Using existing credentials');
       authState = createAuthState(existingSession.creds);
     } else {
-      console.log('Creating new credentials');
+      console.log('[PAIR] Creating new credentials');
       authState = createAuthState();
     }
 
@@ -76,90 +91,70 @@ export async function POST(request: Request) {
       printQRInTerminal: false,
       browser: ['MAXX-XMD', 'Chrome', '120.0.0'],
       connectTimeoutMs: 60000,
-      keepAliveIntervalMs: 30000,
     });
 
-    const pairingInfo: { socket: any; timeout: NodeJS.Timeout; phone: string } = {
+    const pairingInfo: { socket: any; timeout: NodeJS.Timeout } = {
       socket: sock,
-      phone: cleanPhone,
       timeout: setTimeout(() => {
         try {
           sock.end(undefined);
         } catch {}
         pendingPairing.delete(cleanPhone);
-        console.log('Pairing timed out for:', cleanPhone);
-      }, 120000)
+        console.log('[PAIR] Timed out');
+      }, 90000)
     };
     pendingPairing.set(cleanPhone, pairingInfo);
 
     sock.ev.on('creds.update', async (creds: any) => {
       try {
+        const serialized = JSON.parse(JSON.stringify(creds));
         await sessionsCollection.updateOne(
           { phone: cleanPhone },
-          { $set: { phone: cleanPhone, creds, updatedAt: new Date() } },
+          { $set: { phone: cleanPhone, creds: serialized, updatedAt: new Date() } },
           { upsert: true }
         );
+        console.log('[PAIR] Credentials updated');
       } catch (err) {
-        console.error('Failed to save creds:', err);
+        console.error('[PAIR] Failed to save creds:', err);
       }
     });
 
     sock.ev.on('connection.update', (update) => {
-      const { connection, lastDisconnect, qr } = update;
+      const { connection, qr } = update;
+      console.log('[PAIR] Connection:', connection);
       
-      console.log('Connection update:', connection, qr ? 'QR received' : '');
-      
-      if (qr) {
-        console.log('QR Code received');
-      }
-
       if (connection === 'close') {
-        const reason = lastDisconnect?.error || 'Unknown';
-        console.log('Connection closed:', reason);
         clearTimeout(pairingInfo.timeout);
         pendingPairing.delete(cleanPhone);
       }
 
       if (connection === 'open') {
-        console.log('Connected to WhatsApp!');
+        console.log('[PAIR] Connected!');
         clearTimeout(pairingInfo.timeout);
         pendingPairing.delete(cleanPhone);
         connectedDevices.set(cleanPhone, { phone: fullPhone, connected: true });
       }
     });
 
-    sock.ev.on('messages.upsert', async ({ messages, type }) => {
-      if (type === 'notify') {
-        for (const msg of messages) {
-          if (!msg.key.fromMe && msg.message) {
-            console.log('Received message from:', msg.key.remoteJid);
-          }
-        }
-      }
-    });
-
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, 5000);
-    });
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     if (!sock.authState?.creds) {
-      throw new Error('Socket not properly initialized');
+      throw new Error('Socket initialization failed');
     }
 
     const code = await (sock as any).requestPairingCode(fullPhone);
     const formattedCode = code.match(/.{1,4}/g)?.join('-') || code;
 
-    console.log('Pairing code generated:', formattedCode);
+    console.log('[PAIR] Code generated:', formattedCode);
 
     return NextResponse.json({ 
       success: true, 
       pairingCode: formattedCode,
-      phone: fullPhone,
-      message: `Enter this code on your WhatsApp`
+      phone: fullPhone
     });
 
   } catch (error: any) {
-    console.error('Pairing error:', error);
+    console.error('[PAIR] Error:', error.message);
     return NextResponse.json({ 
       error: error.message || 'Failed to generate pairing code' 
     }, { status: 500 });
@@ -167,10 +162,8 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  const pending = Array.from(pendingPairing.keys());
-  const connected = Array.from(connectedDevices.entries()).map(([phone, data]) => ({
-    phone,
-    connected: data.connected
-  }));
-  return NextResponse.json({ pending, connected });
+  return NextResponse.json({ 
+    pending: Array.from(pendingPairing.keys()),
+    connected: Array.from(connectedDevices.entries()).map(([phone, data]) => ({ phone, connected: data.connected }))
+  });
 }
