@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: maxxtechxmd
+    env: node
+    buildCommand: npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "18"
