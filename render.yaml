@@ -7,3 +7,5 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "20"
+      - key: MONGO_URI
+        value: "mongodb+srv://maxxbot:maxxbot2020@clustersessions.pcz8pqh.mongodb.net/maxx-xmd?retryWrites=true&w=majority"
