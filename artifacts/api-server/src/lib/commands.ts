@@ -1206,17 +1206,21 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
 
   // ── Command routing ─────────────────────────────────────────────────────────
   if (!body.startsWith(prefix)) {
-    // Chatbot auto-reply
-    if (settings.chatbot && !isGroup) {
+    // Chatbot auto-reply — powered by Copilot AI
+    if (settings.chatbot) {
       const q = body.trim();
       if (q) {
-        const responses = [
-          "Hello! I'm MAXX XMD 🤖", "How can I help you?", "Type .menu to see all commands!",
-          "I'm doing great, thanks for asking 😊", "Interesting! Tell me more.",
-          `Send *${prefix}menu* to see what I can do!`,
-        ];
-        const r = responses[Math.floor(Math.random() * responses.length)];
-        await sock.sendMessage(from, { text: r }, { quoted: msg });
+        try {
+          await sock.sendPresenceUpdate("composing", from);
+          const res = await fetch(`https://api.eliteprotech.com/copilot?q=${encodeURIComponent(q)}`);
+          const data = await res.json() as any;
+          const reply = data.response || data.answer || data.text || data.message || data.result || "";
+          if (reply) {
+            await sock.sendMessage(from, { text: reply + "\n\n> _MAXX-XMD_ ⚡" }, { quoted: msg });
+          }
+        } catch {
+          // silently ignore AI failures
+        }
       }
     }
     return;
