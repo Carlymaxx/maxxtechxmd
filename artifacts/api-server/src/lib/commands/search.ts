@@ -243,42 +243,51 @@ registerCommand({
       );
     }
 
-    // ── .movie dl <name> ─────────────────────────────────────────────────────
+    // ── .movie dl <name> — downloads official trailer and sends as MP4 ─────────
     if (sub === "dl" || sub === "download") {
       const title = rest;
       if (!title) return reply(`❌ Please provide a movie name.\n\n📝 Example: ${p}movie dl Avengers`);
-      await reply(`🎬 Searching *${title}* for download... ⏳`);
+
+      await reply(
+        `╔══════════════════════╗\n║  🎬 *MOVIE TRAILER*  ║\n╚══════════════════════╝\n\n` +
+        `🔍 Searching trailer for *${title}*...\n⏳ This may take up to 60 seconds...`
+      );
+
       try {
-        const res = await fetch(`https://yts.mx/api/v2/list_movies.json?query_term=${encodeURIComponent(title)}&limit=1`);
-        const data = await res.json() as any;
-        const m = data.data?.movies?.[0];
-        if (!m) return reply(`❌ No movie found for *${title}*.\n\nTry a different spelling or shorter name.`);
-        const links = m.torrents?.map((t: any) =>
-          `• *${t.quality}* [${t.size}]\n  🔗 ${t.url}`
-        ).join("\n\n") || "No torrent links found.";
+        const { searchYouTube, downloadVideo } = await import("../ytdlpUtil.js");
 
-        const text =
-          `╔══════════════════════╗\n║  📥 *MOVIE DOWNLOAD*  ║\n╚══════════════════════╝\n\n` +
-          `🎬 *${m.title}* (${m.year})\n` +
-          `⭐ IMDb: ${m.rating}/10\n` +
-          `🔗 ${m.url}\n\n` +
-          `━━━━━━━━━━━━━━━━━━━━━━\n` +
-          `📥 *Download Links:*\n\n${links}\n\n` +
-          `💡 _Copy and open in a torrent client_`;
+        // Search YouTube for the official trailer
+        const ytUrl = await searchYouTube(`${title} official trailer HD`);
 
-        const posterUrl = m.large_cover_image || m.medium_cover_image || null;
-        if (posterUrl) {
-          try {
-            const buf = await fetch(posterUrl).then(r => r.ok ? r.arrayBuffer() : null);
-            if (buf) {
-              await sock.sendMessage(from, { image: Buffer.from(buf), caption: text }, { quoted: waMsg });
-              return;
-            }
-          } catch {}
+        await reply(`🎬 Found trailer! Downloading *${title}*... ⬇️`);
+
+        const { buffer, duration } = await downloadVideo(ytUrl, 300);
+
+        if (buffer.length > 55 * 1024 * 1024) {
+          return reply(
+            `⚠️ Trailer too large (${Math.round(buffer.length / 1024 / 1024)}MB).\n` +
+            `WhatsApp limit is 55MB. Try a shorter movie name or search on YouTube directly.`
+          );
         }
-        await reply(text);
-      } catch {
-        await reply("❌ Could not find download links. Try again later.");
+
+        const mins = Math.floor(duration / 60);
+        const secs = (duration % 60).toString().padStart(2, "0");
+
+        await sock.sendMessage(from, {
+          video: buffer,
+          mimetype: "video/mp4",
+          caption:
+            `🎬 *${title}* — Official Trailer\n` +
+            `⏱️ ${mins}:${secs}`,
+          fileName: `${title} trailer.mp4`,
+        } as any, { quoted: waMsg });
+
+      } catch (e: any) {
+        await reply(
+          `❌ Could not download trailer for *${title}*.\n\n` +
+          `_${e.message?.slice(0, 120) || "Try again later"}_\n\n` +
+          `💡 Try: ${p}movie dl ${title} official trailer`
+        );
       }
       return;
     }
