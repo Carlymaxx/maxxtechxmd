@@ -249,12 +249,12 @@ registerCommand({
 
     // ── Category config ────────────────────────────────────────────────────
     const CAT_ORDER = [
-      "General", "Download", "AI", "Search", "Fun", "Games",
+      "General", "Download", "AI", "Search", "Photo", "Fun", "Games",
       "Group", "Settings", "Tools", "Religion", "Sports", "Owner",
     ];
     const CAT_EMOJI: Record<string, string> = {
       General: "🌐", Download: "⬇️", AI: "🤖", Search: "🔍",
-      Fun: "😂", Games: "🎮", Group: "👥", Settings: "⚙️",
+      Photo: "📸", Fun: "😂", Games: "🎮", Group: "👥", Settings: "⚙️",
       Tools: "🔧", Religion: "🕌", Sports: "⚽", Owner: "👑",
     };
 
@@ -317,9 +317,9 @@ registerCommand({
       for (const catName of orderedCats) {
         const cmds = grouped.get(catName)!;
         const emoji = CAT_EMOJI[catName] || "📌";
-        text += `╔═══ ${emoji} *${catName.toUpperCase()}* ═══╗\n`;
+        text += `╔═══ ${emoji} *${catName.toUpperCase()}* (${cmds.length}) ═══╗\n`;
         for (const cmd of cmds) {
-          text += `║ ${p}${cmd.name} - ${cmd.description}\n`;
+          text += `║ ${p}${cmd.name}\n`;
         }
         text += `╚${"═".repeat(22)}╝\n\n`;
       }
@@ -348,10 +348,10 @@ registerCommand({
       const emoji = CAT_EMOJI[matchedCat] || "📌";
       let out = `┏▣ ◈ *${emoji} ${matchedCat.toUpperCase()} COMMANDS* ◈\n`;
       for (const cmd of cmds) {
-        out += `│➽ ${p}${cmd.name}${cmd.usage ? " " + cmd.usage : ""} — ${cmd.description}\n`;
+        out += `│➽ ${p}${cmd.name}${cmd.usage ? " " + cmd.usage : ""}\n`;
       }
       out += `┗▣\n\n`;
-      out += `💡 _${cmds.length} command${cmds.length !== 1 ? "s" : ""} in this category_`;
+      out += `💡 _${cmds.length} command${cmds.length !== 1 ? "s" : ""} in ${matchedCat}_\n\n> _MAXX-XMD_ ⚡`;
       await reply(out);
     } else {
       const cats = [...grouped.keys()].map(k => `${CAT_EMOJI[k] || "📌"} ${p}menu ${k.toLowerCase()}`).join("\n");
