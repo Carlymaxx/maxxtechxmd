@@ -1139,9 +1139,11 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     try { groupMetadata = await sock.groupMetadata(from); } catch {}
   }
 
-  // Reply helper
+  // Reply helper — auto-appends MAXX XMD footer to every text response
+  const FOOTER = "\n\n> _MAXX XMD_ ⚡";
   const reply = async (text: string) => {
-    await sock.sendMessage(from, { text }, { quoted: msg });
+    const branded = text.includes("_MAXX XMD_") ? text : text + FOOTER;
+    await sock.sendMessage(from, { text: branded }, { quoted: msg });
   };
   const reactFn = async (emoji: string) => {
     try { await sock.sendMessage(from, { react: { text: emoji, key: msg.key } }); } catch {}
