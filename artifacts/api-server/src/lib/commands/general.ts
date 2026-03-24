@@ -155,36 +155,168 @@ registerCommand({
   aliases: ["help", "commands", "list"],
   category: "General",
   description: "Show command menu",
-  handler: async ({ args, settings, reply }) => {
+  handler: async ({ sock, from, msg, args, settings, reply }) => {
     const cat = args[0]?.toLowerCase();
     const p = settings.prefix;
 
     if (!cat) {
-      await reply(`┏▣ ◈ *MAXX XMD MENU* ◈
-┃
-┃ 📌 *Prefix:* ${p}
-┃ 👑 *Owner:* ${settings.ownerName}
-┃ 🌐 *Mode:* ${settings.mode}
-┃
-┃ 📂 *Categories* — type *${p}menu <name>*
-┃ ─────────────────
-┃ 🤖 \`${p}menu ai\`
-┃ 🎵 \`${p}menu audio\`
-┃ ⬇️ \`${p}menu download\`
-┃ 😂 \`${p}menu fun\`
-┃ 🎮 \`${p}menu games\`
-┃ 👥 \`${p}menu group\`
-┃ ℹ️ \`${p}menu other\`
-┃ 👑 \`${p}menu owner\`
-┃ 🕌 \`${p}menu religion\`
-┃ 🔍 \`${p}menu search\`
-┃ ⚙️ \`${p}menu settings\`
-┃ ⚽ \`${p}menu sports\`
-┃ 🔧 \`${p}menu tools\`
-┃ 🌍 \`${p}menu translate\`
-┃ 🎬 \`${p}menu video\`
-┃
-┗▣ _MAXX XMD v2.0.0_`);
+      // ── Full menu with new style ─────────────────────────────────────────
+      const tz: string = (settings as any).timezone || "Africa/Nairobi";
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("en-US", { timeZone: tz, hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      const dateStr = now.toLocaleDateString("en-US", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" });
+      const uptimeSec = process.uptime();
+      const hours = Math.floor(uptimeSec / 3600);
+      const mins = Math.floor((uptimeSec % 3600) / 60);
+      const totalMem = Math.round(os.totalmem() / 1024 / 1024);
+      const usedMem = Math.round((os.totalmem() - os.freemem()) / 1024 / 1024);
+      const hour = parseInt(now.toLocaleString("en-US", { timeZone: tz, hour: "numeric", hour12: false }));
+      let greeting = "Hello";
+      if (hour >= 5 && hour < 12) greeting = "🌞 Good morning";
+      else if (hour >= 12 && hour < 18) greeting = "🌤 Good afternoon";
+      else if (hour >= 18 && hour < 22) greeting = "🌙 Good evening";
+      else greeting = "🌌 Good night";
+      const EMOJIS = ["🔥","⚡","💫","✨","🌟","💎","🚀","🎯","💥","🎊","🎉","🌈","💪","🎶","🤩","😎","🏆","💯","🦋","🌺"];
+      const r = () => EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+      const senderName = (msg as any).pushName || "User";
+      const botName = settings.botName || "MAXX-XMD";
+      const ownerName = settings.ownerName || "MAXX";
+
+      const text =
+`╔══════════════════════════╗
+║  ✨ *${botName} MENU* ✨
+╚══════════════════════════╝
+
+${greeting}, *${senderName}*! ${r()}
+
+👑 *Owner:* ${ownerName}
+🔧 *Prefix:* ${p}
+🌐 *Mode:* ${settings.mode || "public"}
+🕒 *Time:* ${timeStr}
+📅 *Date:* ${dateStr}
+⏱️ *Uptime:* ${hours}h ${mins}m
+💾 *RAM:* ${usedMem}MB / ${totalMem}MB
+
+╔═══ 🛠️ *UTILITIES* ═══╗
+║ ${p}menu - Bot menu ${r()}
+║ ${p}ping - Check response ${r()}
+║ ${p}alive - Bot status ${r()}
+║ ${p}botinfo - Bot info ${r()}
+║ ${p}owner - Owner contact ${r()}
+║ ${p}repo - Source code ${r()}
+║ ${p}runtime - Uptime & system ${r()}
+╚════════════════════╝
+
+╔═══ 😂 *FUN & GAMES* ═══╗
+║ ${p}jokes - Random joke ${r()}
+║ ${p}quotes - Inspiration ${r()}
+║ ${p}fact - Random fact ${r()}
+║ ${p}memes - Random meme ${r()}
+║ ${p}trivia - Quiz question ${r()}
+║ ${p}xxqc - Magic 8-ball ${r()}
+║ ${p}truth - Truth question ${r()}
+║ ${p}dare - Dare challenge ${r()}
+║ ${p}truthdetector - Fun detector ${r()}
+╚════════════════════╝
+
+╔═══ 🔧 *TOOLS* ═══╗
+║ ${p}sticker - Make sticker ${r()}
+║ ${p}toimage - Sticker to image ${r()}
+║ ${p}ssweb - Screenshot website ${r()}
+║ ${p}calculate - Calculator ${r()}
+║ ${p}toptt - Text to speech ${r()}
+║ ${p}qrcode - Generate QR code ${r()}
+║ ${p}tinyurl - Shorten URL ${r()}
+║ ${p}genpass - Secure password ${r()}
+║ ${p}emojimix - Mix emojis ${r()}
+║ ${p}texttopdf - Text to PDF ${r()}
+║ ${p}tourl - Upload & get URL ${r()}
+║ ${p}getpp - Profile picture ${r()}
+╚════════════════════╝
+
+╔═══ ⬇️ *DOWNLOAD* ═══╗
+║ ${p}song - YouTube MP3 ${r()}
+║ ${p}video - YouTube MP4 ${r()}
+║ ${p}tiktok - TikTok video ${r()}
+║ ${p}instagram - IG download ${r()}
+║ ${p}twitter - Twitter video ${r()}
+║ ${p}itunes - Apple Music ${r()}
+║ ${p}yts - Movie torrents ${r()}
+║ ${p}image - Search images ${r()}
+║ ${p}pin - Pinterest ${r()}
+║ ${p}mediafire - MediaFire link ${r()}
+╚════════════════════╝
+
+╔═══ 👥 *GROUP* ═══╗
+║ ${p}tagall - Tag everyone ${r()}
+║ ${p}tag - Tag with message ${r()}
+║ ${p}kick - Remove member ${r()}
+║ ${p}promote - Make admin ${r()}
+║ ${p}demote - Remove admin ${r()}
+║ ${p}mute - Mute group ${r()}
+║ ${p}unmute - Unmute group ${r()}
+║ ${p}link - Invite link ${r()}
+║ ${p}antilink - Block links ${r()}
+║ ${p}poll - Create poll ${r()}
+║ ${p}vcf - Export contacts ${r()}
+╚════════════════════╝
+
+╔═══ ⚙️ *SETTINGS* ═══╗
+║ ${p}setprefix - Change prefix ${r()}
+║ ${p}setbotname - Bot name ${r()}
+║ ${p}mode - Public/Private/Inbox ${r()}
+║ ${p}chatbot - AI auto-reply ${r()}
+║ ${p}anticall - Reject calls ${r()}
+║ ${p}autoread - Auto-read msgs ${r()}
+║ ${p}alwaysonline - Always online ${r()}
+║ ${p}autoreact - React to msgs ${r()}
+║ ${p}setwelcome - Welcome msg ${r()}
+║ ${p}getsettings - View all settings ${r()}
+╚════════════════════╝
+
+╔═══ 🤖 *AI* ═══╗
+║ ${p}gpt - ChatGPT AI ${r()}
+║ ${p}gemini - Google AI ${r()}
+║ ${p}analyze - AI analysis ${r()}
+║ ${p}code - Generate code ${r()}
+║ ${p}recipe - Get recipes ${r()}
+║ ${p}story - Write a story ${r()}
+║ ${p}translate - Translate text ${r()}
+║ ${p}lyrics - Song lyrics ${r()}
+║ ${p}define - Word meaning ${r()}
+╚════════════════════╝
+
+╔═══ 🕌 *RELIGION* ═══╗
+║ ${p}bible john 3:16 ${r()}
+║ ${p}quran 2:255 ${r()}
+╚════════════════════╝
+
+╔═══ ⚽ *SPORTS* ═══╗
+║ ${p}eplstandings / ${p}eplmatches ${r()}
+║ ${p}laligastandings / ${p}clmatches ${r()}
+║ ${p}wwenews / ${p}wweschedule ${r()}
+╚════════════════════╝
+
+╔═══ 👑 *OWNER* ═══╗
+║ ${p}block / ${p}unblock ${r()}
+║ ${p}broadcast - Broadcast msg ${r()}
+║ ${p}restart - Restart bot ${r()}
+║ ${p}addsudo - Add sudo user ${r()}
+║ ${p}setbio - Set WhatsApp bio ${r()}
+║ ${p}tostatus - Post to status ${r()}
+║ ${p}disk - Server storage ${r()}
+╚════════════════════╝
+
+📢 *Channel:* https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J
+
+_Powered by Maxx Tech_ ⚡💫`;
+
+      const botpic: string = (settings as any).botpic || "https://i.postimg.cc/YSXgK0Wb/Whats-App-Image-2025-11-22-at-08-20-26.jpg";
+      try {
+        await sock.sendMessage(from, { image: { url: botpic }, caption: text }, { quoted: msg });
+      } catch {
+        await sock.sendMessage(from, { text }, { quoted: msg });
+      }
       return;
     }
 
