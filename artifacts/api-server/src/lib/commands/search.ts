@@ -1,70 +1,6 @@
 import { registerCommand } from "./types";
 
-registerCommand({
-  name: "weather",
-  aliases: ["w"],
-  category: "Search",
-  description: "Get weather for a city",
-  handler: async ({ args, reply }) => {
-    const city = args.join(" ");
-    if (!city) return reply("❓ Usage: .weather <city>\nExample: .weather Nairobi");
-    try {
-      const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
-      const data = await res.json() as any;
-      const cur = data.current_condition?.[0];
-      const area = data.nearest_area?.[0];
-      const today = data.weather?.[0];
-      if (!cur) throw new Error();
-      const loc = `${area?.areaName?.[0]?.value || city}, ${area?.country?.[0]?.value || ""}`.replace(/, $/, "");
-      const desc = cur.weatherDesc?.[0]?.value || "N/A";
-      const tempC = cur.temp_C;
-      const tempF = cur.temp_F || Math.round(+tempC * 9 / 5 + 32);
-      const feelsC = cur.FeelsLikeC;
-      const wind = cur.windspeedKmph;
-      const windDir = cur.winddir16Point || "";
-      const humidity = cur.humidity;
-      const cloud = cur.cloudcover;
-      const precip = cur.precipMM;
-      const vis = cur.visibility;
-      const maxC = today?.maxtempC ?? "?";
-      const minC = today?.mintempC ?? "?";
-      const sunrise = today?.astronomy?.[0]?.sunrise || "?";
-      const sunset = today?.astronomy?.[0]?.sunset || "?";
-
-      const condEmoji = (() => {
-        const d = desc.toLowerCase();
-        if (d.includes("sun") || d.includes("clear")) return "☀️";
-        if (d.includes("thunder") || d.includes("storm")) return "⛈️";
-        if (d.includes("rain") || d.includes("drizzle")) return "🌧️";
-        if (d.includes("snow") || d.includes("blizzard")) return "❄️";
-        if (d.includes("fog") || d.includes("mist")) return "🌫️";
-        if (d.includes("cloud") || d.includes("overcast")) return "☁️";
-        if (d.includes("wind")) return "💨";
-        return "🌤️";
-      })();
-
-      await reply(`${condEmoji} *Weather Report*
-
-📍 *Location:* ${loc}
-🌡️ *Temperature:* ${tempC}°C / ${tempF}°F
-🤔 *Feels Like:* ${feelsC}°C
-💨 *Wind:* ${wind} km/h ${windDir}
-💧 *Humidity:* ${humidity}%
-☁️ *Cloud Cover:* ${cloud}%
-🌧️ *Precipitation:* ${precip}mm
-👁️ *Visibility:* ${vis} km
-📝 *Condition:* ${desc}
-
-📅 *Today's Forecast:*
-🔺 Max: ${maxC}°C
-🔻 Min: ${minC}°C
-🌅 Sunrise: ${sunrise}
-🌇 Sunset: ${sunset}`);
-    } catch {
-      await reply("❌ Could not fetch weather. Check the city name and try again.");
-    }
-  },
-});
+// weather is handled by country.ts which has a richer implementation
 
 registerCommand({
   name: "define",
@@ -395,15 +331,7 @@ registerCommand({
   },
 });
 
-registerCommand({
-  name: "shazam",
-  aliases: [],
-  category: "Search",
-  description: "Identify a song (reply to audio)",
-  handler: async ({ reply }) => {
-    await reply("ℹ️ *Shazam Feature*\n\nReply to an audio message and this feature will try to identify the song.\n\n_Note: Full Shazam recognition requires a premium API. For now, use .lyrics <artist> - <song> to search._");
-  },
-});
+// shazam is handled by ai.ts with full implementation
 
 registerCommand({
   name: "scan",
@@ -464,7 +392,7 @@ registerCommand({
 
 registerCommand({
   name: "pp",
-  aliases: ["getpp", "pfp", "avatar"],
+  aliases: ["getpp", "pfp", "viewpp"],
   category: "Search",
   description: "Get profile picture of a number",
   handler: async ({ sock, from, msg, args, reply }) => {
@@ -509,19 +437,4 @@ registerCommand({
   },
 });
 
-registerCommand({
-  name: "qr",
-  aliases: ["qrcode", "makeqr"],
-  category: "Search",
-  description: "Generate a QR code from any text or URL",
-  handler: async ({ sock, from, msg, args, reply }) => {
-    const text = args.join(" ");
-    if (!text) return reply("❓ Usage: .qr <text or URL>\nExample: .qr https://github.com/Carlymaxx/maxxtechxmd");
-    const url = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(text)}`;
-    await sock.sendMessage(
-      from,
-      { image: { url }, caption: `📱 *QR Code Generated*\n\n📝 _${text.slice(0, 80)}${text.length > 80 ? "..." : ""}_\n\n> _MAXX-XMD_ ⚡` },
-      { quoted: msg }
-    );
-  },
-});
+// qr is handled by media2.ts which is the canonical implementation
