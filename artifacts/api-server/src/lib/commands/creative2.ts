@@ -2,9 +2,24 @@ import { registerCommand } from "./types";
 const FOOTER = "\n\n> _MAXX-XMD_ ⚡";
 
 async function ai(prompt: string): Promise<string> {
-  const res = await fetch(`https://api.eliteprotech.com/copilot?q=${encodeURIComponent(prompt)}`);
-  const d = await res.json() as any;
-  const text = d.response || d.answer || d.text || d.message || "";
+  // Primary: eliteprotech chatgpt API
+  try {
+    const res = await fetch(`https://eliteprotech-apis.zone.id/chatgpt?prompt=${encodeURIComponent(prompt)}`, {
+      signal: AbortSignal.timeout(20000),
+    });
+    const d = await res.json() as any;
+    const text = d.response || d.answer || d.text || d.message || "";
+    if (text) return text;
+  } catch {}
+  // Fallback: pollinations text API
+  const res = await fetch("https://text.pollinations.ai/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages: [{ role: "user", content: prompt }], model: "openai", seed: Math.floor(Math.random() * 9999) }),
+    signal: AbortSignal.timeout(25000),
+  });
+  if (!res.ok) throw new Error("AI unavailable");
+  const text = (await res.text()).trim();
   if (!text) throw new Error("empty");
   return text;
 }
