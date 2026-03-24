@@ -1,9 +1,9 @@
 import { registerCommand } from "./types";
-import { loadSettings, saveSettings } from "../botState";
+import { loadSettings, saveSettings, WORKSPACE_ROOT } from "../botState";
 import fs from "fs";
 import path from "path";
 
-const GRP_SETTINGS_FILE = path.join(process.cwd(), "../../group_settings.json");
+const GRP_SETTINGS_FILE = path.join(WORKSPACE_ROOT, "group_settings.json");
 function loadGroupSettings(): Record<string, any> {
   try {
     if (fs.existsSync(GRP_SETTINGS_FILE)) return JSON.parse(fs.readFileSync(GRP_SETTINGS_FILE, "utf8"));
