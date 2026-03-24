@@ -24,27 +24,35 @@ registerCommand({
   aliases: ["botstatus", "status"],
   category: "General",
   description: "Show bot status",
-  handler: async ({ sock, from, settings, reply }) => {
+  handler: async ({ sock, from, msg, settings }) => {
     const mem = process.memoryUsage();
     const total = os.totalmem();
     const used = mem.rss;
     const pct = Math.round((used / total) * 100);
-    const start = Date.now();
-    await reply("pinging...");
-    const speed = Date.now() - start;
-    const count = 150;
-    const text = `┏▣ ◈ *MAXX XMD* ◈
-┃ *ᴏᴡɴᴇʀ* : ${settings.ownerName}
-┃ *ᴘʀᴇғɪx* : [ ${settings.prefix} ]
-┃ *ʜᴏsᴛ* : Replit
-┃ *ᴘʟᴜɢɪɴs* : ${count}
-┃ *ᴍᴏᴅᴇ* : ${settings.mode}
-┃ *ᴠᴇʀsɪᴏɴ* : 2.0.0
-┃ *sᴘᴇᴇᴅ* : ${speed} ms
-┃ *ᴜsᴀɢᴇ* : ${formatBytes(used)} of ${formatBytes(total)}
-┃ *ʀᴀᴍ:* [${ramBar(pct)}] ${pct}%
-┗▣`;
-    await reply(text);
+    const upt = process.uptime();
+    const h = Math.floor(upt / 3600);
+    const m = Math.floor((upt % 3600) / 60);
+    const s = Math.floor(upt % 60);
+    const text = `╔══════════════════════╗
+║  ✨ *MAXX-XMD IS ALIVE!* ✨
+╚══════════════════════╝
+
+🤖 *Bot:* ${settings.botName}
+👑 *Owner:* ${settings.ownerName}
+🔧 *Prefix:* ${settings.prefix}
+🌐 *Mode:* ${settings.mode}
+⏰ *Uptime:* ${h}h ${m}m ${s}s
+💾 *RAM:* ${formatBytes(used)} / ${formatBytes(total)} [${pct}%]
+📦 *Version:* 2.0.0
+🟢 *Status:* Active & Running
+
+📢 *Channel:* https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J`;
+    const botpic: string = (settings as any).botpic || "https://i.postimg.cc/YSXgK0Wb/Whats-App-Image-2025-11-22-at-08-20-26.jpg";
+    try {
+      await sock.sendMessage(from, { image: { url: botpic }, caption: text }, { quoted: msg });
+    } catch {
+      await sock.sendMessage(from, { text }, { quoted: msg });
+    }
   },
 });
 
@@ -53,10 +61,23 @@ registerCommand({
   aliases: ["ping2", "speed"],
   category: "General",
   description: "Check bot response speed",
-  handler: async ({ reply }) => {
+  handler: async ({ msg, reply }) => {
     const start = Date.now();
-    await reply("🏓 Pinging...");
-    await reply(`🏓 Pong! *${Date.now() - start}ms*`);
+    const user = (msg as any).pushName || "User";
+    await reply("⏳ Checking ping... 🔍");
+    const ms = Date.now() - start;
+    await reply(`╔══════════════════════╗
+║  *🌈 MAXX-XMD STATUS* 🌈
+╚══════════════════════╝
+
+👋 Hello, *${user}*!
+🚀 Bot is *ONLINE!*
+🟢 *Status:* Active & Running
+
+⚡ *Ping:* ${ms}ms
+📡 *Network:* Stable 🔥
+
+💖 Thanks for using *MAXX-XMD*!`);
   },
 });
 
@@ -64,9 +85,23 @@ registerCommand({
   name: "runtime",
   aliases: ["uptime"],
   category: "General",
-  description: "Show bot runtime",
+  description: "Show bot runtime and system info",
   handler: async ({ reply }) => {
-    await reply(`⏱️ *MAXX XMD Runtime*\n\n🕐 Uptime: *${uptime()}*`);
+    const upt = process.uptime();
+    const days = Math.floor(upt / 86400);
+    const hrs = Math.floor((upt % 86400) / 3600);
+    const mins = Math.floor((upt % 3600) / 60);
+    const secs = Math.floor(upt % 60);
+    const totalMem = (os.totalmem() / 1024 / 1024).toFixed(0);
+    const freeMem = (os.freemem() / 1024 / 1024).toFixed(0);
+    const usedMem = (os.totalmem() / 1024 / 1024 - os.freemem() / 1024 / 1024).toFixed(0);
+    await reply(`⏱️ *MAXX-XMD RUNTIME*
+
+⏳ *Uptime:* ${days}d ${hrs}h ${mins}m ${secs}s
+💻 *Platform:* ${os.platform()} ${os.arch()}
+🧠 *RAM:* ${usedMem}MB / ${totalMem}MB
+⚙️ *Node.js:* ${process.version}
+🔧 *CPU:* ${os.cpus()[0]?.model?.trim() || "Unknown"}`);
   },
 });
 
@@ -616,5 +651,140 @@ _Powered by Maxx Tech_ ⚡💫`;
     } else {
       await reply(`❌ Unknown category: *${cat}*\n\nType *${p}menu* to see all categories.`);
     }
+  },
+});
+
+registerCommand({
+  name: "crypto",
+  aliases: ["coin", "price"],
+  category: "General",
+  description: "Get live cryptocurrency price",
+  handler: async ({ args, reply }) => {
+    const input = args[0]?.toLowerCase();
+    if (!input) return reply("❓ Usage: .crypto <coin>\nExamples: .crypto bitcoin  .crypto eth  .crypto bnb");
+    const COIN_MAP: Record<string, string> = {
+      btc: "bitcoin", eth: "ethereum", bnb: "binancecoin", sol: "solana",
+      xrp: "ripple", ada: "cardano", doge: "dogecoin", matic: "matic-network",
+      dot: "polkadot", ltc: "litecoin", trx: "tron", shib: "shiba-inu",
+      avax: "avalanche-2", link: "chainlink", uni: "uniswap", usdt: "tether",
+    };
+    const id = COIN_MAP[input] || input;
+    try {
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(id)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);
+      const data = await res.json() as any;
+      const coin = data[id];
+      if (!coin) return reply(`❌ Coin "*${input}*" not found.\n\nTry the full name e.g. .crypto bitcoin`);
+      const price = coin.usd?.toLocaleString("en-US", { maximumFractionDigits: 6 });
+      const change = coin.usd_24h_change?.toFixed(2);
+      const mcap = coin.usd_market_cap ? `$${(coin.usd_market_cap / 1e9).toFixed(2)}B` : "N/A";
+      const arrow = change > 0 ? "📈" : "📉";
+      await reply(`💰 *${id.toUpperCase()} Price*
+
+💵 *Price:* $${price}
+${arrow} *24h Change:* ${change}%
+🏦 *Market Cap:* ${mcap}
+
+_Data from CoinGecko_`);
+    } catch {
+      await reply("❌ Could not fetch crypto price. Try again later.");
+    }
+  },
+});
+
+registerCommand({
+  name: "hack",
+  aliases: ["hacking", "breach"],
+  category: "Fun",
+  description: "Fake hacking simulation (for fun)",
+  handler: async ({ args, reply }) => {
+    const target = args.join(" ") || "Unknown Target";
+    await reply(`╔══════════════════════╗
+║ 💻 *HACKING INITIATED* 💻
+╚══════════════════════╝
+
+🎯 *Target:* ${target}
+
+📡 Connecting to server...
+🔐 Bypassing firewall...
+🧠 Injecting exploit...
+📂 Extracting data...
+🔓 Cracking password...
+📡 Rerouting through VPN...
+
+✅ *HACK SUCCESSFUL!* 😈
+
+📁 Files dumped
+📸 Media accessed
+📞 Contacts synced
+💳 Data secured
+
+⚠️ _This is a fake simulation for fun only._`);
+  },
+});
+
+registerCommand({
+  name: "device",
+  aliases: ["sysinfo", "systeminfo"],
+  category: "General",
+  description: "Show bot device and system info",
+  handler: async ({ settings, reply }) => {
+    const upt = process.uptime();
+    const hrs = Math.floor(upt / 3600);
+    const mins = Math.floor((upt % 3600) / 60);
+    const totalMem = (os.totalmem() / 1024 / 1024).toFixed(0);
+    const freeMem = (os.freemem() / 1024 / 1024).toFixed(0);
+    const usedMem = (os.totalmem() / 1024 / 1024 - os.freemem() / 1024 / 1024).toFixed(0);
+    await reply(`╔══════════════════════╗
+║ 📱 *DEVICE INFO* 📱
+╚══════════════════════╝
+
+🤖 *Bot Name:* ${settings.botName}
+👑 *Owner:* ${settings.ownerName}
+
+💻 *Platform:* ${os.platform()} (${os.arch()})
+🔧 *CPU:* ${os.cpus()[0]?.model?.trim() || "Unknown"}
+🧮 *Cores:* ${os.cpus().length}
+
+📦 *Total RAM:* ${totalMem} MB
+📊 *Used RAM:* ${usedMem} MB
+🆓 *Free RAM:* ${freeMem} MB
+
+⏱️ *Uptime:* ${hrs}h ${mins}m
+⚙️ *Node.js:* ${process.version}
+🟢 *Connection:* Active`);
+  },
+});
+
+registerCommand({
+  name: "clearchat",
+  aliases: ["clear"],
+  category: "General",
+  description: "Clear the current chat",
+  handler: async ({ sock, from, msg, reply }) => {
+    try {
+      await sock.chatModify(
+        { delete: true, lastMessages: [{ key: msg.key, messageTimestamp: (msg as any).messageTimestamp }] },
+        from
+      );
+      await reply("🧹 Chat cleared!");
+    } catch {
+      await reply("❌ Could not clear chat. Bot may not have permission here.");
+    }
+  },
+});
+
+registerCommand({
+  name: "version",
+  aliases: ["ver", "v"],
+  category: "General",
+  description: "Show bot version",
+  handler: async ({ settings, reply }) => {
+    await reply(`🤖 *MAXX-XMD Bot*
+
+📦 *Version:* 2.0.0
+👑 *Owner:* ${settings.ownerName}
+🛠️ *Platform:* Node.js / Baileys
+🔧 *Commands:* 150+
+🌐 *Repo:* github.com/Carlymaxx/maxxtechxmd`);
   },
 });
