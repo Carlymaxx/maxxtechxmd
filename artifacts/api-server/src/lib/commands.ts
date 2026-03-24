@@ -1200,6 +1200,48 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     try { await sock.readMessages([msg.key]); } catch {}
   }
 
+  // ── Auto-antiviewonce — intercept incoming view-once before it expires ───────
+  if (settings.antiviewonce && !msg.key.fromMe) {
+    const m = msg.message as any;
+    const voMsg: any =
+      m?.viewOnceMessage?.message ||
+      m?.viewOnceMessageV2?.message ||
+      m?.viewOnceMessageV2Extension?.message;
+    if (voMsg) {
+      try {
+        const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
+        function buildFakeVO(content: object) {
+          return { key: { ...msg.key }, message: content };
+        }
+        const imgMsg = voMsg.imageMessage;
+        const vidMsg = voMsg.videoMessage;
+        const audMsg = voMsg.audioMessage;
+        if (imgMsg) {
+          const buf = await downloadMediaMessage(buildFakeVO({ imageMessage: imgMsg }) as any, "buffer", {});
+          await sock.sendMessage(from, {
+            image: buf as Buffer,
+            caption: `👁️ *View-once auto-saved by MAXX-XMD* ⚡\n${imgMsg.caption || ""}`,
+          });
+        } else if (vidMsg) {
+          const buf = await downloadMediaMessage(buildFakeVO({ videoMessage: vidMsg }) as any, "buffer", {});
+          await sock.sendMessage(from, {
+            video: buf as Buffer,
+            caption: `👁️ *View-once auto-saved by MAXX-XMD* ⚡\n${vidMsg.caption || ""}`,
+          });
+        } else if (audMsg) {
+          const buf = await downloadMediaMessage(buildFakeVO({ audioMessage: audMsg }) as any, "buffer", {});
+          await sock.sendMessage(from, {
+            audio: buf as Buffer,
+            mimetype: audMsg.mimetype || "audio/mp4",
+            ptt: audMsg.ptt || false,
+          });
+        }
+      } catch (e: any) {
+        console.error("[antiviewonce] auto-intercept failed:", e.message);
+      }
+    }
+  }
+
   // Auto-typing presence
   if (settings.autotyping && body.startsWith(prefix)) {
     try { await sock.sendPresenceUpdate("composing", from); } catch {}
