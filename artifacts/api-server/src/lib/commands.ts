@@ -3,44 +3,682 @@ import { downloadMediaMessage } from "@whiskeysockets/baileys";
 import sharp from "sharp";
 import { loadSettings, saveSettings } from "./botState.js";
 import { logger } from "./logger.js";
+import fs from "fs";
+import path from "path";
 
-type Sock = WASocket;
+// ── Load all command modules (self-registering) ───────────────────────────────
+import { commandRegistry } from "./commands/types.js";
+import "./commands/general.js";
+import "./commands/fun.js";
+import "./commands/games.js";
+import "./commands/group.js";
+import "./commands/settings.js";
+import "./commands/owner.js";
+import "./commands/search.js";
+import "./commands/religion.js";
+import "./commands/sports.js";
 
-interface CmdContext {
-  jid: string;
-  sender: string;
-  isGroup: boolean;
-  isOwner: boolean;
-  isAdmin: boolean;
-  botIsAdmin: boolean;
-  pushName: string;
-  quoted: proto.IMessage | null | undefined;
-  quotedMsg: WAMessage | null;
+// ── Tools / download / audio / AI — inline here ──────────────────────────────
+import { registerCommand } from "./commands/types.js";
+
+// ---- TOOLS ----
+registerCommand({
+  name: "sticker",
+  aliases: ["s"],
+  category: "Tools",
+  description: "Convert image/gif to sticker",
+  handler: async ({ sock, from, msg, reply }) => {
+    const settings = loadSettings();
+    const ctx = msg.message?.extendedTextMessage?.contextInfo;
+    const imgMsg = msg.message?.imageMessage || ctx?.quotedMessage?.imageMessage;
+    const vidMsg = msg.message?.videoMessage || ctx?.quotedMessage?.videoMessage;
+    const stickerMedia = imgMsg || vidMsg;
+    if (!stickerMedia) return reply("❌ Reply to or send an image/gif with .sticker");
+    try {
+      const rawMsg = imgMsg
+        ? { message: { imageMessage: imgMsg } }
+        : { message: { videoMessage: vidMsg } };
+      const buf = await downloadMediaMessage(rawMsg as WAMessage, "buffer", {});
+      const webp = await sharp(buf as Buffer).resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp().toBuffer();
+      await sock.sendMessage(from, {
+        sticker: webp,
+        mimetype: "image/webp",
+      } as any);
+    } catch (e: any) {
+      await reply(`❌ Sticker failed: ${e.message}`);
+    }
+  },
+});
+
+registerCommand({
+  name: "toimage",
+  aliases: ["toimg"],
+  category: "Tools",
+  description: "Convert sticker to image",
+  handler: async ({ sock, from, msg, reply }) => {
+    const ctx = msg.message?.extendedTextMessage?.contextInfo;
+    const stickerMsg = msg.message?.stickerMessage || ctx?.quotedMessage?.stickerMessage;
+    if (!stickerMsg) return reply("❌ Reply to a sticker with .toimage");
+    try {
+      const buf = await downloadMediaMessage(
+        { message: { stickerMessage: stickerMsg } } as WAMessage,
+        "buffer", {}
+      );
+      const png = await sharp(buf as Buffer).png().toBuffer();
+      await sock.sendMessage(from, { image: png, caption: "🖼️ Converted by MAXX XMD" });
+    } catch (e: any) {
+      await reply(`❌ Failed: ${e.message}`);
+    }
+  },
+});
+
+registerCommand({
+  name: "getpp",
+  aliases: ["pp", "pfp"],
+  category: "Tools",
+  description: "Get a user's profile picture",
+  handler: async ({ sock, from, msg, sender, reply }) => {
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+    const target = mentioned || sender;
+    try {
+      const url = await sock.profilePictureUrl(target, "image");
+      await sock.sendMessage(from, { image: { url }, caption: `📸 Profile picture of @${target.split("@")[0]}`, mentions: [target] });
+    } catch {
+      await reply(`❌ No profile picture found for @${target.split("@")[0]}`);
+    }
+  },
+});
+
+registerCommand({
+  name: "getabout",
+  aliases: ["about"],
+  category: "Tools",
+  description: "Get a user's WhatsApp bio",
+  handler: async ({ sock, msg, sender, reply }) => {
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+    const target = mentioned || sender;
+    try {
+      const status = await sock.fetchStatus(target);
+      await reply(`👤 *About @${target.split("@")[0]}*\n\n📝 ${status?.status || "No bio set"}\n⏰ Last updated: ${status?.setAt ? new Date(status.setAt).toLocaleDateString() : "Unknown"}`);
+    } catch {
+      await reply(`❌ Could not fetch bio for @${target.split("@")[0]}`);
+    }
+  },
+});
+
+registerCommand({
+  name: "react",
+  aliases: [],
+  category: "Tools",
+  description: "React to a message with an emoji",
+  handler: async ({ sock, msg, args, from, reply }) => {
+    const emoji = args[0];
+    if (!emoji) return reply("❓ Usage: .react <emoji>\nExample: .react 🔥");
+    const ctx = msg.message?.extendedTextMessage?.contextInfo;
+    if (!ctx?.stanzaId) return reply("❌ Reply to a message to react to it.");
+    try {
+      await sock.sendMessage(from, {
+        react: {
+          text: emoji,
+          key: { remoteJid: from, id: ctx.stanzaId, fromMe: false, participant: ctx.participant },
+        },
+      });
+    } catch (e: any) {
+      await reply(`❌ Failed: ${e.message}`);
+    }
+  },
+});
+
+registerCommand({
+  name: "qrcode",
+  aliases: ["qr"],
+  category: "Tools",
+  description: "Generate a QR code from text/URL",
+  handler: async ({ sock, from, args, reply }) => {
+    const text = args.join(" ");
+    if (!text) return reply("❓ Usage: .qrcode <text or URL>");
+    try {
+      const { default: QRCode } = await import("qrcode");
+      const buf = await QRCode.toBuffer(text, { type: "png", width: 512, margin: 2 });
+      await sock.sendMessage(from, { image: buf, caption: `📱 *QR Code*\n\n_${text}_` });
+    } catch (e: any) {
+      const url = `https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${encodeURIComponent(text)}`;
+      await sock.sendMessage(from, { image: { url }, caption: `📱 *QR Code*\n\n_${text}_` });
+    }
+  },
+});
+
+registerCommand({
+  name: "tinyurl",
+  aliases: ["shorten", "short"],
+  category: "Tools",
+  description: "Shorten a URL",
+  handler: async ({ args, reply }) => {
+    const url = args[0];
+    if (!url) return reply("❓ Usage: .tinyurl <URL>");
+    try {
+      const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+      const short = await res.text();
+      await reply(`🔗 *URL Shortened!*\n\n📎 Original: ${url}\n✂️ Short: *${short.trim()}*`);
+    } catch {
+      await reply("❌ Could not shorten URL. Make sure it's a valid URL.");
+    }
+  },
+});
+
+registerCommand({
+  name: "calculate",
+  aliases: ["calc", "math"],
+  category: "Tools",
+  description: "Calculate a math expression",
+  handler: async ({ args, reply }) => {
+    const expr = args.join(" ");
+    if (!expr) return reply("❓ Usage: .calculate <expression>\nExample: .calculate 2 + 2 * 10");
+    try {
+      const safe = expr.replace(/[^0-9+\-*/().^%\s]/g, "");
+      if (!safe.trim()) return reply("❌ Invalid expression.");
+      const result = Function(`"use strict"; return (${safe})`)();
+      await reply(`🧮 *Calculator*\n\n📝 ${expr}\n✅ = *${result}*`);
+    } catch {
+      await reply(`❌ Could not calculate: *${expr}*`);
+    }
+  },
+});
+
+registerCommand({
+  name: "genpass",
+  aliases: ["password", "generatepassword"],
+  category: "Tools",
+  description: "Generate a secure random password",
+  handler: async ({ args, reply }) => {
+    const len = Math.min(Math.max(parseInt(args[0]) || 16, 4), 64);
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}";
+    const { randomBytes } = await import("crypto");
+    const bytes = randomBytes(len);
+    let pass = "";
+    for (let i = 0; i < len; i++) pass += chars[bytes[i] % chars.length];
+    await reply(`🔐 *Generated Password*\n\n\`${pass}\`\n\n📏 Length: *${len}*\n💡 _Keep this safe!_`);
+  },
+});
+
+registerCommand({
+  name: "fancy",
+  aliases: ["fancytext"],
+  category: "Tools",
+  description: "Convert text to fancy Unicode style",
+  handler: async ({ args, reply }) => {
+    const text = args.join(" ");
+    if (!text) return reply("❓ Usage: .fancy <text>");
+    const maps: Record<string, string>[] = [
+      Object.fromEntries("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map((c, i) => {
+        const bold = "𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭";
+        return [c, [...bold][i]];
+      })),
+    ];
+    const italic: Record<string, string> = {};
+    "abcdefghijklmnopqrstuvwxyz".split("").forEach((c, i) => {
+      const ic = "𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻".split("")[i] || c;
+      italic[c] = ic;
+    });
+    const convert = (t: string, map: Record<string, string>) => t.split("").map(c => map[c] || c).join("");
+    const bold = convert(text, maps[0]);
+    const ital = convert(text.toLowerCase(), italic);
+    await reply(`✨ *Fancy Text*\n\n📝 Original: ${text}\n\n🔤 Bold: ${bold}\n🔤 Italic: ${ital}`);
+  },
+});
+
+registerCommand({
+  name: "fliptext",
+  aliases: ["flip", "reverse"],
+  category: "Tools",
+  description: "Flip text upside down",
+  handler: async ({ args, reply }) => {
+    const text = args.join(" ");
+    if (!text) return reply("❓ Usage: .fliptext <text>");
+    const flipMap: Record<string, string> = {
+      a:"ɐ",b:"q",c:"ɔ",d:"p",e:"ǝ",f:"ɟ",g:"ƃ",h:"ɥ",i:"ᴉ",j:"ɾ",k:"ʞ",l:"l",m:"ɯ",
+      n:"u",o:"o",p:"d",q:"b",r:"ɹ",s:"s",t:"ʇ",u:"n",v:"ʌ",w:"ʍ",x:"x",y:"ʎ",z:"z",
+      A:"∀",B:"ᗺ",C:"Ɔ",D:"ᗡ",E:"Ǝ",F:"Ⅎ",G:"פ",H:"H",I:"I",J:"ſ",K:"ʞ",L:"˥",
+      M:"W",N:"N",O:"O",P:"Ԁ",Q:"Q",R:"ᴚ",S:"S",T:"┴",U:"∩",V:"Λ",W:"M",X:"X",Y:"⅄",Z:"Z",
+      "0":"0","1":"Ɩ","2":"ᄅ","3":"Ɛ","4":"ㄣ","5":"ϛ","6":"9","7":"ㄥ","8":"8","9":"6",
+      "!":"¡","?":"¿",".":"˙",",":"'","'":","
+    };
+    const flipped = text.split("").reverse().map(c => flipMap[c] || c).join("");
+    await reply(`🔄 *Flipped Text*\n\n📝 Original: ${text}\n🙃 Flipped: ${flipped}`);
+  },
+});
+
+registerCommand({
+  name: "say",
+  aliases: ["echo"],
+  category: "Tools",
+  description: "Make the bot say something",
+  handler: async ({ args, reply }) => {
+    const text = args.join(" ");
+    if (!text) return reply("❓ Usage: .say <text>");
+    await reply(text);
+  },
+});
+
+registerCommand({
+  name: "obfuscate",
+  aliases: ["obf"],
+  category: "Tools",
+  description: "Obfuscate text with Unicode lookalikes",
+  handler: async ({ args, reply }) => {
+    const text = args.join(" ");
+    if (!text) return reply("❓ Usage: .obfuscate <text>");
+    const map: Record<string, string> = {a:"а",e:"е",o:"о",p:"р",c:"с",x:"х",y:"у",i:"і",b:"Ь",
+      A:"А",E:"Е",O:"О",P:"Р",C:"С",X:"Х",Y:"У",I:"І",B:"В"};
+    const obf = text.split("").map(c => map[c] || c).join("");
+    await reply(`🔐 *Obfuscated Text*\n\n📝 Original: ${text}\n🔒 Obfuscated: ${obf}`);
+  },
+});
+
+registerCommand({
+  name: "device",
+  aliases: [],
+  category: "Tools",
+  description: "Get device info from a WhatsApp JID",
+  handler: async ({ msg, sender, reply }) => {
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+    const target = mentioned || sender;
+    const id = target.split("@")[0];
+    const deviceNum = parseInt(id.split(":")[1] || "0");
+    const devices = ["Unknown", "Android", "iOS/iPhone", "KaiOS", "Android (Tablet)", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Web/Desktop"];
+    const device = devices[deviceNum] || "Unknown";
+    await reply(`📱 *Device Info*\n\n👤 User: @${id.split(":")[0]}\n📲 Device: *${device}*\n🔢 JID: \`${target}\``);
+  },
+});
+
+// ---- DOWNLOAD ----
+registerCommand({
+  name: "song",
+  aliases: ["yt", "ytaudio", "music"],
+  category: "Download",
+  description: "Download a YouTube song/audio",
+  handler: async ({ sock, from, args, reply }) => {
+    const query = args.join(" ");
+    if (!query) return reply("❓ Usage: .song <YouTube URL or song title>\nExample: .song Blinding Lights");
+    await reply("⏳ Searching and downloading... Please wait.");
+    try {
+      const ytdl = await import("@distube/ytdl-core");
+      let url = query;
+      if (!url.includes("youtube.com") && !url.includes("youtu.be")) {
+        const searchRes = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+        const html = await searchRes.text();
+        const match = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+        if (!match) return reply("❌ No results found for: " + query);
+        url = `https://www.youtube.com/watch?v=${match[1]}`;
+      }
+      const info = await ytdl.default.getInfo(url);
+      const title = info.videoDetails.title;
+      const duration = info.videoDetails.lengthSeconds;
+      if (parseInt(duration) > 600) return reply("❌ Video too long (max 10 minutes).");
+      const { Readable } = await import("stream");
+      const stream = ytdl.default(url, { filter: "audioonly", quality: "highestaudio" });
+      const chunks: Buffer[] = [];
+      await new Promise<void>((res, rej) => {
+        stream.on("data", (chunk: Buffer) => chunks.push(chunk));
+        stream.on("end", res);
+        stream.on("error", rej);
+      });
+      const buf = Buffer.concat(chunks);
+      await sock.sendMessage(from, {
+        audio: buf,
+        mimetype: "audio/mpeg",
+        fileName: `${title}.mp3`,
+      } as any);
+      await reply(`✅ *${title}*\n⏱️ Duration: ${Math.floor(parseInt(duration) / 60)}:${(parseInt(duration) % 60).toString().padStart(2, "0")}\n\n> _MAXX XMD_ ⚡`);
+    } catch (e: any) {
+      await reply(`❌ Download failed: ${e.message}\n\nTip: Try with a direct YouTube URL.`);
+    }
+  },
+});
+
+registerCommand({
+  name: "video",
+  aliases: ["ytvideo", "ytv"],
+  category: "Download",
+  description: "Download a YouTube video",
+  handler: async ({ sock, from, args, reply }) => {
+    const query = args.join(" ");
+    if (!query) return reply("❓ Usage: .video <YouTube URL or title>");
+    await reply("⏳ Downloading video... Please wait (may take a moment).");
+    try {
+      const ytdl = await import("@distube/ytdl-core");
+      let url = query;
+      if (!url.includes("youtube.com") && !url.includes("youtu.be")) {
+        const searchRes = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+        const html = await searchRes.text();
+        const match = html.match(/"videoId":"([a-zA-Z0-9_-]{11})"/);
+        if (!match) return reply("❌ No results found.");
+        url = `https://www.youtube.com/watch?v=${match[1]}`;
+      }
+      const info = await ytdl.default.getInfo(url);
+      const title = info.videoDetails.title;
+      const duration = info.videoDetails.lengthSeconds;
+      if (parseInt(duration) > 300) return reply("❌ Video too long (max 5 minutes for video). Use .song for audio.");
+      const stream = ytdl.default(url, { filter: "videoandaudio", quality: "18" });
+      const chunks: Buffer[] = [];
+      await new Promise<void>((res, rej) => {
+        stream.on("data", (c: Buffer) => chunks.push(c));
+        stream.on("end", res);
+        stream.on("error", rej);
+      });
+      const buf = Buffer.concat(chunks);
+      await sock.sendMessage(from, { video: buf, caption: `🎬 *${title}*\n\n> _MAXX XMD_ ⚡`, fileName: `${title}.mp4` } as any);
+    } catch (e: any) {
+      await reply(`❌ Failed: ${e.message}`);
+    }
+  },
+});
+
+registerCommand({
+  name: "tiktok",
+  aliases: ["tt"],
+  category: "Download",
+  description: "Download a TikTok video",
+  handler: async ({ sock, from, args, reply }) => {
+    const url = args[0];
+    if (!url?.includes("tiktok")) return reply("❓ Usage: .tiktok <TikTok URL>");
+    await reply("⏳ Fetching TikTok video...");
+    try {
+      const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
+      const res = await fetch(apiUrl);
+      const data = await res.json() as any;
+      if (!data.data?.play) throw new Error("No video found");
+      const videoUrl = data.data.play;
+      const desc = data.data.title || "TikTok Video";
+      await sock.sendMessage(from, {
+        video: { url: videoUrl },
+        caption: `🎵 *${desc}*\n\n> _MAXX XMD_ ⚡`,
+      });
+    } catch (e: any) {
+      await reply(`❌ TikTok download failed: ${e.message}`);
+    }
+  },
+});
+
+registerCommand({
+  name: "tiktokaudio",
+  aliases: ["ttaudio"],
+  category: "Download",
+  description: "Download TikTok video as audio",
+  handler: async ({ sock, from, args, reply }) => {
+    const url = args[0];
+    if (!url?.includes("tiktok")) return reply("❓ Usage: .tiktokaudio <TikTok URL>");
+    await reply("⏳ Extracting audio...");
+    try {
+      const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
+      const res = await fetch(apiUrl);
+      const data = await res.json() as any;
+      if (!data.data?.music_info?.play) throw new Error();
+      const audioUrl = data.data.music_info.play;
+      await sock.sendMessage(from, { audio: { url: audioUrl }, mimetype: "audio/mpeg" } as any);
+    } catch {
+      await reply("❌ Could not extract audio. Try .tiktok for the video.");
+    }
+  },
+});
+
+registerCommand({
+  name: "instagram",
+  aliases: ["ig"],
+  category: "Download",
+  description: "Download Instagram media",
+  handler: async ({ args, reply }) => {
+    const url = args[0];
+    if (!url?.includes("instagram")) return reply("❓ Usage: .instagram <Instagram URL>");
+    await reply(`📸 *Instagram Downloader*\n\nTo download Instagram media:\n1. Copy the post link\n2. Visit: https://snapinsta.app\n3. Paste and download\n\n🔗 URL: ${url}`);
+  },
+});
+
+registerCommand({
+  name: "twitter",
+  aliases: ["x"],
+  category: "Download",
+  description: "Download Twitter/X media",
+  handler: async ({ sock, from, args, reply }) => {
+    const url = args[0];
+    if (!url) return reply("❓ Usage: .twitter <tweet URL>");
+    await reply("⏳ Fetching Twitter media...");
+    try {
+      const apiUrl = `https://twitsave.com/info?url=${encodeURIComponent(url)}`;
+      const res = await fetch(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+      const html = await res.text();
+      const match = html.match(/href="(https:\/\/video\.twimg\.com[^"]+)"/);
+      if (!match) throw new Error();
+      await sock.sendMessage(from, { video: { url: match[1] }, caption: "🐦 *Twitter Video*\n\n> _MAXX XMD_ ⚡" });
+    } catch {
+      await reply(`🐦 *Twitter Downloader*\n\nTo download Twitter/X media:\n1. Visit: https://ssstwitter.com\n2. Paste: ${url}\n\n> _MAXX XMD_ ⚡`);
+    }
+  },
+});
+
+registerCommand({
+  name: "facebook",
+  aliases: ["fb"],
+  category: "Download",
+  description: "Download Facebook video",
+  handler: async ({ args, reply }) => {
+    const url = args[0];
+    if (!url?.includes("facebook") && !url?.includes("fb.watch")) return reply("❓ Usage: .facebook <Facebook video URL>");
+    await reply(`📘 *Facebook Downloader*\n\nTo download Facebook video:\n1. Visit: https://fdown.net\n2. Paste: ${url}\n\n> _MAXX XMD_ ⚡`);
+  },
+});
+
+registerCommand({
+  name: "image",
+  aliases: ["wallpaper"],
+  category: "Download",
+  description: "Search and download an image",
+  handler: async ({ sock, from, args, reply }) => {
+    const query = args.join(" ") || "nature wallpaper";
+    try {
+      const res = await fetch(`https://source.unsplash.com/1280x720/?${encodeURIComponent(query)}`, { redirect: "follow" });
+      const url = res.url;
+      await sock.sendMessage(from, { image: { url }, caption: `🖼️ *${query}*\n\n> _MAXX XMD_ ⚡` });
+    } catch {
+      await reply("❌ Could not fetch image. Try another search term.");
+    }
+  },
+});
+
+// ---- AUDIO EFFECTS ----
+registerCommand({
+  name: "tomp3",
+  aliases: ["toaudio"],
+  category: "Audio",
+  description: "Convert video to audio (reply to video)",
+  handler: async ({ sock, from, msg, reply }) => {
+    const ctx = msg.message?.extendedTextMessage?.contextInfo;
+    const vidMsg = msg.message?.videoMessage || ctx?.quotedMessage?.videoMessage;
+    if (!vidMsg) return reply("❌ Reply to a video message with .tomp3");
+    await reply("⏳ Converting to audio...");
+    try {
+      const buf = await downloadMediaMessage({ message: { videoMessage: vidMsg } } as WAMessage, "buffer", {});
+      const os = await import("os");
+      const tmpIn = path.join(os.tmpdir(), `maxx_in_${Date.now()}.mp4`);
+      const tmpOut = path.join(os.tmpdir(), `maxx_out_${Date.now()}.mp3`);
+      fs.writeFileSync(tmpIn, buf as Buffer);
+      const { exec } = await import("child_process");
+      const { promisify } = await import("util");
+      const execAsync = promisify(exec);
+      await execAsync(`ffmpeg -i "${tmpIn}" -vn -ar 44100 -ac 2 -ab 192k "${tmpOut}" -y`);
+      const audio = fs.readFileSync(tmpOut);
+      await sock.sendMessage(from, { audio, mimetype: "audio/mpeg" } as any);
+      fs.unlinkSync(tmpIn); fs.unlinkSync(tmpOut);
+    } catch (e: any) {
+      await reply(`❌ Conversion failed: ${e.message}`);
+    }
+  },
+});
+
+async function applyAudioEffect(
+  sock: WASocket, from: string, msg: WAMessage, reply: (t: string) => Promise<void>,
+  filter: string, label: string
+) {
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  const audioMsg = msg.message?.audioMessage || ctx?.quotedMessage?.audioMessage;
+  if (!audioMsg) return reply(`❌ Reply to an audio message with .${label.toLowerCase()}`);
+  await reply(`⏳ Applying ${label} effect...`);
+  try {
+    const buf = await downloadMediaMessage({ message: { audioMessage: audioMsg } } as WAMessage, "buffer", {});
+    const os = await import("os");
+    const tmpIn = path.join(os.tmpdir(), `maxx_eff_in_${Date.now()}.mp3`);
+    const tmpOut = path.join(os.tmpdir(), `maxx_eff_out_${Date.now()}.mp3`);
+    fs.writeFileSync(tmpIn, buf as Buffer);
+    const { exec } = await import("child_process");
+    const { promisify } = await import("util");
+    const execAsync = promisify(exec);
+    await execAsync(`ffmpeg -i "${tmpIn}" ${filter} "${tmpOut}" -y`);
+    const audio = fs.readFileSync(tmpOut);
+    await sock.sendMessage(from, { audio, mimetype: "audio/mpeg" } as any);
+    fs.unlinkSync(tmpIn); fs.unlinkSync(tmpOut);
+  } catch (e: any) {
+    await reply(`❌ Effect failed: ${e.message}`);
+  }
 }
 
-async function reply(sock: Sock, jid: string, text: string, quoted?: WAMessage) {
-  await sock.sendMessage(jid, { text }, quoted ? { quoted } : undefined);
-}
+registerCommand({ name: "bass", aliases: [], category: "Audio", description: "Add bass boost to audio",
+  handler: async ({ sock, from, msg, reply }) => applyAudioEffect(sock, from, msg, reply, '-af "bass=g=20,volume=2"', "Bass") });
+registerCommand({ name: "blown", aliases: [], category: "Audio", description: "Blown/distorted audio",
+  handler: async ({ sock, from, msg, reply }) => applyAudioEffect(sock, from, msg, reply, '-af "volume=10"', "Blown") });
+registerCommand({ name: "deep", aliases: [], category: "Audio", description: "Deep voice effect",
+  handler: async ({ sock, from, msg, reply }) => applyAudioEffect(sock, from, msg, reply, '-af "asetrate=44100*0.7,aresample=44100"', "Deep") });
+registerCommand({ name: "earrape", aliases: [], category: "Audio", description: "Earrape effect",
+  handler: async ({ sock, from, msg, reply }) => applyAudioEffect(sock, from, msg, reply, '-af "volume=30,acrusher=.1:1:64:0:log"', "Earrape") });
+registerCommand({ name: "robot", aliases: [], category: "Audio", description: "Robot voice effect",
+  handler: async ({ sock, from, msg, reply }) => applyAudioEffect(sock, from, msg, reply, '-af "afftfilt=real=\'hypot(re,im)*sin(0)\':imag=\'hypot(re,im)*cos(0)\':win_size=512:overlap=0.75"', "Robot") });
+registerCommand({ name: "reverse", aliases: [], category: "Audio", description: "Reverse audio",
+  handler: async ({ sock, from, msg, reply }) => applyAudioEffect(sock, from, msg, reply, '-af "areverse"', "Reverse") });
+registerCommand({ name: "volaudio", aliases: [], category: "Audio", description: "Adjust audio volume",
+  handler: async ({ sock, from, msg, args, reply }) => {
+    const vol = parseFloat(args[0]) || 2;
+    return applyAudioEffect(sock, from, msg, reply, `-af "volume=${vol}"`, `Volume x${vol}`);
+  },
+});
 
-async function react(sock: Sock, msg: WAMessage, emoji: string) {
-  await sock.sendMessage(msg.key.remoteJid!, {
-    react: { text: emoji, key: msg.key },
+registerCommand({
+  name: "toptt",
+  aliases: ["tts"],
+  category: "Audio",
+  description: "Text to speech",
+  handler: async ({ sock, from, args, reply }) => {
+    const text = args.join(" ");
+    if (!text) return reply("❓ Usage: .toptt <text>");
+    try {
+      const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(text)}`;
+      await sock.sendMessage(from, { audio: { url }, mimetype: "audio/mpeg" } as any);
+    } catch {
+      await reply("❌ Text-to-speech failed. Try again.");
+    }
+  },
+});
+
+// ---- AI ----
+registerCommand({
+  name: "gpt",
+  aliases: ["ai", "ask", "chatgpt"],
+  category: "AI",
+  description: "Chat with AI",
+  handler: async ({ args, reply }) => {
+    const q = args.join(" ");
+    if (!q) return reply("❓ Usage: .gpt <question>\nExample: .gpt What is the capital of France?");
+    await reply("🤖 *MAXX XMD AI*\n\n⏳ Thinking...");
+    try {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+        body: JSON.stringify({ model: "gpt-3.5-turbo", messages: [{ role: "user", content: q }], max_tokens: 500 }),
+      });
+      const data = await res.json() as any;
+      const answer = data.choices?.[0]?.message?.content;
+      if (!answer) throw new Error();
+      await reply(`🤖 *MAXX XMD AI*\n\n❓ ${q}\n\n💬 ${answer}`);
+    } catch {
+      await reply(`🤖 *MAXX XMD AI*\n\nI need an OPENAI_API_KEY to answer AI questions.\n\nSet: OPENAI_API_KEY in your environment variables.\n\nAlternatively try: .gemini ${q}`);
+    }
+  },
+});
+
+registerCommand({
+  name: "gemini",
+  aliases: ["google"],
+  category: "AI",
+  description: "Chat with Google Gemini AI",
+  handler: async ({ args, reply }) => {
+    const q = args.join(" ");
+    if (!q) return reply("❓ Usage: .gemini <question>");
+    await reply("🤖 Asking Gemini...");
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) throw new Error("No API key");
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: q }] }] }),
+      });
+      const data = await res.json() as any;
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error();
+      await reply(`✨ *Gemini AI*\n\n❓ ${q}\n\n💬 ${text}`);
+    } catch {
+      await reply(`✨ *Gemini AI*\n\nSet GEMINI_API_KEY in your environment to enable Gemini.\n\nGet a free key at: https://aistudio.google.com/`);
+    }
+  },
+});
+
+const aiCommands = [
+  { name: "analyze", prompt: (q: string) => `Analyze this: ${q}` },
+  { name: "code", prompt: (q: string) => `Write code for: ${q}` },
+  { name: "recipe", prompt: (q: string) => `Give me a recipe for: ${q}` },
+  { name: "story", prompt: (q: string) => `Write a short story about: ${q}` },
+  { name: "summarize", prompt: (q: string) => `Summarize this: ${q}` },
+  { name: "teach", prompt: (q: string) => `Teach me about: ${q}` },
+  { name: "programming", prompt: (q: string) => `Answer this programming question: ${q}` },
+  { name: "generate", prompt: (q: string) => `Generate content about: ${q}` },
+];
+
+for (const cmd of aiCommands) {
+  registerCommand({
+    name: cmd.name,
+    aliases: [],
+    category: "AI",
+    description: `AI: ${cmd.name}`,
+    handler: async ({ args, reply }) => {
+      const q = args.join(" ");
+      if (!q) return reply(`❓ Usage: .${cmd.name} <input>`);
+      await reply(`🤖 Processing your request...`);
+      try {
+        const prompt = cmd.prompt(q);
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) throw new Error();
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+        });
+        const data = await res.json() as any;
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error();
+        await reply(`🤖 *${cmd.name.toUpperCase()}*\n\n${text}`);
+      } catch {
+        await reply(`🤖 *${cmd.name.toUpperCase()}*\n\nSet GEMINI_API_KEY to enable AI commands.\nGet free key: https://aistudio.google.com/`);
+      }
+    },
   });
 }
 
-function formatUptime(seconds: number): string {
-  const d = Math.floor(seconds / 86400);
-  const h = Math.floor((seconds % 86400) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  const parts = [];
-  if (d) parts.push(`${d}d`);
-  if (h) parts.push(`${h}h`);
-  if (m) parts.push(`${m}m`);
-  parts.push(`${s}s`);
-  return parts.join(" ");
+// ── SUDO helpers ──────────────────────────────────────────────────────────────
+const SUDO_FILE = path.join(process.cwd(), "../../sudo.json");
+function loadSudo(): string[] {
+  try { if (fs.existsSync(SUDO_FILE)) return JSON.parse(fs.readFileSync(SUDO_FILE, "utf8")); } catch {}
+  return [];
 }
 
+// ── Text extractor ────────────────────────────────────────────────────────────
 function extractText(msg: WAMessage): string {
   const m = msg.message;
   if (!m) return "";
@@ -52,450 +690,124 @@ function extractText(msg: WAMessage): string {
     m.documentMessage?.caption ||
     m.buttonsResponseMessage?.selectedDisplayText ||
     m.listResponseMessage?.title ||
-    m.templateButtonReplyMessage?.selectedDisplayText ||
     ""
   );
 }
 
-function getMentionedJids(args: string[]): string[] {
-  return args
-    .filter((a) => a.startsWith("@"))
-    .map((a) => a.replace("@", "") + "@s.whatsapp.net");
-}
+// ── Main message handler ──────────────────────────────────────────────────────
+export async function handleMessage(sock: WASocket, msg: WAMessage) {
+  if (!msg.message || msg.key.fromMe) return;
 
-const COMMANDS: Record<
-  string,
-  (sock: Sock, msg: WAMessage, args: string[], ctx: CmdContext) => Promise<void>
-> = {
-  // ──────────── GENERAL ────────────
+  const from = msg.key.remoteJid!;
+  const sender = msg.key.participant || from;
+  const isGroup = from.endsWith("@g.us");
+  const body = extractText(msg);
+  const settings = loadSettings();
+  const prefix = settings.prefix || ".";
 
-  async menu(sock, msg, _args, ctx) {
-    const settings = loadSettings();
-    const p = settings.prefix || ".";
-    const text = `
-╔══════════════════════╗
-║    *MAXX-XMD BOT*    ║
-╚══════════════════════╝
+  // Auto-read
+  if (settings.autoread) {
+    try { await sock.readMessages([msg.key]); } catch {}
+  }
 
-👤 *Hello ${ctx.pushName}!*
-🤖 Bot is *ONLINE* and ready.
+  // Auto-typing presence
+  if (settings.autotyping && body.startsWith(prefix)) {
+    try { await sock.sendPresenceUpdate("composing", from); } catch {}
+  }
 
-╔══ 🔰 GENERAL ══╗
-│ ${p}menu / ${p}help
-│ ${p}ping
-│ ${p}alive
-│ ${p}owner
-│ ${p}runtime
-│ ${p}botinfo
-
-╔══ 🖼 MEDIA ══╗
-│ ${p}sticker (reply image/gif)
-│ ${p}s (shortcut for sticker)
-│ ${p}toimg (reply sticker)
-
-╔══ 👥 GROUP ══╗
-│ ${p}tagall — mention everyone
-│ ${p}everyone — same as tagall
-│ ${p}kick @user — remove member
-│ ${p}add 254xxx — add member
-│ ${p}promote @user — make admin
-│ ${p}demote @user — remove admin
-│ ${p}mute — mute group
-│ ${p}unmute — unmute group
-│ ${p}grouplink — get invite link
-│ ${p}revoke — reset invite link
-│ ${p}leave — bot leaves group
-
-╔══ ⚙️ OWNER ══╗
-│ ${p}broadcast — send to all
-│ ${p}setprefix — change prefix
-│ ${p}setname — change bot name
-
-╔══ 🛠 UTILITY ══╗
-│ ${p}delete / ${p}del — delete msg
-│ ${p}react emoji — react to msg
-│ ${p}getpp @user — get profile pic
-
-Prefix: *${p}*  |  Made by *MAXX-XMD*
-`.trim();
-    await reply(sock, ctx.jid, text, msg);
-  },
-
-  async help(sock, msg, args, ctx) {
-    return COMMANDS.menu(sock, msg, args, ctx);
-  },
-
-  async ping(sock, msg, _args, ctx) {
-    const start = Date.now();
-    await react(sock, msg, "⏱");
-    const ms = Date.now() - start;
-    await reply(sock, ctx.jid, `🏓 *Pong!*\nLatency: *${ms}ms*`, msg);
-  },
-
-  async alive(sock, msg, _args, ctx) {
-    const uptime = formatUptime(process.uptime());
-    await reply(
-      sock,
-      ctx.jid,
-      `✅ *MAXX-XMD is ALIVE!*\n\n⏱ Uptime: *${uptime}*\n👤 User: *${ctx.pushName}*`,
-      msg
-    );
-    await react(sock, msg, "✅");
-  },
-
-  async owner(sock, msg, _args, ctx) {
-    const settings = loadSettings();
-    const ownerNum = settings.ownerNumber || process.env.OWNER_NUMBER || "Unknown";
-    await reply(
-      sock,
-      ctx.jid,
-      `👑 *BOT OWNER*\n\nNumber: *+${ownerNum}*\n\nContact the owner for support.`,
-      msg
-    );
-  },
-
-  async runtime(sock, msg, _args, ctx) {
-    const uptime = formatUptime(process.uptime());
-    await reply(sock, ctx.jid, `⏱ *Bot Runtime:* ${uptime}`, msg);
-  },
-
-  async botinfo(sock, msg, _args, ctx) {
-    const settings = loadSettings();
-    const uptime = formatUptime(process.uptime());
-    const mem = process.memoryUsage();
-    const mbUsed = (mem.heapUsed / 1024 / 1024).toFixed(1);
-    const mbTotal = (mem.heapTotal / 1024 / 1024).toFixed(1);
-    await reply(
-      sock,
-      ctx.jid,
-      `🤖 *BOT INFO*
-
-Name: *${settings.botName || "MAXX-XMD"}*
-Prefix: *${settings.prefix || "."}*
-Uptime: *${uptime}*
-RAM: *${mbUsed}MB / ${mbTotal}MB*
-Platform: *${process.platform}*
-Node: *${process.version}*`,
-      msg
-    );
-  },
-
-  // ──────────── MEDIA ────────────
-
-  async sticker(sock, msg, args, ctx) {
-    const target = ctx.quotedMsg || msg;
-    const mtype = Object.keys(target.message || {})[0];
-    const isImage = mtype === "imageMessage";
-    const isVideo = mtype === "videoMessage";
-    const isSticker = mtype === "stickerMessage";
-
-    if (!isImage && !isVideo && !isSticker) {
-      return reply(sock, ctx.jid, "❌ Reply to an image, gif, or video to make a sticker.", msg);
-    }
-    await react(sock, msg, "⏳");
-    try {
-      const buffer = await downloadMediaMessage(target, "buffer", {});
-      let webpBuffer: Buffer;
-      if (isVideo) {
-        webpBuffer = await sharp(buffer as Buffer, { pages: -1 })
-          .webp({ quality: 80 })
-          .toBuffer();
-      } else {
-        webpBuffer = await sharp(buffer as Buffer)
-          .webp({ quality: 80 })
-          .resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-          .toBuffer();
+  // ── Command routing ─────────────────────────────────────────────────────────
+  if (!body.startsWith(prefix)) {
+    // Chatbot auto-reply
+    if (settings.chatbot && !isGroup) {
+      const q = body.trim();
+      if (q) {
+        const responses = [
+          "Hello! I'm MAXX XMD 🤖", "How can I help you?", "Type .menu to see all commands!",
+          "I'm doing great, thanks for asking 😊", "Interesting! Tell me more.",
+          `Send *${prefix}menu* to see what I can do!`,
+        ];
+        const r = responses[Math.floor(Math.random() * responses.length)];
+        await sock.sendMessage(from, { text: r }, { quoted: msg });
       }
-      await sock.sendMessage(ctx.jid, { sticker: webpBuffer }, { quoted: msg });
-      await react(sock, msg, "✅");
-    } catch (err) {
-      logger.error({ err }, "Sticker creation failed");
-      await reply(sock, ctx.jid, "❌ Failed to create sticker. Try with a smaller image.", msg);
-      await react(sock, msg, "❌");
     }
-  },
+    return;
+  }
 
-  async s(sock, msg, args, ctx) {
-    return COMMANDS.sticker(sock, msg, args, ctx);
-  },
+  const parts = body.slice(prefix.length).trim().split(/\s+/);
+  const commandName = parts[0]?.toLowerCase();
+  const args = parts.slice(1);
+  const text = args.join(" ");
 
-  async toimg(sock, msg, _args, ctx) {
-    const target = ctx.quotedMsg || msg;
-    const mtype = Object.keys(target.message || {})[0];
-    if (mtype !== "stickerMessage") {
-      return reply(sock, ctx.jid, "❌ Reply to a sticker to convert it to image.", msg);
-    }
-    await react(sock, msg, "⏳");
-    try {
-      const buffer = await downloadMediaMessage(target, "buffer", {});
-      const pngBuffer = await sharp(buffer as Buffer).png().toBuffer();
-      await sock.sendMessage(ctx.jid, { image: pngBuffer, caption: "Sticker → Image" }, { quoted: msg });
-      await react(sock, msg, "✅");
-    } catch (err) {
-      logger.error({ err }, "toimg failed");
-      await reply(sock, ctx.jid, "❌ Failed to convert sticker.", msg);
-    }
-  },
+  if (!commandName) return;
 
-  // ──────────── GROUP ────────────
+  const command = commandRegistry.get(commandName);
+  if (!command) return;
 
-  async tagall(sock, msg, args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    const groupMeta = await sock.groupMetadata(ctx.jid);
-    const members = groupMeta.participants;
-    const caption = args.join(" ") || "📢 *Attention everyone!*";
-    const mentions = members.map((m) => m.id);
-    const text = caption + "\n\n" + members.map((m) => `@${m.id.split("@")[0]}`).join(" ");
-    await sock.sendMessage(ctx.jid, { text, mentions }, { quoted: msg });
-  },
+  // Owner check
+  const ownerNumber = settings.ownerNumber ? settings.ownerNumber + "@s.whatsapp.net" : "";
+  const sudo = loadSudo();
+  const isOwner = !!ownerNumber && (sender === ownerNumber || from === ownerNumber);
+  const isSudo = sudo.includes(sender) || isOwner;
 
-  async everyone(sock, msg, args, ctx) {
-    return COMMANDS.tagall(sock, msg, args, ctx);
-  },
+  if (command.ownerOnly && !isOwner) {
+    await sock.sendMessage(from, { text: "⛔ This command is for the bot owner only!" }, { quoted: msg });
+    return;
+  }
+  if (command.sudoOnly && !isSudo) {
+    await sock.sendMessage(from, { text: "⛔ This command is for sudo users only!" }, { quoted: msg });
+    return;
+  }
+  if (command.groupOnly && !isGroup) {
+    await sock.sendMessage(from, { text: "⛔ This command can only be used in groups!" }, { quoted: msg });
+    return;
+  }
 
-  async kick(sock, msg, args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    if (!ctx.isAdmin) return reply(sock, ctx.jid, "❌ You must be an admin.", msg);
-    if (!ctx.botIsAdmin) return reply(sock, ctx.jid, "❌ I must be an admin to kick members.", msg);
+  // Mode check
+  if (settings.mode === "private" && !isOwner && !isSudo) {
+    await sock.sendMessage(from, { text: `🔒 Bot is in *private* mode. Only owner can use commands.` }, { quoted: msg });
+    return;
+  }
+  if (settings.mode === "inbox" && isGroup && !isOwner) {
+    await sock.sendMessage(from, { text: `📥 Bot only responds in *DMs* right now.` }, { quoted: msg });
+    return;
+  }
 
-    const mentions = ctx.quotedMsg
-      ? [ctx.quotedMsg.key.participant || ctx.quotedMsg.key.remoteJid!]
-      : getMentionedJids(args);
+  // Auto-react to command
+  if (settings.autoreaction) {
+    try { await sock.sendMessage(from, { react: { text: "⚡", key: msg.key } }); } catch {}
+  }
 
-    if (!mentions.length) return reply(sock, ctx.jid, "❌ Mention or reply to a user to kick.", msg);
-    await sock.groupParticipantsUpdate(ctx.jid, mentions, "remove");
-    await reply(sock, ctx.jid, `✅ Kicked ${mentions.length} member(s).`, msg);
-  },
+  // Fetch group metadata if needed
+  let groupMetadata = null;
+  if (isGroup) {
+    try { groupMetadata = await sock.groupMetadata(from); } catch {}
+  }
 
-  async add(sock, msg, args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    if (!ctx.isAdmin) return reply(sock, ctx.jid, "❌ You must be an admin.", msg);
-    if (!ctx.botIsAdmin) return reply(sock, ctx.jid, "❌ I must be an admin.", msg);
-    if (!args[0]) return reply(sock, ctx.jid, "❌ Provide a number. E.g. .add 254712345678", msg);
-    const num = args[0].replace(/\D/g, "") + "@s.whatsapp.net";
-    const result = await sock.groupParticipantsUpdate(ctx.jid, [num], "add");
-    const status = result[0]?.status;
-    if (status === "200") {
-      await reply(sock, ctx.jid, `✅ Added *+${args[0].replace(/\D/g, "")}* to the group.`, msg);
-    } else {
-      await reply(sock, ctx.jid, `❌ Could not add user. Status: ${status}`, msg);
-    }
-  },
+  // Reply helper
+  const reply = async (text: string) => {
+    await sock.sendMessage(from, { text }, { quoted: msg });
+  };
+  const reactFn = async (emoji: string) => {
+    try { await sock.sendMessage(from, { react: { text: emoji, key: msg.key } }); } catch {}
+  };
 
-  async promote(sock, msg, args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    if (!ctx.isAdmin) return reply(sock, ctx.jid, "❌ You must be an admin.", msg);
-    if (!ctx.botIsAdmin) return reply(sock, ctx.jid, "❌ I must be an admin.", msg);
-    const mentions = ctx.quotedMsg
-      ? [ctx.quotedMsg.key.participant || ctx.quotedMsg.key.remoteJid!]
-      : getMentionedJids(args);
-    if (!mentions.length) return reply(sock, ctx.jid, "❌ Mention or reply to a user to promote.", msg);
-    await sock.groupParticipantsUpdate(ctx.jid, mentions, "promote");
-    await reply(sock, ctx.jid, `✅ Promoted ${mentions.length} member(s) to admin.`, msg);
-  },
+  // Build context
+  const ctx = {
+    sock, msg, from, sender, isGroup, isOwner, isSudo,
+    body, args, text, prefix, commandName, settings,
+    quoted: msg.message?.extendedTextMessage?.contextInfo?.quotedMessage as any,
+    groupMetadata, reply, react: reactFn,
+  };
 
-  async demote(sock, msg, args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    if (!ctx.isAdmin) return reply(sock, ctx.jid, "❌ You must be an admin.", msg);
-    if (!ctx.botIsAdmin) return reply(sock, ctx.jid, "❌ I must be an admin.", msg);
-    const mentions = ctx.quotedMsg
-      ? [ctx.quotedMsg.key.participant || ctx.quotedMsg.key.remoteJid!]
-      : getMentionedJids(args);
-    if (!mentions.length) return reply(sock, ctx.jid, "❌ Mention or reply to a user to demote.", msg);
-    await sock.groupParticipantsUpdate(ctx.jid, mentions, "demote");
-    await reply(sock, ctx.jid, `✅ Demoted ${mentions.length} member(s).`, msg);
-  },
-
-  async mute(sock, msg, _args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    if (!ctx.isAdmin) return reply(sock, ctx.jid, "❌ You must be an admin.", msg);
-    if (!ctx.botIsAdmin) return reply(sock, ctx.jid, "❌ I must be an admin.", msg);
-    await sock.groupSettingUpdate(ctx.jid, "announcement");
-    await reply(sock, ctx.jid, "🔇 Group muted — only admins can send messages.", msg);
-  },
-
-  async unmute(sock, msg, _args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    if (!ctx.isAdmin) return reply(sock, ctx.jid, "❌ You must be an admin.", msg);
-    if (!ctx.botIsAdmin) return reply(sock, ctx.jid, "❌ I must be an admin.", msg);
-    await sock.groupSettingUpdate(ctx.jid, "not_announcement");
-    await reply(sock, ctx.jid, "🔊 Group unmuted — everyone can send messages.", msg);
-  },
-
-  async grouplink(sock, msg, _args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    if (!ctx.botIsAdmin) return reply(sock, ctx.jid, "❌ I must be an admin to get the invite link.", msg);
-    const code = await sock.groupInviteCode(ctx.jid);
-    await reply(sock, ctx.jid, `🔗 *Group Invite Link:*\nhttps://chat.whatsapp.com/${code}`, msg);
-  },
-
-  async revoke(sock, msg, _args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    if (!ctx.isAdmin) return reply(sock, ctx.jid, "❌ You must be an admin.", msg);
-    if (!ctx.botIsAdmin) return reply(sock, ctx.jid, "❌ I must be an admin.", msg);
-    await sock.groupRevokeInvite(ctx.jid);
-    await reply(sock, ctx.jid, "✅ Invite link has been reset.", msg);
-  },
-
-  async leave(sock, msg, _args, ctx) {
-    if (!ctx.isGroup) return reply(sock, ctx.jid, "❌ Group only command.", msg);
-    if (!ctx.isOwner) return reply(sock, ctx.jid, "❌ Owner only command.", msg);
-    await reply(sock, ctx.jid, "👋 Goodbye! Leaving this group...", msg);
-    await new Promise((r) => setTimeout(r, 1500));
-    await sock.groupLeave(ctx.jid);
-  },
-
-  // ──────────── OWNER ────────────
-
-  async broadcast(sock, msg, args, ctx) {
-    if (!ctx.isOwner) return reply(sock, ctx.jid, "❌ Owner only command.", msg);
-    const text = args.join(" ");
-    if (!text) return reply(sock, ctx.jid, "❌ Provide a message to broadcast.", msg);
-    const chats = await sock.groupFetchAllParticipating();
-    const groups = Object.keys(chats);
-    let sent = 0;
-    for (const g of groups) {
-      try {
-        await sock.sendMessage(g, { text: `📢 *Broadcast:*\n\n${text}` });
-        sent++;
-        await new Promise((r) => setTimeout(r, 500));
-      } catch {}
-    }
-    await reply(sock, ctx.jid, `✅ Broadcast sent to *${sent}* groups.`, msg);
-  },
-
-  async setprefix(sock, msg, args, ctx) {
-    if (!ctx.isOwner) return reply(sock, ctx.jid, "❌ Owner only command.", msg);
-    const newPrefix = args[0];
-    if (!newPrefix || newPrefix.length > 3) {
-      return reply(sock, ctx.jid, "❌ Provide a valid prefix (1-3 chars). E.g. .setprefix !", msg);
-    }
-    const settings = loadSettings();
-    settings.prefix = newPrefix;
-    saveSettings(settings);
-    await reply(sock, ctx.jid, `✅ Prefix changed to *${newPrefix}*`, msg);
-  },
-
-  async setname(sock, msg, args, ctx) {
-    if (!ctx.isOwner) return reply(sock, ctx.jid, "❌ Owner only command.", msg);
-    const name = args.join(" ");
-    if (!name) return reply(sock, ctx.jid, "❌ Provide a name. E.g. .setname MyBot", msg);
-    const settings = loadSettings();
-    settings.botName = name;
-    saveSettings(settings);
-    await reply(sock, ctx.jid, `✅ Bot name changed to *${name}*`, msg);
-  },
-
-  // ──────────── UTILITY ────────────
-
-  async delete(sock, msg, _args, ctx) {
-    if (!ctx.quotedMsg) return reply(sock, ctx.jid, "❌ Reply to a message to delete it.", msg);
-    const q = ctx.quotedMsg;
-    const qSender = q.key.participant || q.key.remoteJid!;
-    const botId = sock.user?.id?.replace(/:.*@/, "@") || "";
-    const isQFromBot = qSender === botId || q.key.fromMe;
-    if (!isQFromBot && !ctx.isAdmin && !ctx.isOwner) {
-      return reply(sock, ctx.jid, "❌ You can only delete your own messages or bot messages.", msg);
-    }
-    await sock.sendMessage(ctx.jid, { delete: q.key });
-    await sock.sendMessage(ctx.jid, { delete: msg.key });
-  },
-
-  async del(sock, msg, args, ctx) {
-    return COMMANDS.delete(sock, msg, args, ctx);
-  },
-
-  async react(sock, msg, args, ctx) {
-    if (!ctx.quotedMsg) return reply(sock, ctx.jid, "❌ Reply to a message to react to it.", msg);
-    const emoji = args[0];
-    if (!emoji) return reply(sock, ctx.jid, "❌ Provide an emoji. E.g. .react 🔥", msg);
-    await sock.sendMessage(ctx.jid, { react: { text: emoji, key: ctx.quotedMsg.key } });
-  },
-
-  async getpp(sock, msg, args, ctx) {
-    let target: string;
-    if (ctx.quotedMsg) {
-      target = ctx.quotedMsg.key.participant || ctx.quotedMsg.key.remoteJid!;
-    } else if (args[0]) {
-      target = args[0].replace("@", "") + "@s.whatsapp.net";
-    } else {
-      target = ctx.sender;
-    }
-    try {
-      const pp = await sock.profilePictureUrl(target, "image");
-      await sock.sendMessage(ctx.jid, { image: { url: pp }, caption: `📷 Profile picture of @${target.split("@")[0]}`, mentions: [target] }, { quoted: msg });
-    } catch {
-      await reply(sock, ctx.jid, "❌ No profile picture found or it's private.", msg);
-    }
-  },
-};
-
-export async function handleMessage(sock: Sock, msg: WAMessage): Promise<void> {
   try {
-    if (!msg.message) return;
-    if (msg.key.fromMe) return;
+    await command.handler(ctx as any);
+  } catch (e: any) {
+    logger.error({ err: e }, `Command error: ${commandName}`);
+    await reply(`❌ Error: ${e.message || "Something went wrong"}`);
+  }
 
-    const settings = loadSettings();
-    const prefix = settings.prefix || ".";
-    const jid = msg.key.remoteJid!;
-    if (!jid) return;
-
-    const text = extractText(msg);
-    if (!text.startsWith(prefix)) return;
-
-    const [rawCmd, ...args] = text.slice(prefix.length).trim().split(/\s+/);
-    const command = rawCmd?.toLowerCase();
-    if (!command || !COMMANDS[command]) return;
-
-    const sender = msg.key.participant || msg.key.remoteJid!;
-    const isGroup = jid.endsWith("@g.us");
-    const ownerRaw = (settings.ownerNumber || process.env.OWNER_NUMBER || "").replace(/\D/g, "");
-    const isOwner = ownerRaw
-      ? sender.replace(/@.+/, "") === ownerRaw ||
-        sender === ownerRaw + "@s.whatsapp.net"
-      : false;
-
-    let isAdmin = false;
-    let botIsAdmin = false;
-    if (isGroup) {
-      try {
-        const meta = await sock.groupMetadata(jid);
-        const admins = meta.participants.filter((p) => p.admin).map((p) => p.id);
-        const botId = sock.user?.id?.replace(/:.*@/, "@") || "";
-        isAdmin = admins.includes(sender);
-        botIsAdmin = admins.includes(botId);
-      } catch {}
-    }
-
-    const pushName = msg.pushName || sender.split("@")[0];
-
-    const quotedMsg: WAMessage | null =
-      (msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-        ? ({
-            key: {
-              remoteJid: jid,
-              fromMe: msg.message.extendedTextMessage.contextInfo.participant === sock.user?.id,
-              id: msg.message.extendedTextMessage.contextInfo.stanzaId,
-              participant: msg.message.extendedTextMessage.contextInfo.participant,
-            },
-            message: msg.message.extendedTextMessage.contextInfo.quotedMessage,
-          } as WAMessage)
-        : null);
-
-    const ctx: CmdContext = {
-      jid,
-      sender,
-      isGroup,
-      isOwner,
-      isAdmin,
-      botIsAdmin,
-      pushName,
-      quoted: msg.message,
-      quotedMsg,
-    };
-
-    await COMMANDS[command](sock, msg, args, ctx);
-  } catch (err) {
-    logger.error({ err, cmd: "handleMessage" }, "Command error");
+  // Stop typing
+  if (settings.autotyping) {
+    try { await sock.sendPresenceUpdate("paused", from); } catch {}
   }
 }
