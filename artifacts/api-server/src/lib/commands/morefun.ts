@@ -806,7 +806,7 @@ registerCommand({
 
 registerCommand({
   name: "biogen",
-  aliases: ["bio", "writebio"],
+  aliases: ["writebio", "biogenerator", "genbio"],
   category: "AI",
   description: "Generate a professional or social media bio (.biogen photographer Lagos)",
   handler: async ({ args, reply }) => {
@@ -986,7 +986,7 @@ registerCommand({
 
 registerCommand({
   name: "botuptime",
-  aliases: ["uptime", "runtime"],
+  aliases: ["sysuptime", "sysruntime", "botstatus"],
   category: "Owner",
   description: "Get bot uptime and system info",
   handler: async ({ reply }) => {
@@ -1045,10 +1045,10 @@ registerCommand({
 });
 
 registerCommand({
-  name: "help",
-  aliases: ["commands", "h"],
+  name: "cmdhelp",
+  aliases: ["commandinfo", "cmdi"],
   category: "General",
-  description: "Show help info for a specific command (.help anime)",
+  description: "Show help info for a specific command (.cmdhelp anime)",
   handler: async ({ args, reply }) => {
     if (!args[0]) return reply(`❓ Usage: .help <command>\nExample: .help anime\n\nUse *.menu* to see all commands.${FOOTER}`);
     const { commandRegistry } = await import("./types.js");
