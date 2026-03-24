@@ -96,7 +96,7 @@ registerCommand({
 
 registerCommand({
   name: "qr",
-  aliases: ["qrcode", "makeqr"],
+  aliases: ["qrcode", "makeqr", "qrgen"],
   category: "Tools",
   description: "Generate a QR code for any text or URL (.qr https://google.com)",
   handler: async ({ args, sock, from, msg, reply }) => {
@@ -104,32 +104,14 @@ registerCommand({
     if (!text) return reply(`❓ Usage: .qr <text/url>\nExample: .qr https://google.com`);
     try {
       const url = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(text)}&size=400x400&bgcolor=ffffff&color=000000&margin=10&format=png`;
-      await sock.sendMessage(from, { image: { url }, caption: `📱 *QR Code*\n\n_Scan to get:_ ${text.slice(0, 80)}...${FOOTER}` }, { quoted: msg });
+      await sock.sendMessage(from, { image: { url }, caption: `📱 *QR Code*\n\n_Scan to get:_ ${text.slice(0, 80)}${FOOTER}` }, { quoted: msg });
     } catch {
       await reply(`❌ QR code generation failed.${FOOTER}`);
     }
   },
 });
 
-// ── AI Image Generation ───────────────────────────────────────────────────────
-
-registerCommand({
-  name: "imagine",
-  aliases: ["aimage", "aiart", "generate", "paint"],
-  category: "AI",
-  description: "Generate an AI image from your description (.imagine a sunset over mountains)",
-  handler: async ({ args, sock, from, msg, reply }) => {
-    const prompt = args.join(" ");
-    if (!prompt) return reply(`❓ Usage: .imagine <description>\nExample: .imagine a beautiful sunset over the ocean${FOOTER}`);
-    try {
-      await reply(`🎨 Generating AI image for: _"${prompt}"_\n\n⏳ Please wait...`);
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=768&height=768&nologo=true&enhance=true`;
-      await sock.sendMessage(from, { image: { url }, caption: `🎨 *AI Generated Art*\n\n✏️ Prompt: _"${prompt}"_${FOOTER}` }, { quoted: msg });
-    } catch {
-      await reply(`❌ AI image generation failed. Try a different prompt.${FOOTER}`);
-    }
-  },
-});
+// ── AI Portrait (different from photo.ts's imagine) ───────────────────────────
 
 registerCommand({
   name: "imagine2",
@@ -173,34 +155,13 @@ registerCommand({
   },
 });
 
-// ── URL Shortener ─────────────────────────────────────────────────────────────
-
-registerCommand({
-  name: "shorten",
-  aliases: ["shorturl", "tinyurl"],
-  category: "Tools",
-  description: "Shorten a long URL (.shorten https://very-long-url.com/...)",
-  handler: async ({ args, reply }) => {
-    const url = args[0];
-    if (!url || !url.startsWith("http")) return reply(`❓ Usage: .shorten <url>\nExample: .shorten https://google.com${FOOTER}`);
-    try {
-      const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
-      const short = await res.text();
-      if (!short.startsWith("http")) throw new Error("invalid response");
-      await reply(`🔗 *URL Shortened!*\n\n📎 *Original:*\n${url.slice(0, 80)}...\n\n✅ *Short URL:*\n${short}${FOOTER}`);
-    } catch {
-      await reply(`❌ URL shortening failed.${FOOTER}`);
-    }
-  },
-});
-
 // ── Memes ─────────────────────────────────────────────────────────────────────
 
 registerCommand({
   name: "meme",
-  aliases: ["randmeme", "funmeme"],
+  aliases: ["randmeme", "funmeme", "getmeme2"],
   category: "Fun",
-  description: "Get a random meme",
+  description: "Get a random meme from Reddit",
   handler: async ({ sock, from, msg, reply }) => {
     try {
       const res = await fetch("https://meme-api.com/gimme");
@@ -241,17 +202,6 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const query = args.join(" ") || "funny";
     try {
-      const res = await fetch(`https://api.waifu.pics/sfw/wave`);
-      // Fall back to direct GIF search
-      const tenorRes = await fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCY0&limit=1&media_filter=gif`).catch(() => null);
-      if (tenorRes?.ok) {
-        const tenorData = await tenorRes.json() as any;
-        const gifUrl = tenorData.results?.[0]?.media_formats?.gif?.url;
-        if (gifUrl) {
-          return await sock.sendMessage(from, { video: { url: gifUrl }, caption: `🎞️ GIF: ${query}${FOOTER}`, gifPlayback: true, mimetype: "video/mp4" }, { quoted: msg });
-        }
-      }
-      // Fallback to anime GIFs
       const cats = ["hug", "pat", "wave", "dance", "happy", "wink", "blush"];
       const cat = cats[Math.floor(Math.random() * cats.length)];
       const wpRes = await fetch(`https://api.waifu.pics/sfw/${cat}`);
@@ -263,7 +213,7 @@ registerCommand({
   },
 });
 
-// ── Image filters ─────────────────────────────────────────────────────────────
+// ── Image Filters ─────────────────────────────────────────────────────────────
 
 registerCommand({
   name: "blur",
@@ -293,7 +243,7 @@ registerCommand({
 
 registerCommand({
   name: "grayscale",
-  aliases: ["greyscale", "bwimage"],
+  aliases: ["greyscale", "bwimage", "blackwhite"],
   category: "Tools",
   description: "Convert image to grayscale (reply to image with .grayscale)",
   handler: async ({ sock, from, msg, reply }) => {
@@ -316,7 +266,7 @@ registerCommand({
 
 registerCommand({
   name: "invert",
-  aliases: ["invertimg", "negative"],
+  aliases: ["invertimg", "negative", "invertcolors"],
   category: "Tools",
   description: "Invert image colors (reply to image with .invert)",
   handler: async ({ sock, from, msg, reply }) => {
@@ -338,14 +288,14 @@ registerCommand({
 });
 
 registerCommand({
-  name: "flip",
-  aliases: ["flipimg", "flipimage"],
+  name: "imgflip",
+  aliases: ["flipimg", "flipimage", "flipphoto"],
   category: "Tools",
-  description: "Flip image horizontally or vertically (.flip / .flip vertical)",
+  description: "Flip image horizontally or vertically (.imgflip / .imgflip vertical)",
   handler: async ({ sock, from, msg, args, reply }) => {
     const imgMsg = msg.message?.imageMessage
       || msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
-    if (!imgMsg) return reply(`❌ Reply to an image with *.flip*${FOOTER}`);
+    if (!imgMsg) return reply(`❌ Reply to an image with *.imgflip*${FOOTER}`);
     try {
       const stream = await (sock as any).downloadMediaMessage(imgMsg.url ? { message: { imageMessage: imgMsg } } : msg);
       const chunks: Buffer[] = [];
@@ -365,7 +315,7 @@ registerCommand({
 
 registerCommand({
   name: "rotate",
-  aliases: ["rotateimg", "rotatepic"],
+  aliases: ["rotateimg", "rotatepic", "imgrotate"],
   category: "Tools",
   description: "Rotate image by degrees (.rotate 90 / .rotate 180)",
   handler: async ({ sock, from, msg, args, reply }) => {
