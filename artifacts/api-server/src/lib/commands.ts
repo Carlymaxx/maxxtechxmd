@@ -1247,16 +1247,19 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     return;
   }
 
-  // Auto-react to command with a random emoji from a large pool
+  // Auto-react to every command with the bot sticker
   if (settings.autoreaction) {
-    const REACT_POOL = [
-      "⚡","🔥","💫","✨","🌟","💎","🚀","🎯","💥","🎊","🎉","🌈","💪","🙌","👏",
-      "❤️","🧡","💛","💚","💙","💜","🖤","🤍","❤️‍🔥","💯","🤩","😎","🏆","👌",
-      "🦋","🌺","🌸","🍀","⭐","🌙","☀️","🌊","🎶","🎵","🎸","🎤","🏅","🥇",
-      "🔮","🪄","🦄","🐉","👑","🫡","🤙","🫶","💝","🍭","🎁","🎀","🎈","🪅",
-    ];
-    const react = REACT_POOL[Math.floor(Math.random() * REACT_POOL.length)];
-    try { await sock.sendMessage(from, { react: { text: react, key: msg.key } }); } catch {}
+    try {
+      const stickerBuf = await getAutoSticker();
+      if (stickerBuf) {
+        await sock.sendMessage(from, { sticker: stickerBuf }, { quoted: msg });
+      } else {
+        // Fallback emoji react if sticker isn't ready yet
+        const FALLBACK = ["⚡","🔥","💫","✨","🌟","💎","🚀","🎯","💥","🎊"];
+        const emoji = FALLBACK[Math.floor(Math.random() * FALLBACK.length)];
+        await sock.sendMessage(from, { react: { text: emoji, key: msg.key } });
+      }
+    } catch {}
   }
 
   // Fetch group metadata if needed
