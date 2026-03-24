@@ -1139,10 +1139,33 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     try { groupMetadata = await sock.groupMetadata(from); } catch {}
   }
 
-  // Reply helper — auto-appends MAXX XMD footer to every text response
-  const FOOTER = "\n\n> _MAXX XMD_ ⚡";
+  // Reply helper — auto-appends a randomly chosen MAXX XMD footer to every text response
+  const FOOTERS = [
+    "\n\n> _MAXX-XMD_ ⚡",
+    "\n\n> _MAXX-XMD_ 🔥",
+    "\n\n> _MAXX-XMD_ 💫",
+    "\n\n> _MAXX-XMD_ ✨",
+    "\n\n> _MAXX-XMD_ 🌟",
+    "\n\n> _MAXX-XMD_ 💎",
+    "\n\n> _MAXX-XMD_ 🚀",
+    "\n\n> *MAXX XMD* ⚡",
+    "\n\n> *MAXX-XMD* 🔥",
+    "\n\n> ✨ _MAXX-XMD_ 💫",
+    "\n\n╰─ _MAXX XMD_ ⚡",
+    "\n\n━━ *MAXX-XMD* 🌟",
+    "\n\n> _Powered by MAXX-XMD_ ⚡",
+    "\n\n> 🤖 _MAXX XMD_ ⚡",
+    "\n\n> _MAXX-XMD Bot_ 🔥",
+    "\n\n❯ _MAXX XMD_ ⚡",
+    "\n\n⚡ _MAXX-XMD_",
+    "\n\n🌟 _MAXX XMD_ 🌟",
+    "\n\n> _MAXX-XMD_ 🎯",
+    "\n\n> _MAXX-XMD_ 💥",
+  ];
+  const randomFooter = () => FOOTERS[Math.floor(Math.random() * FOOTERS.length)];
   const reply = async (text: string) => {
-    const branded = text.includes("_MAXX XMD_") ? text : text + FOOTER;
+    const hasFooter = text.includes("MAXX XMD") || text.includes("MAXX-XMD");
+    const branded = hasFooter ? text : text + randomFooter();
     await sock.sendMessage(from, { text: branded }, { quoted: msg });
   };
   const reactFn = async (emoji: string) => {
