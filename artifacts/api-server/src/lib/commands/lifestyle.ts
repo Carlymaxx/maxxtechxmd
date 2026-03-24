@@ -263,8 +263,8 @@ registerCommand({
 
 // ─── Travel & Time ────────────────────────────────────────────────────────────
 registerCommand({
-  name: "timezone",
-  aliases: ["worldtime", "citytime"],
+  name: "worldclock",
+  aliases: ["citytime", "localtime", "tzlookup"],
   category: "Lifestyle",
   description: "Get current time in any major city around the world",
   usage: ".timezone London",
