@@ -1,0 +1,91 @@
+{
+  "name": "MAXX-XMD WhatsApp Bot",
+  "description": "A powerful WhatsApp bot with 150+ commands. Get your SESSION_ID from the generator and deploy in one click.",
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "baileys",
+    "nodejs"
+  ],
+  "website": "https://maxxtechxmd.replit.app/pair",
+  "repository": "https://github.com/Carlymaxx/maxxtechxmd",
+  "logo": "https://i.imgur.com/your-logo.png",
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "SESSION_ID": {
+      "description": "Your SESSION_ID from the generator at https://maxxtechxmd.replit.app/pair (starts with MAXX-XMD~)",
+      "required": true
+    },
+    "BOT_NAME": {
+      "description": "Custom name for your bot",
+      "value": "MAXX-XMD",
+      "required": false
+    },
+    "PREFIX": {
+      "description": "Command prefix (default: .)",
+      "value": ".",
+      "required": false
+    },
+    "OWNER_NUMBER": {
+      "description": "Your WhatsApp number with country code (e.g. 254700000000) — enables owner-only commands",
+      "required": false
+    },
+    "OWNER_NAME": {
+      "description": "Your display name in the bot",
+      "value": "MAXX",
+      "required": false
+    },
+    "MODE": {
+      "description": "Bot mode: public (everyone), private (owner only), inbox (DMs only)",
+      "value": "public",
+      "required": false
+    },
+    "ANTI_CALL": {
+      "description": "Auto-reject incoming calls (true/false)",
+      "value": "true",
+      "required": false
+    },
+    "AUTO_READ": {
+      "description": "Auto-mark messages as read (true/false)",
+      "value": "false",
+      "required": false
+    },
+    "AUTO_REACT": {
+      "description": "Auto-react to messages (true/false)",
+      "value": "false",
+      "required": false
+    },
+    "ALWAYS_ONLINE": {
+      "description": "Always show as online (true/false)",
+      "value": "true",
+      "required": false
+    },
+    "AUTO_VIEW_STATUS": {
+      "description": "Auto-view WhatsApp status updates (true/false)",
+      "value": "true",
+      "required": false
+    },
+    "OPENAI_API_KEY": {
+      "description": "OpenAI API key for .gpt command (optional)",
+      "required": false
+    },
+    "GEMINI_API_KEY": {
+      "description": "Google Gemini API key for AI commands (optional, free at aistudio.google.com)",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "addons": [],
+  "scripts": {
+    "postdeploy": "echo 'MAXX-XMD deployed successfully!'"
+  }
+}
