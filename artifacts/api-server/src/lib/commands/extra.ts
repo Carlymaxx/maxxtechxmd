@@ -842,7 +842,7 @@ registerCommand({
 
 registerCommand({
   name: "inspire",
-  aliases: ["quote2", "motivation", "motivate"],
+  aliases: ["quote2", "motivate2", "getinspired"],
   category: "Fun",
   description: "Get an inspiring motivational quote",
   handler: async ({ reply }) => {
