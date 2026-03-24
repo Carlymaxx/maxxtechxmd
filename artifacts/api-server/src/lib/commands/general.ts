@@ -250,12 +250,12 @@ registerCommand({
     // ── Category config ────────────────────────────────────────────────────
     const CAT_ORDER = [
       "General", "Download", "AI", "Search", "Photo", "Fun", "Games",
-      "Group", "Settings", "Tools", "Religion", "Sports", "Owner",
+      "Group", "Converter", "Settings", "Tools", "Religion", "Sports", "Owner",
     ];
     const CAT_EMOJI: Record<string, string> = {
       General: "🌐", Download: "⬇️", AI: "🤖", Search: "🔍",
-      Photo: "📸", Fun: "😂", Games: "🎮", Group: "👥", Settings: "⚙️",
-      Tools: "🔧", Religion: "🕌", Sports: "⚽", Owner: "👑",
+      Photo: "📸", Fun: "😂", Games: "🎮", Group: "👥", Converter: "🔄",
+      Settings: "⚙️", Tools: "🔧", Religion: "🕌", Sports: "⚽", Owner: "👑",
     };
 
     // ── Get all unique commands from registry (exclude alias duplicates) ───
