@@ -967,7 +967,6 @@ registerCommand({
   aliases: ["bcast2"],
   category: "Owner",
   description: "Broadcast a message with delay (.broadcast2 Hello everyone!)",
-  ownerOnly: true,
   handler: async ({ sock, args, reply }) => {
     const text = args.join(" ");
     if (!text) return reply(`❓ Usage: .broadcast2 <message>`);
