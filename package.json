@@ -1,17 +1,20 @@
 {
   "name": "workspace",
   "version": "0.0.0",
-  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "artifacts/api-server",
+    "lib/api-zod",
+    "lib/db"
+  ],
   "engines": {
     "node": "20.x"
   },
   "scripts": {
     "start": "node artifacts/api-server/dist/index.mjs",
-    "heroku-postbuild": "bash heroku-build.sh"
+    "heroku-postbuild": "npm run build -w artifacts/api-server"
   },
-  "private": true,
   "devDependencies": {
-    "typescript": "~5.9.2",
-    "prettier": "^3.8.1"
+    "typescript": "~5.9.2"
   }
 }
