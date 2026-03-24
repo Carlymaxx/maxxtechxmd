@@ -139,9 +139,16 @@ registerCommand({
   name: "owner",
   aliases: ["developer", "creator"],
   category: "General",
-  description: "Get bot owner contact",
-  handler: async ({ settings, reply }) => {
-    await reply(`👑 *MAXX XMD Owner*\n\n📛 Name: *${settings.ownerName}*\n📱 Number: *${settings.ownerNumber || "Not set"}*\n\n_Developed by MAXX XMD Team_`);
+  description: "Get bot owner contact card",
+  handler: async ({ sock, from, msg, settings, reply }) => {
+    const ownerNumber = ((settings.ownerNumber as string) || "254725979273").replace(/\D/g, "");
+    const ownerName = settings.ownerName || "MAXX";
+    const botName = settings.botName || "MAXX-XMD";
+    const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${ownerName}\nTEL;type=CELL;type=VOICE;waid=${ownerNumber}:+${ownerNumber}\nEND:VCARD`;
+    try {
+      await sock.sendMessage(from, { contacts: { displayName: ownerName, contacts: [{ vcard }] } }, { quoted: msg });
+    } catch {}
+    await reply(`👑 *Bot Owner:* ${ownerName}\n📞 *Number:* +${ownerNumber}\n🤖 *Bot:* ${botName}\n\n> _MAXX-XMD_ ⚡`);
   },
 });
 
