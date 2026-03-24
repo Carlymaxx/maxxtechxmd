@@ -14,6 +14,7 @@
   catalog:
     '@types/node': ^25.3.3
     drizzle-orm: ^0.45.1
+    zod: ^3.25.76
   WORKSPACE_EOF
 
   echo "==> Installing workspace dependencies..."
