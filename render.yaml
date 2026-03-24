@@ -1,0 +1,35 @@
+services:
+    - type: web
+      name: maxx-xmd-bot
+      runtime: node
+      region: oregon
+      plan: free
+      buildCommand: npm install -g pnpm && pnpm install && pnpm --filter @workspace/api-server run build
+      startCommand: node artifacts/api-server/dist/index.mjs
+      healthCheckPath: /api/health
+      envVars:
+        - key: SESSION_ID
+          sync: false
+        - key: NODE_ENV
+          value: production
+        - key: BOT_NAME
+          value: MAXX-XMD
+        - key: PREFIX
+          value: "."
+        - key: OWNER_NUMBER
+          sync: false
+        - key: OWNER_NAME
+          sync: false
+        - key: MODE
+          value: public
+        - key: ANTI_CALL
+          value: "true"
+        - key: AUTO_READ
+          value: "false"
+        - key: AUTO_REACT
+          value: "false"
+        - key: ALWAYS_ONLINE
+          value: "true"
+        - key: AUTO_VIEW_STATUS
+          value: "true"
+  
