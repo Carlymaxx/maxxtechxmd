@@ -189,240 +189,292 @@ registerCommand({
     }
 
     const menus: Record<string, string> = {
-      ai: `┏▣ ◈ *AI MENU* ◈
-│➽ ${p}gpt <question>
-│➽ ${p}gemini <question>
-│➽ ${p}analyze <question>
-│➽ ${p}code <request>
-│➽ ${p}recipe <food name>
-│➽ ${p}story <topic>
-│➽ ${p}summarize <text>
-│➽ ${p}teach <topic>
-│➽ ${p}programming <question>
-│➽ ${p}translate2 <lang> <text>
-│➽ ${p}generate <image prompt>
-│➽ ${p}chatbot on/off
+      ai: `┏▣ ◈ *🤖 AI MENU* ◈
+│➽ ${p}gpt <question> — ChatGPT
+│➽ ${p}gemini <question> — Google AI
+│➽ ${p}analyze <text> — AI analysis
+│➽ ${p}code <request> — generate code
+│➽ ${p}recipe <food> — get recipe
+│➽ ${p}story <topic> — write a story
+│➽ ${p}summarize <text> — summarize
+│➽ ${p}teach <topic> — learn about
+│➽ ${p}programming <question> — code help
+│➽ ${p}generate <topic> — generate content
+│➽ ${p}translate2 <lang> <text> — AI translate
+│➽ ${p}chatbot on/off — auto-reply mode
 ┗▣`,
-      audio: `┏▣ ◈ *AUDIO MENU* ◈
-│➽ ${p}tomp3 — convert video to mp3
-│➽ ${p}bass — add bass boost
-│➽ ${p}blown — blown effect
-│➽ ${p}deep — deep voice
-│➽ ${p}earrape — earrape effect
+      audio: `┏▣ ◈ *🎵 AUDIO MENU* ◈
+│➽ ${p}tomp3 — video → audio (reply to video)
+│➽ ${p}tovideo — audio → video (reply to audio)
+│➽ ${p}toptt <text> — text to speech
+│➽ ${p}volaudio <vol> — boost audio volume
+│➽ ${p}volvideo <vol> — boost video volume
+│➽ ${p}bass — bass boost effect
+│➽ ${p}blown — distorted effect
+│➽ ${p}deep — deep voice effect
+│➽ ${p}earrape — loud effect
 │➽ ${p}reverse — reverse audio
-│➽ ${p}robot — robot voice
-│➽ ${p}volaudio <vol> — set volume
-│➽ ${p}toptt — text to voice
+│➽ ${p}robot — robot voice effect
 ┗▣`,
-      download: `┏▣ ◈ *DOWNLOAD MENU* ◈
+      download: `┏▣ ◈ *⬇️ DOWNLOAD MENU* ◈
+│ 📺 *Video & Music*
 │➽ ${p}song <YouTube URL/title>
 │➽ ${p}video <YouTube URL/title>
-│➽ ${p}tiktok <URL>
-│➽ ${p}tiktokaudio <URL>
-│➽ ${p}instagram <URL>
-│➽ ${p}twitter <URL>
-│➽ ${p}facebook <URL>
-│➽ ${p}pin <Pinterest URL>
+│➽ ${p}tiktok <TikTok URL>
+│➽ ${p}tiktokaudio <TikTok URL>
+│➽ ${p}twitter <Tweet URL>
+│➽ ${p}instagram <Instagram URL>
+│➽ ${p}facebook <Facebook URL>
+│➽ ${p}itunes <song/artist>
+│
+│ 🖼️ *Images & Files*
 │➽ ${p}image <search term>
-│➽ ${p}savestatus — save status
+│➽ ${p}pin <Pinterest URL>
+│➽ ${p}mediafire <URL>
 │➽ ${p}apk <app name>
 │➽ ${p}gitclone <repo URL>
-│➽ ${p}mediafire <URL>
-│➽ ${p}itunes <song>
-│➽ ${p}xvideo <search>
+│➽ ${p}savestatus — how to save statuses
 ┗▣`,
-      fun: `┏▣ ◈ *FUN MENU* ◈
-│➽ ${p}jokes
-│➽ ${p}fact
-│➽ ${p}quotes
-│➽ ${p}trivia
-│➽ ${p}memes
-│➽ ${p}truthdetector <name>
-│➽ ${p}xxqc <question>
+      fun: `┏▣ ◈ *😂 FUN MENU* ◈
+│➽ ${p}jokes — random joke
+│➽ ${p}fact — random fact
+│➽ ${p}quotes — inspirational quote
+│➽ ${p}trivia — quiz question
+│➽ ${p}memes — random meme
+│➽ ${p}truthdetector <name> — fun detector
+│➽ ${p}xxqc <question> — magic 8-ball
 ┗▣`,
-      games: `┏▣ ◈ *GAMES MENU* ◈
-│➽ ${p}truth
-│➽ ${p}dare
-│➽ ${p}truthordare
+      games: `┏▣ ◈ *🎮 GAMES MENU* ◈
+│➽ ${p}truth — random truth question
+│➽ ${p}dare — random dare challenge
+│➽ ${p}truthordare — random truth or dare
 ┗▣`,
-      group: `┏▣ ◈ *GROUP MENU* ◈
+      group: `┏▣ ◈ *👥 GROUP MENU* ◈
+│ 📢 *Tagging*
 │➽ ${p}tagall — mention everyone
-│➽ ${p}tag <text> — mention all
+│➽ ${p}tag <text> — tag all with message
 │➽ ${p}tagadmin — mention admins
-│➽ ${p}hidetag <text> — hidden mention
+│➽ ${p}hidetag <text> — silent mention all
+│➽ ${p}mediatag — tag with media
+│➽ ${p}announce <text> — announcement
+│
+│ 🛡️ *Admin Controls*
 │➽ ${p}kick @user — remove member
 │➽ ${p}add 254xxx — add member
 │➽ ${p}promote @user — make admin
 │➽ ${p}demote @user — remove admin
 │➽ ${p}mute — close group chat
 │➽ ${p}unmute — open group chat
+│➽ ${p}kickall — kick all non-admins
+│
+│ ⚙️ *Group Settings*
 │➽ ${p}link — get invite link
 │➽ ${p}resetlink — reset invite link
 │➽ ${p}setdesc <text> — set description
-│➽ ${p}setgroupname <name>
+│➽ ${p}setgroupname <name> — rename group
 │➽ ${p}getgrouppp — group profile pic
 │➽ ${p}setppgroup — set group pic
-│➽ ${p}kickall — kick all members
-│➽ ${p}poll <q>|<opt1>|<opt2>
-│➽ ${p}welcome on/off
-│➽ ${p}antilink on/off
-│➽ ${p}antibadword on/off
-│➽ ${p}totalmembers
-│➽ ${p}userid
-│➽ ${p}announce <text>
-│➽ ${p}invite — group invite
+│➽ ${p}poll <q>|<opt1>|<opt2> — create poll
+│➽ ${p}welcome on/off — welcome messages
+│➽ ${p}antilink on/off — block links
+│➽ ${p}antibadword on/off — filter bad words
+│➽ ${p}totalmembers — member count
+│➽ ${p}userid — get user's JID
+│➽ ${p}vcf — export group contacts
 ┗▣`,
-      other: `┏▣ ◈ *OTHER MENU* ◈
-│➽ ${p}alive — bot status
+      other: `┏▣ ◈ *ℹ️ GENERAL MENU* ◈
+│➽ ${p}alive — bot status & info
 │➽ ${p}ping — response speed
-│➽ ${p}runtime — uptime
-│➽ ${p}time <timezone>
-│➽ ${p}repo — source code
-│➽ ${p}owner — owner info
-│➽ ${p}pair — get session ID
-│➽ ${p}botinfo — detailed info
+│➽ ${p}runtime — bot uptime
+│➽ ${p}time <timezone> — world clock
+│➽ ${p}repo — GitHub source code
+│➽ ${p}owner — owner contact
+│➽ ${p}pair — get Session ID
+│➽ ${p}botinfo — detailed bot info
 ┗▣`,
-      owner: `┏▣ ◈ *OWNER MENU* ◈
-│➽ ${p}block @user
-│➽ ${p}unblock @user
-│➽ ${p}listblocked
-│➽ ${p}join <invite link>
-│➽ ${p}leave — leave group
+      owner: `┏▣ ◈ *👑 OWNER MENU* ◈
+│ 🔒 *User Management*
+│➽ ${p}block @user — block user
+│➽ ${p}unblock @user — unblock user
+│➽ ${p}listblocked — blocked list
+│➽ ${p}warn @user <reason> — warn user
+│➽ ${p}listwarn — see warnings
+│➽ ${p}resetwarn @user — clear warnings
+│
+│ 🤖 *Bot Control*
 │➽ ${p}restart — restart bot
-│➽ ${p}addsudo @user
-│➽ ${p}listsudo
-│➽ ${p}delsudo @user
-│➽ ${p}setbio <text>
-│➽ ${p}setprofilepic (reply to image)
-│➽ ${p}groupid — get group ID
-│➽ ${p}broadcast <message>
+│➽ ${p}broadcast <message> — mass message
+│➽ ${p}join <invite link> — join group
+│➽ ${p}leave — leave current group
 │➽ ${p}delete — delete a message
-│➽ ${p}tostatus (reply to media)
-│➽ ${p}online on/off
-│➽ ${p}lastseen on/off
-│➽ ${p}readreceipts on/off
-│➽ ${p}warn @user <reason>
-│➽ ${p}listwarn
-│➽ ${p}resetwarn @user
-┗▣`,
-      religion: `┏▣ ◈ *RELIGION MENU* ◈
-│➽ ${p}bible <verse> (e.g. john 3:16)
-│➽ ${p}quran <surah>:<ayah>
-┗▣`,
-      search: `┏▣ ◈ *SEARCH MENU* ◈
-│➽ ${p}weather <city>
-│➽ ${p}define <word>
-│➽ ${p}define2 <word>
-│➽ ${p}lyrics <artist> - <song>
-│➽ ${p}translate <lang> <text>
-│➽ ${p}imdb <movie name>
-│➽ ${p}yts <movie name>
-│➽ ${p}shazam (reply to audio)
-┗▣`,
-      settings: `┏▣ ◈ *SETTINGS MENU* ◈
-│➽ ${p}setprefix <symbol>
-│➽ ${p}setbotname <name>
-│➽ ${p}setownername <name>
-│➽ ${p}setownernumber <number>
-│➽ ${p}mode public/private/inbox
-│➽ ${p}anticall on/off
-│➽ ${p}autoread on/off
-│➽ ${p}autoreact on/off
-│➽ ${p}autotype on/off
-│➽ ${p}autobio on/off
-│➽ ${p}alwaysonline on/off
-│➽ ${p}autoviewstatus on/off
-│➽ ${p}chatbot on/off
-│➽ ${p}antilink on/off
-│➽ ${p}antibug on/off
-│➽ ${p}antiviewonce on/off
-│➽ ${p}antidelete on/off
-│➽ ${p}setwelcome <text>
-│➽ ${p}delwelcome
-│➽ ${p}setgoodbye <text>
-│➽ ${p}delgoodbye
-│➽ ${p}getsettings
-│➽ ${p}resetsetting
+│➽ ${p}update — check for updates
+│➽ ${p}disk — server disk usage
+│➽ ${p}hostip — server IP address
+│
+│ 👤 *Profile*
+│➽ ${p}setbio <text> — update bio
+│➽ ${p}setprofilepic — set profile pic
+│➽ ${p}tostatus — post media to status
+│➽ ${p}vv2 — unlock view-once media
+│➽ ${p}lastseen on/off — last seen
+│➽ ${p}readreceipts on/off — blue ticks
+│➽ ${p}alwaysonline on/off — stay online
+│
+│ 🔑 *Sudo Users*
 │➽ ${p}addsudo @user
 │➽ ${p}listsudo
 │➽ ${p}delsudo @user
+┗▣`,
+      religion: `┏▣ ◈ *🕌 RELIGION MENU* ◈
+│ 📖 *Bible*
+│➽ ${p}bible <verse>
+│   Example: ${p}bible john 3:16
+│   Example: ${p}bible psalms 23:1
+│
+│ 📿 *Quran*
+│➽ ${p}quran <surah>:<ayah>
+│   Example: ${p}quran 2:255
+│   Example: ${p}quran 1:1
+┗▣`,
+      search: `┏▣ ◈ *🔍 SEARCH MENU* ◈
+│➽ ${p}weather <city> — current weather
+│➽ ${p}define <word> — word definition
+│➽ ${p}define2 <word> — extended definition
+│➽ ${p}lyrics <artist> - <song> — song lyrics
+│➽ ${p}translate <lang> <text> — translate
+│➽ ${p}imdb <movie name> — movie info
+│➽ ${p}yts <movie name> — movie torrents
+│➽ ${p}shazam — song recognition (reply audio)
+│➽ ${p}itunes <song> — Apple Music search
+┗▣`,
+      settings: `┏▣ ◈ *⚙️ SETTINGS MENU* ◈
+│ 🔧 *Core Settings*
+│➽ ${p}setprefix <symbol> — change prefix
+│➽ ${p}setbotname <name> — bot name
+│➽ ${p}setownername <name> — owner name
+│➽ ${p}setownernumber <num> — owner number
+│➽ ${p}mode public/private/inbox — bot mode
+│➽ ${p}getsettings — view all settings
+│➽ ${p}resetsetting — reset to default
+│
+│ 🔁 *Auto Features*
+│➽ ${p}anticall on/off — reject calls
+│➽ ${p}autoread on/off — read messages
+│➽ ${p}autoreact on/off — react to messages
+│➽ ${p}autotype on/off — typing indicator
+│➽ ${p}autobio on/off — auto-update bio
+│➽ ${p}alwaysonline on/off — stay online
+│➽ ${p}autoviewstatus on/off — view statuses
+│➽ ${p}chatbot on/off — AI auto-reply
+│
+│ 🛡️ *Protection*
+│➽ ${p}antilink on/off — block links
+│➽ ${p}antibug on/off — bug protection
+│➽ ${p}antiviewonce on/off — unlock view-once
+│➽ ${p}antidelete on/off — show deleted msgs
+│➽ ${p}antibadword on/off — bad word filter
+│
+│ 💬 *Welcome & Goodbye*
+│➽ ${p}setwelcome <text> — set message
+│➽ ${p}setgoodbye <text> — set message
+│➽ ${p}showwelcome — view welcome msg
+│➽ ${p}showgoodbye — view goodbye msg
+│➽ ${p}delwelcome — delete welcome
+│➽ ${p}delgoodbye — delete goodbye
+│
+│ 🚫 *Bad Words*
 │➽ ${p}addbadword <word>
 │➽ ${p}listbadword
 │➽ ${p}deletebadword <word>
-│➽ ${p}settimezone <tz>
-│➽ ${p}setstatusemoji <emoji>
+│
+│ 🎨 *Appearance*
+│➽ ${p}settimezone <tz> — set timezone
+│➽ ${p}setstatusemoji <emoji> — status emoji
 │➽ ${p}setstickerpackname <name>
 │➽ ${p}setstickerauthor <name>
-│➽ ${p}setwarn <max>
-│➽ ${p}listwarn
-│➽ ${p}resetwarn @user
+│➽ ${p}setwarn <max> — max warn limit
 ┗▣`,
-      sports: `┏▣ ◈ *SPORTS MENU* ◈
-│ ⚽ *Premier League*
-│➽ ${p}eplstandings
-│➽ ${p}eplmatches
-│➽ ${p}eplscorers
-│➽ ${p}eplupcoming
-│ ⚽ *La Liga*
-│➽ ${p}laligastandings
-│➽ ${p}laligamatches
-│➽ ${p}laligascorers
-│➽ ${p}laligaupcoming
-│ ⚽ *Champions League*
-│➽ ${p}clstandings
-│➽ ${p}clmatches
-│➽ ${p}clupcoming
-│ ⚽ *Bundesliga, Serie A, Ligue1*
-│➽ ${p}bundesligastandings
-│➽ ${p}serieastandings
-│➽ ${p}ligue1standings
-│ ⚽ *Europa League, EFL, World Cup*
-│➽ ${p}elstandings / ${p}eflstandings
-│➽ ${p}wcstandings / ${p}wcmatches
-│ 🤼 *WWE*
-│➽ ${p}wwenews
-│➽ ${p}wweschedule
-│➽ ${p}wrestlingevents
+      sports: `┏▣ ◈ *⚽ SPORTS MENU* ◈
+│ 🏴󠁧󠁢󠁥󠁮󠁧󠁿 *Premier League*
+│➽ ${p}eplstandings / ${p}eplmatches
+│➽ ${p}eplscorers / ${p}eplupcoming
+│
+│ 🇪🇸 *La Liga*
+│➽ ${p}laligastandings / ${p}laligamatches
+│➽ ${p}laligascorers / ${p}laligaupcoming
+│
+│ ⭐ *Champions League*
+│➽ ${p}clstandings / ${p}clmatches
+│➽ ${p}clscorers / ${p}clupcoming
+│
+│ 🇩🇪🇮🇹🇫🇷 *Other Leagues*
+│➽ ${p}bundesligastandings / ${p}bundesligamatches
+│➽ ${p}serieastandings / ${p}serieamatches
+│➽ ${p}ligue1standings / ${p}ligue1matches
+│
+│ 🏆 *More Competitions*
+│➽ ${p}elstandings / ${p}elmatches (Europa)
+│➽ ${p}eflstandings / ${p}eflmatches (EFL)
+│➽ ${p}wcstandings / ${p}wcmatches (World Cup)
+│
+│ 🤼 *WWE Wrestling*
+│➽ ${p}wwenews — latest WWE news
+│➽ ${p}wweschedule — upcoming events
+│➽ ${p}wrestlingevents — WrestleMania etc
 ┗▣`,
-      tools: `┏▣ ◈ *TOOLS MENU* ◈
-│➽ ${p}sticker — image to sticker
-│➽ ${p}toimage — sticker to image
-│➽ ${p}getpp @user — profile pic
-│➽ ${p}getabout @user
-│➽ ${p}qrcode <text>
-│➽ ${p}tinyurl <URL>
-│➽ ${p}calculate <expression>
-│➽ ${p}genpass <length>
-│➽ ${p}fancy <text>
-│➽ ${p}fliptext <text>
-│➽ ${p}say <text>
-│➽ ${p}react <emoji> (reply to msg)
-│➽ ${p}device @user
-│➽ ${p}ssweb <URL> — screenshot
-│➽ ${p}texttopdf <text>
-│➽ ${p}tourl (reply to media)
-│➽ ${p}obfuscate <text>
-│➽ ${p}emojimix <e1> <e2>
-│➽ ${p}vcf — export contacts
-│➽ ${p}filtervcf (reply to vcf)
+      tools: `┏▣ ◈ *🔧 TOOLS MENU* ◈
+│ 🖼️ *Media*
+│➽ ${p}sticker — image/gif → sticker
+│➽ ${p}toimage — sticker → image
+│➽ ${p}ssweb <URL> — website screenshot
+│➽ ${p}tourl — upload media, get URL
+│➽ ${p}qrcode <text> — generate QR code
+│
+│ 👤 *User Info*
+│➽ ${p}getpp @user — profile picture
+│➽ ${p}getabout @user — bio/about
+│➽ ${p}device @user — device type
+│➽ ${p}userid — get WhatsApp JID
+│
+│ ✍️ *Text Tools*
+│➽ ${p}fancy <text> — Unicode style
+│➽ ${p}fliptext <text> — upside down
+│➽ ${p}obfuscate <text> — lookalike chars
+│➽ ${p}say <text> — bot repeats text
+│➽ ${p}react <emoji> — react to a message
+│➽ ${p}texttopdf <text> — convert to PDF
+│
+│ 🛠️ *Utilities*
+│➽ ${p}calculate <expression> — calculator
+│➽ ${p}genpass <length> — secure password
+│➽ ${p}tinyurl <URL> — shorten URL
+│➽ ${p}emojimix <e1> <e2> — mix emojis
+│➽ ${p}vcf — export group contacts
+│➽ ${p}filtervcf — clean VCF file
 ┗▣`,
-      translate: `┏▣ ◈ *TRANSLATE MENU* ◈
+      translate: `┏▣ ◈ *🌍 TRANSLATE MENU* ◈
 │➽ ${p}translate <lang> <text>
+│➽ ${p}translate2 <lang> <text>
 │
 │ *Language codes:*
-│ en=English  fr=French
-│ es=Spanish  de=German
-│ ar=Arabic   zh=Chinese
-│ pt=Portuguese  sw=Swahili
-│ hi=Hindi  ru=Russian
-│ ja=Japanese  ko=Korean
-│ it=Italian  nl=Dutch
+│ en=English    fr=French
+│ es=Spanish    de=German
+│ ar=Arabic     zh=Chinese
+│ pt=Portuguese sw=Swahili
+│ hi=Hindi      ru=Russian
+│ ja=Japanese   ko=Korean
+│ it=Italian    nl=Dutch
+│ tr=Turkish    pl=Polish
+│ vi=Vietnamese id=Indonesian
 ┗▣`,
-      video: `┏▣ ◈ *VIDEO MENU* ◈
-│➽ ${p}toaudio — video to audio
-│➽ ${p}tovideo — audio to video
-│➽ ${p}volvideo <vol> — set volume
-│➽ ${p}video <URL> — download video
+      video: `┏▣ ◈ *🎬 VIDEO MENU* ◈
+│➽ ${p}video <URL/title> — download YouTube
+│➽ ${p}tiktok <URL> — download TikTok
+│➽ ${p}twitter <URL> — download Twitter
+│➽ ${p}tomp3 — video → audio
+│➽ ${p}tovideo — audio → video
+│➽ ${p}volvideo <vol> — adjust volume
+│➽ ${p}ssweb <URL> — screenshot page
 ┗▣`,
     };
 
