@@ -445,7 +445,15 @@ registerCommand({
   description: "Download a YouTube video",
   handler: async ({ sock, from, msg, args, reply }) => {
     const query = args.join(" ");
-    if (!query) return reply("❓ Usage: .video <title or YouTube URL>\nExample: .video Avengers trailer\n\n_Max 5 minutes. Use .song for longer audio._");
+    if (!query) return reply(
+      `╔═══════════════════╗\n║ 🎬 *VIDEO DL* 🎬\n╚═══════════════════╝\n\n` +
+      `❓ *Usage:* .video <title or YouTube URL>\n\n` +
+      `*Examples:*\n` +
+      `• .video Avengers trailer\n` +
+      `• .video faded alan walker\n` +
+      `• .video https://youtu.be/...\n\n` +
+      `_Max 5 minutes. For audio only use .song_`
+    );
     await reply(`🔍 Searching *${query}*... Please wait ⏳`);
     try {
       const { downloadVideo } = await import("./ytdlpUtil.js");
