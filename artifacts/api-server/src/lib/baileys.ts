@@ -2,7 +2,9 @@ import makeWASocket, {
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
   DisconnectReason,
+  makeCacheableSignalKeyStore,
 } from "@whiskeysockets/baileys";
+import { handleMessage } from "./commands.js";
 import fs from "fs";
 import path from "path";
 import zlib from "zlib";
@@ -52,12 +54,30 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
 
   const sock = makeWASocket({
     version,
-    auth: state,
+    auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, logger as any),
+    },
     printQRInTerminal: false,
     browser: [settings.botName || "MAXX-XMD", "Chrome", "1.0"],
+    // RAM optimizations — never cache messages in memory
+    getMessage: async () => undefined,
+    syncFullHistory: false,
+    markOnlineOnConnect: false,
+    retryRequestDelayMs: 2000,
+    maxMsgRetryCount: 3,
+    fireInitQueries: false,
   });
 
   sock.ev.on("creds.update", saveCreds);
+
+  // ── Message handler ──────────────────────────────────────────────────────
+  sock.ev.on("messages.upsert", async ({ messages, type }) => {
+    if (type !== "notify") return;
+    for (const msg of messages) {
+      await handleMessage(sock, msg);
+    }
+  });
 
   sock.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect, qr } = update;
