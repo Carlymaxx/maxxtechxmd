@@ -10,7 +10,7 @@
 ## Quick Deploy Guide
 
 ### Step 1 — Get Your SESSION_ID
-Visit **[maxxtechxmd.replit.app/pair]([https://maxxtechxmd.replit.app/pair](https://asset-manager-pussyinnit.replit.app))**, enter your WhatsApp number and follow the pairing code prompt. Your `SESSION_ID` (starts with `MAXX-XMD~`) will be sent to your WhatsApp.
+Visit **[maxxtechxmd.replit.app/pair](https://maxxtechxmd.replit.app/pair](https://asset-manager-pussyinnit.replit.app)**, enter your WhatsApp number and follow the pairing code prompt. Your `SESSION_ID` (starts with `MAXX-XMD~`) will be sent to your WhatsApp.
 
 ### Step 2 — Deploy Your Bot
 
