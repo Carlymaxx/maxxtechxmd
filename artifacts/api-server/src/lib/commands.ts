@@ -1250,9 +1250,9 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     }
   }
 
-  // Auto-typing presence
+  // Auto-typing presence (fire-and-forget — never block the command)
   if (settings.autotyping && body.startsWith(prefix)) {
-    try { await sock.sendPresenceUpdate("composing", from); } catch {}
+    sock.sendPresenceUpdate("composing", from).catch(() => {});
   }
 
   // ── Command routing ─────────────────────────────────────────────────────────
@@ -1261,11 +1261,11 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     if (settings.chatbot) {
       const q = body.trim();
       if (q) {
-        try { await sock.sendPresenceUpdate("composing", from); } catch {}
+        sock.sendPresenceUpdate("composing", from).catch(() => {});
 
-        // ── Helper: try eliteprotech Copilot (primary AI) ──────────────────
+        // ── Helper: try eliteprotech ChatGPT (primary AI) ──────────────────
         async function tryElite(question: string): Promise<string> {
-          const res = await fetch(`https://api.eliteprotech.com/copilot?q=${encodeURIComponent(question)}`, { signal: AbortSignal.timeout(8000) });
+          const res = await fetch(`https://eliteprotech-apis.zone.id/chatgpt?prompt=${encodeURIComponent(question)}`, { signal: AbortSignal.timeout(8000) });
           if (!res.ok) throw new Error("http " + res.status);
           const d = await res.json() as any;
           const txt = d.response || d.answer || d.text || d.message || d.result || "";
@@ -1414,32 +1414,27 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     return;
   }
 
-  // Always react to every command with a random emoji
+  // React with a random emoji — fire-and-forget (never delays the command)
   const REACT_EMOJIS = [
     "⚡","🔥","💫","✨","🌟","💎","🚀","🎯","💥","🎊",
     "🏆","👑","🎉","🤩","😎","🐉","🌈","🦋","💪","🎶",
     "🍀","🌺","🦅","🌙","☄️","🎸","🏄","🌊","🎭","🔮",
   ];
-  try {
-    const emoji = REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
-    await sock.sendMessage(from, { react: { text: emoji, key: msg.key } });
-  } catch {}
+  const emoji = REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
+  sock.sendMessage(from, { react: { text: emoji, key: msg.key } }).catch(() => {});
 
-  // Also send auto-sticker reaction if owner has enabled it
+  // Auto-sticker reaction if enabled — also fire-and-forget
   if (settings.autoreaction) {
-    try {
-      const stickerBuf = await getAutoSticker();
-      if (stickerBuf) {
-        await sock.sendMessage(from, { sticker: stickerBuf }, { quoted: msg });
-      }
-    } catch {}
+    getAutoSticker().then(stickerBuf => {
+      if (stickerBuf) sock.sendMessage(from, { sticker: stickerBuf }, { quoted: msg }).catch(() => {});
+    }).catch(() => {});
   }
 
-  // Fetch group metadata if needed
-  let groupMetadata = null;
-  if (isGroup) {
-    try { groupMetadata = await sock.groupMetadata(from); } catch {}
-  }
+  // Fetch group metadata in parallel with command execution (non-blocking)
+  let groupMetadata: any = null;
+  const groupMetaPromise = isGroup
+    ? sock.groupMetadata(from).then(m => { groupMetadata = m; }).catch(() => {})
+    : Promise.resolve();
 
   // Reply helper — auto-appends a randomly chosen MAXX XMD footer to every text response
   const FOOTERS = [
@@ -1474,6 +1469,10 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     try { await sock.sendMessage(from, { react: { text: emoji, key: msg.key } }); } catch {}
   };
 
+  // Await group metadata now (was launched in parallel with react/sticker) — ensures
+  // admin checks work while still not blocking the react/sticker sends
+  await groupMetaPromise;
+
   // Build context
   const ctx = {
     sock, msg, from, sender, isGroup, isOwner, isSudo,
@@ -1489,8 +1488,8 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     await reply(`❌ Error: ${e.message || "Something went wrong"}`);
   }
 
-  // Stop typing
+  // Stop typing (fire-and-forget)
   if (settings.autotyping) {
-    try { await sock.sendPresenceUpdate("paused", from); } catch {}
+    sock.sendPresenceUpdate("paused", from).catch(() => {});
   }
 }
