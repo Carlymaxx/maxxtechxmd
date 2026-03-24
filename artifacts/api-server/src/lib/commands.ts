@@ -332,19 +332,10 @@ registerCommand({
       } else {
         let ytUrl = query;
 
-        // Plain text → search with yt-dlp to get video ID
+        // Plain text → scrape YouTube search (bypasses yt-dlp bot detection)
         if (!query.match(/youtube\.com|youtu\.be/i)) {
-          const { execFile } = await import("child_process");
-          const { promisify } = await import("util");
-          const { getYtdlpBin } = await import("./ytdlpUtil.js");
-          const ytdlp = await getYtdlpBin();
-          const execFileAsync = promisify(execFile);
-          const { stdout } = await execFileAsync(ytdlp, [
-            `ytsearch1:${query}`, "--get-id", "--no-warnings", "--no-playlist"
-          ], { timeout: 20000 });
-          const videoId = stdout.trim().split("\n")[0];
-          if (!videoId) throw new Error("No results found for that search");
-          ytUrl = `https://youtube.com/watch?v=${videoId}`;
+          const { searchYouTube } = await import("./ytdlpUtil.js");
+          ytUrl = await searchYouTube(query);
         }
 
         const res = await fetch(`https://eliteprotech-apis.zone.id/yt?url=${encodeURIComponent(ytUrl)}`);
