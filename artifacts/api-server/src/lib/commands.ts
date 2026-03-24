@@ -379,7 +379,7 @@ registerCommand({
       if (thumbnail) {
         await sock.sendMessage(from, {
           image: { url: thumbnail },
-          caption: `🎵 *${title}*${artist ? `\n👤 ${artist}` : ""}${duration ? `\n⏱️ ${duration}` : ""}`,
+          caption: `🎵 *${title}*${artist ? `\n👤 ${artist}` : ""}${duration ? `\n⏱️ ${duration}` : ""}\n\n> _MAXX-XMD_ ⚡`,
         });
       }
 
@@ -417,7 +417,7 @@ registerCommand({
       if (images) {
         await sock.sendMessage(from, {
           image: { url: images },
-          caption: `🎧 *${title}*\n👤 ${artist}\n⏱️ ${duration}`,
+          caption: `🎧 *${title}*\n👤 ${artist}\n⏱️ ${duration}\n\n> _MAXX-XMD_ ⚡`,
         });
       }
 
@@ -490,7 +490,7 @@ registerCommand({
 
       await sock.sendMessage(from, {
         video: buffer,
-        caption: `🎬 *${videoTitle}*`,
+        caption: `🎬 *${videoTitle}*\n\n> _MAXX-XMD_ ⚡`,
         mimetype: "video/mp4",
         fileName: `${videoTitle}.mp4`,
       } as any, { quoted: msg });
