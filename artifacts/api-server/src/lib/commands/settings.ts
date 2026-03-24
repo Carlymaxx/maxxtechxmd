@@ -24,10 +24,13 @@ function toggle(settings: any, key: string, arg: string | undefined, name: strin
   reply(`✅ *${name}* has been turned *${arg}*!`);
 }
 
+// ─── BOT CONTROL COMMANDS (sudoOnly — owner/sudo only) ─────────────────────
+
 registerCommand({
   name: "setprefix",
   aliases: ["prefix"],
   category: "Settings",
+  sudoOnly: true,
   description: "Change bot command prefix",
   handler: async ({ args, settings, reply }) => {
     const p = args[0];
@@ -42,6 +45,7 @@ registerCommand({
   name: "setbotname",
   aliases: ["botname"],
   category: "Settings",
+  sudoOnly: true,
   description: "Change the bot name",
   handler: async ({ args, settings, reply }) => {
     const name = args.join(" ");
@@ -56,6 +60,7 @@ registerCommand({
   name: "setownername",
   aliases: ["ownername"],
   category: "Settings",
+  sudoOnly: true,
   description: "Set owner name",
   handler: async ({ args, settings, reply }) => {
     const name = args.join(" ");
@@ -70,6 +75,7 @@ registerCommand({
   name: "setownernumber",
   aliases: ["ownernumber"],
   category: "Settings",
+  sudoOnly: true,
   description: "Set owner number",
   handler: async ({ args, settings, reply }) => {
     const num = args[0]?.replace(/[^0-9]/g, "");
@@ -84,6 +90,7 @@ registerCommand({
   name: "mode",
   aliases: ["modestatus"],
   category: "Settings",
+  sudoOnly: true,
   description: "Set bot mode (public/private/inbox)",
   handler: async ({ args, settings, reply }) => {
     const m = args[0]?.toLowerCase();
@@ -100,6 +107,7 @@ registerCommand({
   name: "anticall",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle anti-call (reject incoming calls)",
   handler: async ({ args, settings, reply }) => toggle(settings, "anticall", args[0]?.toLowerCase(), "Anti-call", reply),
 });
@@ -108,6 +116,7 @@ registerCommand({
   name: "autoread",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle auto-read messages",
   handler: async ({ args, settings, reply }) => toggle(settings, "autoread", args[0]?.toLowerCase(), "Auto-read", reply),
 });
@@ -116,6 +125,7 @@ registerCommand({
   name: "autoreact",
   aliases: ["autoreaction"],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle auto-react to messages",
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
@@ -131,6 +141,7 @@ registerCommand({
   name: "autotype",
   aliases: ["autotyping"],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle auto-typing indicator",
   handler: async ({ args, settings, reply }) => toggle(settings, "autotyping", args[0]?.toLowerCase(), "Auto-typing", reply),
 });
@@ -139,6 +150,7 @@ registerCommand({
   name: "autobio",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle automatic bio update",
   handler: async ({ args, settings, reply }) => toggle(settings, "autobio", args[0]?.toLowerCase(), "Auto-bio", reply),
 });
@@ -147,6 +159,7 @@ registerCommand({
   name: "alwaysonline",
   aliases: ["online"],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle always online presence",
   handler: async ({ args, settings, reply }) => toggle(settings, "alwaysonline", args[0]?.toLowerCase(), "Always online", reply),
 });
@@ -155,6 +168,7 @@ registerCommand({
   name: "autoviewstatus",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle auto-view status updates",
   handler: async ({ args, settings, reply }) => toggle(settings, "autoviewstatus", args[0]?.toLowerCase(), "Auto-view status", reply),
 });
@@ -163,6 +177,7 @@ registerCommand({
   name: "chatbot",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle AI chatbot mode",
   handler: async ({ args, settings, reply }) => toggle(settings, "chatbot", args[0]?.toLowerCase(), "Chatbot", reply),
 });
@@ -171,6 +186,7 @@ registerCommand({
   name: "antibug",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle anti-bug (crash-message protection)",
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
@@ -186,6 +202,7 @@ registerCommand({
   name: "antiviewonce",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle anti-view-once (re-send view-once media)",
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
@@ -201,6 +218,7 @@ registerCommand({
   name: "antidelete",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Toggle anti-delete (show deleted messages)",
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
@@ -216,6 +234,7 @@ registerCommand({
   name: "setwelcome",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Set custom welcome message",
   handler: async ({ args, settings, reply }) => {
     const text = args.join(" ");
@@ -230,6 +249,7 @@ registerCommand({
   name: "delwelcome",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Delete custom welcome message",
   handler: async ({ settings, reply }) => {
     delete settings.welcomeText;
@@ -242,6 +262,7 @@ registerCommand({
   name: "setgoodbye",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Set custom goodbye message",
   handler: async ({ args, settings, reply }) => {
     const text = args.join(" ");
@@ -256,6 +277,7 @@ registerCommand({
   name: "delgoodbye",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Delete custom goodbye message",
   handler: async ({ settings, reply }) => {
     delete settings.goodbyeText;
@@ -284,6 +306,8 @@ registerCommand({
   },
 });
 
+// ─── READ-ONLY SETTINGS (public — anyone can view) ─────────────────────────
+
 registerCommand({
   name: "getsettings",
   aliases: ["showsettings", "mysettings"],
@@ -308,7 +332,7 @@ registerCommand({
 • Auto-view status: *${settings.autoviewstatus ? "✅" : "❌"}*
 • Auto-like status: *${settings.autolikestatus ? "✅" : "❌"}*
 • Anti-link: *${settings.antilink ? "✅" : "❌"}*
-• Chatbot: *${settings.chatbot ? "✅" : "❌"}*`);
+• Chatbot: *${settings.chatbot ? "✅" : "❌"}`);
   },
 });
 
@@ -316,6 +340,7 @@ registerCommand({
   name: "resetsetting",
   aliases: ["resetsettings"],
   category: "Settings",
+  sudoOnly: true,
   description: "Reset all settings to default",
   handler: async ({ reply }) => {
     const defaults = {
@@ -330,10 +355,13 @@ registerCommand({
   },
 });
 
+// ─── SUDO MANAGEMENT (sudoOnly) ────────────────────────────────────────────
+
 registerCommand({
   name: "addsudo",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Add a sudo user",
   handler: async ({ msg, args, reply }) => {
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
@@ -365,6 +393,7 @@ registerCommand({
   name: "delsudo",
   aliases: ["removesudo"],
   category: "Settings",
+  sudoOnly: true,
   description: "Remove a sudo user",
   handler: async ({ msg, args, reply }) => {
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
@@ -377,10 +406,13 @@ registerCommand({
   },
 });
 
+// ─── BAD WORDS (sudoOnly) ──────────────────────────────────────────────────
+
 registerCommand({
   name: "addbadword",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Add a word to the bad words list",
   handler: async ({ args, reply }) => {
     const word = args[0]?.toLowerCase();
@@ -409,6 +441,7 @@ registerCommand({
   name: "deletebadword",
   aliases: ["removebadword"],
   category: "Settings",
+  sudoOnly: true,
   description: "Remove a word from the bad words list",
   handler: async ({ args, reply }) => {
     const word = args[0]?.toLowerCase();
@@ -419,10 +452,13 @@ registerCommand({
   },
 });
 
+// ─── MORE SETTINGS (sudoOnly) ──────────────────────────────────────────────
+
 registerCommand({
   name: "settimezone",
   aliases: ["timezone"],
   category: "Settings",
+  sudoOnly: true,
   description: "Set bot timezone",
   handler: async ({ args, settings, reply }) => {
     const tz = args.join("/");
@@ -437,6 +473,7 @@ registerCommand({
   name: "setstatusemoji",
   aliases: ["statusemoji"],
   category: "Settings",
+  sudoOnly: true,
   description: "Set the auto-like status emoji",
   handler: async ({ args, settings, reply }) => {
     const emoji = args[0];
@@ -451,6 +488,7 @@ registerCommand({
   name: "setstickerpackname",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Set sticker pack name",
   handler: async ({ args, settings, reply }) => {
     const name = args.join(" ");
@@ -465,6 +503,7 @@ registerCommand({
   name: "setstickerauthor",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Set sticker author name",
   handler: async ({ args, settings, reply }) => {
     const name = args.join(" ");
@@ -479,6 +518,7 @@ registerCommand({
   name: "setwarn",
   aliases: [],
   category: "Settings",
+  sudoOnly: true,
   description: "Set max warnings before kick",
   handler: async ({ args, settings, reply }) => {
     const max = parseInt(args[0]);
