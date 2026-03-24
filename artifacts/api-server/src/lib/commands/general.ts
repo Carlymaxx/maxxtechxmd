@@ -250,11 +250,14 @@ registerCommand({
     // ── Category config ────────────────────────────────────────────────────
     const CAT_ORDER = [
       "General", "Download", "AI", "Search", "Photo", "Fun", "Games",
-      "Group", "Converter", "Settings", "Tools", "Religion", "Sports", "Owner",
+      "Anime", "Pokemon", "Group", "Converter", "Finance", "Health", "Math",
+      "Education", "Settings", "Tools", "Religion", "Sports", "Owner",
     ];
     const CAT_EMOJI: Record<string, string> = {
       General: "🌐", Download: "⬇️", AI: "🤖", Search: "🔍",
-      Photo: "📸", Fun: "😂", Games: "🎮", Group: "👥", Converter: "🔄",
+      Photo: "📸", Fun: "😂", Games: "🎮", Anime: "🎌", Pokemon: "🔴",
+      Group: "👥", Converter: "🔄", Finance: "💰", Health: "❤️",
+      Math: "🔢", Education: "📚",
       Settings: "⚙️", Tools: "🔧", Religion: "🕌", Sports: "⚽", Owner: "👑",
     };
 
