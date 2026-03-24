@@ -10,6 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
+    "@types/fluent-ffmpeg": "^2.1.28",
     "@whiskeysockets/baileys": "7.0.0-rc.9",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
@@ -17,6 +19,7 @@
     "cors": "^2",
     "drizzle-orm": "catalog:",
     "express": "^5",
+    "fluent-ffmpeg": "^2.1.3",
     "pino": "^9",
     "pino-http": "^10",
     "qrcode": "^1.5.4",
