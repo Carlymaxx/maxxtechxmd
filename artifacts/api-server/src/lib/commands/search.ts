@@ -125,30 +125,53 @@ registerCommand({
   aliases: ["lyric"],
   category: "Search",
   description: "Get song lyrics",
+  usage: ".lyrics Adele - Hello",
   handler: async ({ args, reply }) => {
     const input = args.join(" ");
     if (!input) return reply("❓ Usage: .lyrics <artist> - <song>\nExample: .lyrics Adele - Hello");
-    const [artist, song] = input.includes(" - ") ? input.split(" - ") : [args[0], args.slice(1).join(" ")];
-    if (!song) return reply("❓ Usage: .lyrics <artist> - <song>");
-    try {
-      const url = `https://lyrist.vercel.app/api/${encodeURIComponent(artist)}/${encodeURIComponent(song)}`;
-      const res = await fetch(url);
-      const data = await res.json() as any;
-      if (!data.lyrics) throw new Error();
-      const maxLen = 3000;
-      const lyr = data.lyrics.length > maxLen ? data.lyrics.slice(0, maxLen) + "\n\n... _(truncated)_" : data.lyrics;
-      await reply(`🎵 *${data.title || song}*\n👤 *${data.artist || artist}*\n\n${lyr}`);
-    } catch {
-      try {
-        const r2 = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(song)}`);
-        const d2 = await r2.json() as any;
-        if (!d2.lyrics) throw new Error();
-        const lyr = d2.lyrics.length > 3000 ? d2.lyrics.slice(0, 3000) + "\n\n... _(truncated)_" : d2.lyrics;
-        await reply(`🎵 *${song}* — *${artist}*\n\n${lyr}`);
-      } catch {
-        await reply(`❌ Lyrics not found for *${song}* by *${artist}*.`);
-      }
+
+    let artist: string, song: string;
+    if (input.includes(" - ")) {
+      [artist, song] = input.split(" - ").map(s => s.trim());
+    } else {
+      artist = args[0];
+      song = args.slice(1).join(" ");
     }
+    if (!song?.trim()) return reply("❓ Usage: .lyrics <artist> - <song>\nExample: .lyrics Adele - Hello");
+
+    const maxLen = 3500;
+    function clean(raw: string): string {
+      return raw
+        .replace(/\[(\d{2}:\d{2}\.\d+)\]/g, "")
+        .replace(/\r\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    }
+
+    // ── Layer 1: lrclib.net (free, no key, great coverage) ─────────────────
+    try {
+      const q = encodeURIComponent(`${artist} ${song}`);
+      const res = await fetch(`https://lrclib.net/api/search?q=${q}`, { signal: AbortSignal.timeout(8000) });
+      const results = await res.json() as any[];
+      if (!Array.isArray(results) || results.length === 0) throw new Error("no results");
+      const match = results.find(r => r.plainLyrics) || results[0];
+      if (!match?.plainLyrics) throw new Error("no lyrics");
+      const lyr = clean(match.plainLyrics);
+      const display = lyr.length > maxLen ? lyr.slice(0, maxLen) + "\n\n... _(truncated)_" : lyr;
+      return reply(`🎵 *${match.trackName || song}*\n👤 *${match.artistName || artist}*\n💿 ${match.albumName || ""}\n\n${display}`);
+    } catch {}
+
+    // ── Layer 2: lyrics.ovh ─────────────────────────────────────────────────
+    try {
+      const res = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(song)}`, { signal: AbortSignal.timeout(8000) });
+      const data = await res.json() as any;
+      if (!data.lyrics) throw new Error("no lyrics");
+      const lyr = clean(data.lyrics);
+      const display = lyr.length > maxLen ? lyr.slice(0, maxLen) + "\n\n... _(truncated)_" : lyr;
+      return reply(`🎵 *${song}*\n👤 *${artist}*\n\n${display}`);
+    } catch {}
+
+    return reply(`❌ Lyrics not found for *${song}* by *${artist}*.\n\nTips:\n• Check the spelling of artist and song name\n• Try: _.lyrics Drake - God's Plan_`);
   },
 });
 
