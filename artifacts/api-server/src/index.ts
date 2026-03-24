@@ -2,6 +2,7 @@ import app from "./app.js";
 import { logger } from "./lib/logger.js";
 import { restoreSessionFromEnv } from "./lib/baileys.js";
 import { startBotSession } from "./lib/baileys.js";
+import { getYtdlpBin } from "./lib/ytdlpUtil.js";
 
 const rawPort = process.env["PORT"];
 
@@ -26,6 +27,11 @@ app.listen(port, async (err?: Error) => {
   logger.info({ port }, "Server listening");
 
   restoreSessionFromEnv();
+
+  // Pre-warm yt-dlp binary (downloads if missing on Heroku)
+  getYtdlpBin()
+    .then((bin) => logger.info({ bin }, "yt-dlp ready"))
+    .catch((e) => logger.warn({ err: e.message }, "yt-dlp unavailable — .song/.video will fail"));
 
   try {
     await startBotSession("main");
