@@ -6,8 +6,16 @@ async function sendPhoto(sock: any, from: string, msg: any, url: string, caption
   await sock.sendMessage(from, { image: { url }, caption }, { quoted: msg });
 }
 
-// AI-generated images (pollinations.ai — works on deployed servers: Heroku/Railway/Render)
-function aiImg(prompt: string, w = 800, h = 800): string {
+// AI-generated images via eliteprotech (works on Replit + all deploy platforms)
+async function aiImg(prompt: string): Promise<Buffer> {
+  const res = await fetch(`https://eliteprotech-apis.zone.id/imagine?prompt=${encodeURIComponent(prompt)}`);
+  if (!res.ok) throw new Error(`imagine API returned ${res.status}`);
+  const ab = await res.arrayBuffer();
+  return Buffer.from(ab);
+}
+
+// Fallback pollinations.ai URL (for deployed servers: Heroku/Railway/Render)
+function aiImgUrl(prompt: string, w = 800, h = 800): string {
   const seed = Math.floor(Math.random() * 999999);
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&seed=${seed}&nologo=true&enhance=true&model=flux`;
 }
@@ -33,7 +41,7 @@ async function waifuPics(category: string): Promise<string> {
   return data.url;
 }
 
-// ── AI Image Generation (pollinations.ai) ────────────────────────────────────
+// ── AI Image Generation (eliteprotech-apis.zone.id/imagine) ─────────────────
 
 registerCommand({
   name: "imagine",
@@ -48,7 +56,8 @@ registerCommand({
     );
     await reply(`🎨 Generating your image...\n\n📝 _${prompt}_`);
     try {
-      await sendPhoto(sock, from, msg, aiImg(prompt), `🎨 *AI Image*\n\n📝 ${prompt}${FOOTER}`);
+      const imgBuf = await aiImg(prompt);
+      await sock.sendMessage(from, { image: imgBuf, caption: `🎨 *AI Image*\n\n📝 ${prompt}${FOOTER}` }, { quoted: msg });
     } catch {
       await reply(`❌ Image generation failed. Try a different prompt.${FOOTER}`);
     }
@@ -67,7 +76,7 @@ registerCommand({
     const prompt = `professional logo design ${desc}, clean, minimal, vector style, white background, high quality`;
     await reply(`🎨 Generating logo...\n\n_${desc}_`);
     try {
-      await sendPhoto(sock, from, msg, aiImg(prompt, 700, 700), `🏷️ *AI Logo*\n\n_${desc}_${FOOTER}`);
+      await sendPhoto(sock, from, msg, aiImgUrl(prompt, 700, 700), `🏷️ *AI Logo*\n\n_${desc}_${FOOTER}`);
     } catch {
       await reply(`❌ Logo generation failed.${FOOTER}`);
     }
@@ -86,7 +95,7 @@ registerCommand({
     const prompt = `cinematic movie poster ${desc}, dramatic lighting, professional design, text-free, ultra HD`;
     await reply(`🎨 Generating poster...\n\n_${desc}_`);
     try {
-      await sendPhoto(sock, from, msg, aiImg(prompt, 700, 1000), `🎬 *AI Poster*\n\n_${desc}_${FOOTER}`);
+      await sendPhoto(sock, from, msg, aiImgUrl(prompt, 700, 1000), `🎬 *AI Poster*\n\n_${desc}_${FOOTER}`);
     } catch {
       await reply(`❌ Poster generation failed.${FOOTER}`);
     }
@@ -104,7 +113,7 @@ registerCommand({
     const prompt = `stunning portrait avatar ${desc}, professional, highly detailed, 4K, centered face`;
     await reply(`🎨 Generating avatar...\n\n_${desc}_`);
     try {
-      await sendPhoto(sock, from, msg, aiImg(prompt, 600, 600), `👤 *AI Avatar*\n\n_${desc}_${FOOTER}`);
+      await sendPhoto(sock, from, msg, aiImgUrl(prompt, 600, 600), `👤 *AI Avatar*\n\n_${desc}_${FOOTER}`);
     } catch {
       await reply(`❌ Avatar generation failed.${FOOTER}`);
     }
@@ -127,7 +136,7 @@ registerCommand({
     ];
     const prompt = args.join(" ") || styles[Math.floor(Math.random() * styles.length)];
     try {
-      await sendPhoto(sock, from, msg, aiImg(`${prompt} ultra HD digital art`), `🎭 *Abstract Art*${FOOTER}`);
+      await sendPhoto(sock, from, msg, aiImgUrl(`${prompt} ultra HD digital art`), `🎭 *Abstract Art*${FOOTER}`);
     } catch {
       await reply(`❌ Failed.${FOOTER}`);
     }
@@ -144,7 +153,7 @@ registerCommand({
     const subject = args.join(" ") || "beautiful anime girl colorful scenery";
     const prompt = `anime style illustration ${subject}, high quality, detailed, vibrant colors, studio ghibli`;
     try {
-      await sendPhoto(sock, from, msg, aiImg(prompt, 800, 800), `🎌 *Anime Art*\n\n_${subject}_${FOOTER}`);
+      await sendPhoto(sock, from, msg, aiImgUrl(prompt, 800, 800), `🎌 *Anime Art*\n\n_${subject}_${FOOTER}`);
     } catch {
       await reply(`❌ Failed.${FOOTER}`);
     }
@@ -155,17 +164,29 @@ registerCommand({
 
 registerCommand({
   name: "wallpaper",
-  aliases: ["wall", "wp", "wallpp"],
+  aliases: ["wall", "wp", "wallpp", "4kwallpaper"],
   category: "Photo",
-  description: "Get a wallpaper by keyword (.wallpaper mountains)",
+  description: "Get a 4K wallpaper by keyword (.wallpaper mountains)",
   usage: ".wallpaper [keyword]",
   handler: async ({ sock, from, msg, args, reply }) => {
-    const keywords = ["nature", "landscape", "mountains", "ocean", "forest", "city", "space"];
-    const keyword = args[0] || keywords[Math.floor(Math.random() * keywords.length)];
+    const keywords = ["nature", "landscape", "mountains", "ocean", "forest", "city", "space", "anime", "cars"];
+    const keyword = args.join(" ") || keywords[Math.floor(Math.random() * keywords.length)];
     try {
-      await sendPhoto(sock, from, msg, realPhoto(keyword, 1280, 720), `🖼️ *Wallpaper*\n\n🔍 _${keyword}_${FOOTER}`);
+      const res = await fetch(`https://eliteprotech-apis.zone.id/4kwallpaper?type=search&q=${encodeURIComponent(keyword)}`);
+      const data = await res.json() as any;
+      if (data.success && data.results?.length) {
+        const pick = data.results[Math.floor(Math.random() * Math.min(data.results.length, 5))];
+        // Use thumbnail URL directly as the image
+        await sock.sendMessage(from, {
+          image: { url: pick.thumbnail },
+          caption: `🖼️ *4K Wallpaper*\n\n🔍 _${keyword}_\n📌 ${pick.title || ""}${FOOTER}`
+        }, { quoted: msg });
+      } else {
+        // Fallback to loremflickr
+        await sendPhoto(sock, from, msg, realPhoto(keyword, 1280, 720), `🖼️ *Wallpaper*\n\n🔍 _${keyword}_${FOOTER}`);
+      }
     } catch {
-      await reply(`❌ Could not fetch wallpaper.${FOOTER}`);
+      await sendPhoto(sock, from, msg, realPhoto(keyword, 1280, 720), `🖼️ *Wallpaper*\n\n🔍 _${keyword}_${FOOTER}`);
     }
   },
 });
@@ -383,6 +404,32 @@ registerCommand({
       await sendPhoto(sock, from, msg, url, `🖤 *${title}*\n\n📌 r/${sub}${FOOTER}`);
     } catch {
       await reply(`❌ Failed.${FOOTER}`);
+    }
+  },
+});
+
+// ── Fire Logo (eliteprotech-apis.zone.id/firelogo) ────────────────────────────
+
+registerCommand({
+  name: "firelogo",
+  aliases: ["flaminglogo", "burnlogo", "flametext"],
+  category: "Photo",
+  description: "Generate a flaming fire-style text logo (.firelogo MAXX)",
+  usage: ".firelogo <text>",
+  handler: async ({ sock, from, msg, args, reply }) => {
+    const text = args.join(" ");
+    if (!text) return reply(`❓ Usage: .firelogo <text>\nExample: .firelogo MAXX XMD${FOOTER}`);
+    await reply(`🔥 Generating fire logo for: _${text}_`);
+    try {
+      const res = await fetch(`https://eliteprotech-apis.zone.id/firelogo?text=${encodeURIComponent(text)}`);
+      const data = await res.json() as any;
+      if (!data.success || !data.image) throw new Error("no image");
+      await sock.sendMessage(from, {
+        image: { url: data.image },
+        caption: `🔥 *Fire Logo*\n\n📝 _${text}_${FOOTER}`
+      }, { quoted: msg });
+    } catch {
+      await reply(`❌ Could not generate fire logo. Try shorter text.${FOOTER}`);
     }
   },
 });
