@@ -39,6 +39,7 @@ import "./commands/owner.js";
 import "./commands/search.js";
 import "./commands/religion.js";
 import "./commands/sports.js";
+import "./commands/tools.js";
 
 // ── Tools / download / audio / AI — inline here ──────────────────────────────
 import { registerCommand } from "./commands/types.js";
