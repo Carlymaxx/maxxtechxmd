@@ -29,7 +29,6 @@ registerCommand({
   aliases: ["prefix"],
   category: "Settings",
   description: "Change bot command prefix",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const p = args[0];
     if (!p) return reply(`❓ Current prefix: *${settings.prefix}*\n\nUsage: .setprefix !`);
@@ -44,7 +43,6 @@ registerCommand({
   aliases: ["botname"],
   category: "Settings",
   description: "Change the bot name",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const name = args.join(" ");
     if (!name) return reply(`❓ Current name: *${settings.botName}*\n\nUsage: .setbotname MAXX XMD`);
@@ -59,7 +57,6 @@ registerCommand({
   aliases: ["ownername"],
   category: "Settings",
   description: "Set owner name",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const name = args.join(" ");
     if (!name) return reply(`❓ Current: *${settings.ownerName}*\n\nUsage: .setownername John`);
@@ -74,7 +71,6 @@ registerCommand({
   aliases: ["ownernumber"],
   category: "Settings",
   description: "Set owner number",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const num = args[0]?.replace(/[^0-9]/g, "");
     if (!num) return reply(`❓ Current: *${settings.ownerNumber || "Not set"}*\n\nUsage: .setownernumber 254712345678`);
@@ -89,7 +85,6 @@ registerCommand({
   aliases: ["modestatus"],
   category: "Settings",
   description: "Set bot mode (public/private/inbox)",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const m = args[0]?.toLowerCase();
     if (!m || !["public", "private", "inbox", "anti"].includes(m)) {
@@ -106,7 +101,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Toggle anti-call (reject incoming calls)",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => toggle(settings, "anticall", args[0]?.toLowerCase(), "Anti-call", reply),
 });
 
@@ -115,7 +109,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Toggle auto-read messages",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => toggle(settings, "autoread", args[0]?.toLowerCase(), "Auto-read", reply),
 });
 
@@ -124,7 +117,6 @@ registerCommand({
   aliases: ["autoreaction"],
   category: "Settings",
   description: "Toggle auto-react to messages",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
       return reply(`❓ Usage: .autoreact on/off\n\nCurrent: *${settings.autoreaction ? "on" : "off"}*`);
@@ -140,7 +132,6 @@ registerCommand({
   aliases: ["autotyping"],
   category: "Settings",
   description: "Toggle auto-typing indicator",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => toggle(settings, "autotyping", args[0]?.toLowerCase(), "Auto-typing", reply),
 });
 
@@ -149,7 +140,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Toggle automatic bio update",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => toggle(settings, "autobio", args[0]?.toLowerCase(), "Auto-bio", reply),
 });
 
@@ -158,7 +148,6 @@ registerCommand({
   aliases: ["online"],
   category: "Settings",
   description: "Toggle always online presence",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => toggle(settings, "alwaysonline", args[0]?.toLowerCase(), "Always online", reply),
 });
 
@@ -167,7 +156,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Toggle auto-view status updates",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => toggle(settings, "autoviewstatus", args[0]?.toLowerCase(), "Auto-view status", reply),
 });
 
@@ -176,7 +164,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Toggle AI chatbot mode",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => toggle(settings, "chatbot", args[0]?.toLowerCase(), "Chatbot", reply),
 });
 
@@ -185,7 +172,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Toggle anti-bug (crash-message protection)",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
       return reply(`❓ Usage: .antibug on/off\n\nCurrent: *${settings.antibug ? "on" : "off"}*`);
@@ -201,7 +187,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Toggle anti-view-once (re-send view-once media)",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
       return reply(`❓ Usage: .antiviewonce on/off\n\nCurrent: *${settings.antiviewonce ? "on" : "off"}*`);
@@ -217,7 +202,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Toggle anti-delete (show deleted messages)",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
       return reply(`❓ Usage: .antidelete on/off\n\nCurrent: *${settings.antidelete ? "on" : "off"}*`);
@@ -233,7 +217,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Set custom welcome message",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const text = args.join(" ");
     if (!text) return reply("❓ Usage: .setwelcome Welcome @user to @group!\n\nVariables: @user @group @desc");
@@ -248,7 +231,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Delete custom welcome message",
-  ownerOnly: true,
   handler: async ({ settings, reply }) => {
     delete settings.welcomeText;
     saveSettings(settings);
@@ -261,7 +243,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Set custom goodbye message",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const text = args.join(" ");
     if (!text) return reply("❓ Usage: .setgoodbye Goodbye @user from @group!");
@@ -276,7 +257,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Delete custom goodbye message",
-  ownerOnly: true,
   handler: async ({ settings, reply }) => {
     delete settings.goodbyeText;
     saveSettings(settings);
@@ -309,7 +289,6 @@ registerCommand({
   aliases: ["showsettings", "mysettings"],
   category: "Settings",
   description: "Show all bot settings",
-  ownerOnly: true,
   handler: async ({ settings, reply }) => {
     await reply(`⚙️ *MAXX XMD Settings*
 
@@ -338,7 +317,6 @@ registerCommand({
   aliases: ["resetsettings"],
   category: "Settings",
   description: "Reset all settings to default",
-  ownerOnly: true,
   handler: async ({ reply }) => {
     const defaults = {
       prefix: ".", botName: "MAXX-XMD", ownerName: "MAXX", ownerNumber: "",
@@ -357,7 +335,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Add a sudo user",
-  ownerOnly: true,
   handler: async ({ msg, args, reply }) => {
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
     let num = args[0]?.replace(/[^0-9]/g, "");
@@ -376,7 +353,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "List all sudo users",
-  ownerOnly: true,
   handler: async ({ reply }) => {
     const sudo = loadSudo();
     if (!sudo.length) return reply("📋 No sudo users set.");
@@ -390,7 +366,6 @@ registerCommand({
   aliases: ["removesudo"],
   category: "Settings",
   description: "Remove a sudo user",
-  ownerOnly: true,
   handler: async ({ msg, args, reply }) => {
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
     let num = args[0]?.replace(/[^0-9]/g, "");
@@ -407,7 +382,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Add a word to the bad words list",
-  ownerOnly: true,
   handler: async ({ args, reply }) => {
     const word = args[0]?.toLowerCase();
     if (!word) return reply("❓ Usage: .addbadword <word>");
@@ -424,7 +398,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "List all bad words",
-  ownerOnly: true,
   handler: async ({ reply }) => {
     const bw = loadBadwords();
     if (!bw.length) return reply("📋 No bad words set.");
@@ -437,7 +410,6 @@ registerCommand({
   aliases: ["removebadword"],
   category: "Settings",
   description: "Remove a word from the bad words list",
-  ownerOnly: true,
   handler: async ({ args, reply }) => {
     const word = args[0]?.toLowerCase();
     if (!word) return reply("❓ Usage: .deletebadword <word>");
@@ -452,7 +424,6 @@ registerCommand({
   aliases: ["timezone"],
   category: "Settings",
   description: "Set bot timezone",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const tz = args.join("/");
     if (!tz) return reply("❓ Usage: .settimezone Africa/Nairobi");
@@ -467,7 +438,6 @@ registerCommand({
   aliases: ["statusemoji"],
   category: "Settings",
   description: "Set the auto-like status emoji",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const emoji = args[0];
     if (!emoji) return reply(`❓ Current: *${settings.autolikestatus_emoji}*\n\nUsage: .setstatusemoji ❤️`);
@@ -482,7 +452,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Set sticker pack name",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const name = args.join(" ");
     if (!name) return reply("❓ Usage: .setstickerpackname My Stickers");
@@ -497,7 +466,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Set sticker author name",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const name = args.join(" ");
     if (!name) return reply("❓ Usage: .setstickerauthor MAXX XMD");
@@ -512,7 +480,6 @@ registerCommand({
   aliases: [],
   category: "Settings",
   description: "Set max warnings before kick",
-  ownerOnly: true,
   handler: async ({ args, settings, reply }) => {
     const max = parseInt(args[0]);
     if (isNaN(max) || max < 1) return reply("❓ Usage: .setwarn 3");
