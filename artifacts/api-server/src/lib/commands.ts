@@ -1053,16 +1053,12 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
   const body = extractText(msg);
   const settings = loadSettings();
 
-  // fromMe=true means this number sent it (could be the owner's phone on same-number setup).
-  // Only skip self-messages that don't look like commands (bot's own replies), or are in a
-  // DM (self-chat). This way owners using the same number as the bot can still send commands
-  // in groups without the bot ignoring them.
-  if (msg.key.fromMe) {
-    const _prefix = settings.prefix || ".";
-    if (!body.startsWith(_prefix)) return; // bot's own non-command replies — skip to prevent loops
-    if (!isGroup) return;                  // self-commands in DMs/self-chat — skip
-    // self-commands in a group = owner using same number as bot — allow and process
-  }
+  // If the message was sent from the bot's own number (fromMe), only skip it when
+  // it does NOT start with the command prefix — those are the bot's own replies and
+  // we must not re-process them (prevents infinite loops).
+  // When it DOES start with the prefix, it's the owner using the same number as the
+  // bot; allow it everywhere (groups AND DMs) so commands work in all chats.
+  if (msg.key.fromMe && !body.startsWith(settings.prefix || ".")) return;
   const prefix = settings.prefix || ".";
 
   // Auto-read
