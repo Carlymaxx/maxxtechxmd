@@ -3,12 +3,11 @@
   "version": "0.0.0",
   "license": "MIT",
   "engines": {
-    "node": "20.x",
-    "pnpm": "9.x"
+    "node": "20.x"
   },
   "scripts": {
     "start": "node artifacts/api-server/dist/index.mjs",
-    "heroku-postbuild": "pnpm install && pnpm --filter @workspace/api-server run build"
+    "heroku-postbuild": "npx pnpm@9 install && npx pnpm@9 --filter @workspace/api-server run build"
   },
   "private": true,
   "devDependencies": {
