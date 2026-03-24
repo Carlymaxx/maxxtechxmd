@@ -226,47 +226,70 @@ registerCommand({
       } catch { return null; }
     }
 
-    // ── .movie dl <name> — download links from multiple sites ────────────────
+    // ── .movie dl <name> — download trailer as MP4 ───────────────────────────
     if (sub === "dl" || sub === "download") {
       const title = rest;
       if (!title) return reply(`❌ Please provide a movie name.\n\n📝 Example: ${p}movie dl Avengers`);
 
-      await reply(`🔍 Searching *${title}*... ⏳`);
+      await reply(
+        `╔══════════════════════╗\n║  🎬 *MOVIE TRAILER*  ║\n╚══════════════════════╝\n\n` +
+        `🔍 Searching trailer for *${title}*...\n⏳ Please wait...`
+      );
 
       try {
-        // Fetch OMDB for movie details + poster
-        const res = await fetch(
+        // Step 1: Fetch OMDB for movie info (runs in parallel with YouTube search start)
+        const omdbPromise = fetch(
           `https://www.omdbapi.com/?apikey=${OMDB_KEY}&t=${encodeURIComponent(title)}&type=movie&plot=short`,
           { signal: AbortSignal.timeout(10000) }
+        ).then(r => r.json()).catch(() => ({ Response: "False" })) as Promise<any>;
+
+        // Step 2: Search YouTube for official trailer
+        const { searchYouTube } = await import("../ytdlpUtil.js");
+        const ytUrl = await searchYouTube(`${title} official trailer HD`);
+
+        await reply(`🎬 Found trailer! ⬇️ Downloading...`);
+
+        // Step 3: Get MP4 download link via eliteprotech ytdown API
+        const apiRes = await fetch(
+          `https://eliteprotech-apis.zone.id/ytdown?url=${encodeURIComponent(ytUrl)}&format=mp4`,
+          { signal: AbortSignal.timeout(25000) }
         );
-        const m = await res.json() as any;
-
-        const titleEnc = encodeURIComponent(title);
-        const titleSlug = title.replace(/\s+/g, "+");
-
-        const caption =
-          `╔══════════════════════╗\n║  📥 *MOVIE DOWNLOAD*  ║\n╚══════════════════════╝\n\n` +
-          `🎬 *${m.Response === "True" ? m.Title : title}*` +
-          (m.Response === "True" ? ` (${m.Year})` : "") + "\n" +
-          (m.imdbRating && m.imdbRating !== "N/A" ? `⭐ IMDb: ${m.imdbRating}/10\n` : "") +
-          (m.Genre && m.Genre !== "N/A" ? `🎭 ${m.Genre}\n` : "") +
-          (m.Runtime && m.Runtime !== "N/A" ? `⏱️ ${m.Runtime}\n` : "") +
-          `\n━━━━━━━━━━━━━━━━━━━━━━\n` +
-          `📥 *Download Links:*\n\n` +
-          `• 🎞️ *YTS (HD):* https://yts.mx/movies/${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}\n` +
-          `• 🔍 *1337x:* https://www.1337x.to/search/${titleSlug}/1/\n` +
-          `• 🏴‍☠️ *Torrentz2:* https://torrentz2.nz/search?q=${titleEnc}\n` +
-          `• 🌊 *Piratebay:* https://thepiratebay.org/search.php?q=${titleEnc}+movie\n\n` +
-          `💡 _Open links in browser or torrent client_`;
-
-        const posterBuf = m.Poster && m.Poster !== "N/A" ? await fetchPoster(m.Poster) : null;
-        if (posterBuf) {
-          await sock.sendMessage(from, { image: posterBuf, caption }, { quoted: waMsg });
-        } else {
-          await reply(caption);
+        const apiData = await apiRes.json() as any;
+        if (!apiData.success || !apiData.downloadURL) {
+          throw new Error("Could not get trailer download link");
         }
+
+        // Step 4: Download the MP4 buffer
+        const dlRes = await fetch(apiData.downloadURL, { signal: AbortSignal.timeout(90000) });
+        if (!dlRes.ok) throw new Error(`Download failed (${dlRes.status})`);
+        const buffer = Buffer.from(await dlRes.arrayBuffer());
+
+        if (buffer.length > 55 * 1024 * 1024) {
+          throw new Error(`Trailer too large (${Math.round(buffer.length / 1024 / 1024)}MB). WhatsApp limit is 55MB.`);
+        }
+
+        // Step 5: Build caption using OMDB data
+        const omdb = await omdbPromise;
+        const movieTitle = omdb.Response === "True" ? omdb.Title : title;
+        const caption =
+          `╔══════════════════════╗\n║  🎬 *MOVIE TRAILER*  ║\n╚══════════════════════╝\n\n` +
+          `🎬 *${movieTitle}*` + (omdb.Year ? ` (${omdb.Year})` : "") + "\n" +
+          (omdb.imdbRating && omdb.imdbRating !== "N/A" ? `⭐ IMDb: ${omdb.imdbRating}/10\n` : "") +
+          (omdb.Genre && omdb.Genre !== "N/A" ? `🎭 ${omdb.Genre}\n` : "") +
+          (omdb.Runtime && omdb.Runtime !== "N/A" ? `⏱️ ${omdb.Runtime}\n` : "") +
+          (omdb.Director && omdb.Director !== "N/A" ? `🎬 Director: ${omdb.Director}\n` : "") +
+          (omdb.Plot && omdb.Plot !== "N/A" ? `\n📝 ${omdb.Plot.slice(0, 200)}` : "") +
+          `\n\n> _MAXX-XMD_ 🎬`;
+
+        await sock.sendMessage(from, {
+          video: buffer,
+          mimetype: "video/mp4",
+          caption,
+          fileName: `${movieTitle} trailer.mp4`,
+        } as any, { quoted: waMsg });
+
       } catch (e: any) {
-        await reply(`❌ Could not fetch movie info.\n\n_${e.message?.slice(0, 100) || "Try again later"}_`);
+        await reply(`❌ *Trailer Download Failed*\n\n${e.message?.slice(0, 150) || "Try again later"}`);
       }
       return;
     }
