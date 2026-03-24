@@ -54,6 +54,13 @@ import "./commands/media2.js";
 import "./commands/country.js";
 import "./commands/creative2.js";
 import "./commands/lifestyle.js";
+import "./commands/ai.js";
+import "./commands/coding.js";
+import "./commands/reactions.js";
+import "./commands/stalker.js";
+import "./commands/uploader.js";
+import "./commands/converters2.js";
+import "./commands/channel.js";
 
 // ── Tools / download / audio / AI — inline here ──────────────────────────────
 import { registerCommand } from "./commands/types.js";
