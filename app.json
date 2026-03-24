@@ -9,6 +9,7 @@
   ],
   "website": "https://maxxtechxmd.replit.app/pair",
   "repository": "https://github.com/Carlymaxx/maxxtechxmd",
+  "stack": "heroku-22",
   "buildpacks": [
     {
       "url": "heroku/nodejs"
