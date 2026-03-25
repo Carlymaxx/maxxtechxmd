@@ -99,7 +99,7 @@ export default function Sessions() {
             <CyberCard key={session.id} delay={i * 0.1} className="flex flex-col">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${session.connected ? 'bg-primary animate-pulse shadow-[0_0_10px_#10b981]' : 'bg-muted-foreground'}`} />
+                  <div className={`w-3 h-3 rounded-full ${session.connected ? 'bg-primary animate-pulse shadow-[0_0_10px_#00c8ff]' : 'bg-muted-foreground'}`} />
                   <h3 className="font-mono font-bold text-lg truncate max-w-[150px]" title={session.id}>
                     {session.id}
                   </h3>
