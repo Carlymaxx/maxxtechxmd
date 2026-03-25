@@ -83,6 +83,15 @@ router.post("/", async (req, res) => {
     });
   }
 
+  // Session cap — each session uses ~30–50 MB RAM; default cap is 200 (override via MAX_SESSIONS env)
+  const MAX_SESSIONS = parseInt(process.env.MAX_SESSIONS || "200", 10);
+  const currentSessions = Object.keys(activeSessions).filter((id) => id !== "main").length;
+  if (currentSessions >= MAX_SESSIONS) {
+    return res.status(503).json({
+      error: `Bot is at full capacity (${MAX_SESSIONS} sessions). Try again later.`,
+    });
+  }
+
   // Rate limiting
   const lastRequest = rateLimitMap.get(number);
   if (lastRequest && Date.now() - lastRequest < RATE_LIMIT_MS) {
