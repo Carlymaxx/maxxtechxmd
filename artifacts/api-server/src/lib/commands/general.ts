@@ -235,7 +235,7 @@ registerCommand({
 🛠️ *Platform:* Node.js / Baileys
 
 📋 *Features:*
-• 150+ Commands
+• 1150+ Commands
 • Group Management
 • Auto-Reply & AI Chat
 • Media Downloads
