@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "engines": {
-    "node": "20.x",
-    "pnpm": ">=9.0.0"
+    "node": "20.x"
   },
   "scripts": {
     "preinstall": "sh -c 'if [ -n \"$DYNO\" ] || [ \"$CI\" = \"true\" ]; then exit 0; fi; rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
