@@ -9,7 +9,7 @@
   "scripts": {
     "preinstall": "sh -c 'if [ -n \"$DYNO\" ] || [ \"$CI\" = \"true\" ]; then exit 0; fi; rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
-    "heroku-postbuild": "npm install -g pnpm@9 && NODE_ENV=development pnpm install && pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/maxx-xmd run build",
+    "heroku-postbuild": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/maxx-xmd run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
