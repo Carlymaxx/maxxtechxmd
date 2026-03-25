@@ -48,7 +48,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <img 
               src={`${import.meta.env.BASE_URL}images/bot-logo.png`} 
               alt="MAXX-XMD" 
-              className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]"
+              className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(0,200,255,0.8)]"
             />
             {status?.connected && (
               <span className="absolute bottom-0 right-0 w-3 h-3 bg-primary rounded-full animate-pulse border-2 border-background" />
