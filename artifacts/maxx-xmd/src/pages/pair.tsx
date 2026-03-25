@@ -203,7 +203,7 @@ export default function Pair() {
               <span className="font-mono text-primary text-sm tracking-widest uppercase">WhatsApp Bot</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-mono font-bold text-white">
-              MAXX<span className="text-primary">XXXMD</span>
+              MAXX<span className="text-primary">-XMD</span>
             </h1>
             <p className="text-muted-foreground font-mono text-sm md:text-base max-w-lg">
               The most powerful WhatsApp bot. Generate your session ID in seconds, then deploy anywhere.
