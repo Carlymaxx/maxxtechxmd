@@ -145,7 +145,12 @@ export async function getVideoInfo(urlOrQuery: string): Promise<YtdlpInfo> {
   };
 }
 
-export async function downloadAudio(urlOrQuery: string, maxDurationSec = 600): Promise<{ buffer: Buffer; title: string; duration: number }> {
+/**
+ * Download audio from YouTube/URL.
+ * Returns a file path (in /tmp) — the caller must delete it after use.
+ * Zero RAM buffering: data lives on disk, Baileys streams via file:// URL.
+ */
+export async function downloadAudio(urlOrQuery: string, maxDurationSec = 600): Promise<{ filePath: string; title: string; duration: number }> {
   const bin = await getYtdlpBin();
   const url = urlOrQuery.startsWith("http") ? urlOrQuery : await searchYouTube(urlOrQuery);
 
@@ -166,24 +171,24 @@ export async function downloadAudio(urlOrQuery: string, maxDurationSec = 600): P
     url,
   ];
 
-  await execFileAsync(bin, args, { timeout: 120000, maxBuffer: 100 * 1024 * 1024 });
+  await execFileAsync(bin, args, { timeout: 120000, maxBuffer: 1 * 1024 * 1024 });
 
   const outFile = `${tmpBase}.mp3`;
   if (!fs.existsSync(outFile)) {
     const files = fs.readdirSync("/tmp").filter(f => f.startsWith(path.basename(tmpBase)));
     if (!files.length) throw new Error("Download failed — no output file.");
-    const actual = path.join("/tmp", files[0]);
-    const buf = fs.readFileSync(actual);
-    try { fs.unlinkSync(actual); } catch {}
-    return { buffer: buf, title: info.title, duration: info.duration };
+    return { filePath: path.join("/tmp", files[0]), title: info.title, duration: info.duration };
   }
 
-  const buffer = fs.readFileSync(outFile);
-  try { fs.unlinkSync(outFile); } catch {}
-  return { buffer, title: info.title, duration: info.duration };
+  return { filePath: outFile, title: info.title, duration: info.duration };
 }
 
-export async function downloadVideo(urlOrQuery: string, maxDurationSec = 300): Promise<{ buffer: Buffer; title: string; duration: number }> {
+/**
+ * Download video from YouTube/URL.
+ * Returns a file path (in /tmp) — the caller must delete it after use.
+ * Zero RAM buffering: data lives on disk, Baileys streams via file:// URL.
+ */
+export async function downloadVideo(urlOrQuery: string, maxDurationSec = 300): Promise<{ filePath: string; title: string; duration: number }> {
   const bin = await getYtdlpBin();
   const url = urlOrQuery.startsWith("http") ? urlOrQuery : await searchYouTube(urlOrQuery);
 
@@ -203,19 +208,14 @@ export async function downloadVideo(urlOrQuery: string, maxDurationSec = 300): P
     url,
   ];
 
-  await execFileAsync(bin, args, { timeout: 180000, maxBuffer: 200 * 1024 * 1024 });
+  await execFileAsync(bin, args, { timeout: 180000, maxBuffer: 1 * 1024 * 1024 });
 
   const outFile = `${tmpBase}.mp4`;
   if (!fs.existsSync(outFile)) {
     const files = fs.readdirSync("/tmp").filter(f => f.startsWith(path.basename(tmpBase)));
     if (!files.length) throw new Error("Download failed — no output file.");
-    const actual = path.join("/tmp", files[0]);
-    const buf = fs.readFileSync(actual);
-    try { fs.unlinkSync(actual); } catch {}
-    return { buffer: buf, title: info.title, duration: info.duration };
+    return { filePath: path.join("/tmp", files[0]), title: info.title, duration: info.duration };
   }
 
-  const buffer = fs.readFileSync(outFile);
-  try { fs.unlinkSync(outFile); } catch {}
-  return { buffer, title: info.title, duration: info.duration };
+  return { filePath: outFile, title: info.title, duration: info.duration };
 }
