@@ -248,7 +248,15 @@ export async function startPairingSession(
         delete pendingPairings[sessionId];
         setTimeout(async () => {
           await sendSessionIdToUser(sessionId, phone, sock);
-          await promoteToUserSession(sessionId, sock);
+          // Session ID delivered — close this pairing socket.
+          // The user deploys their own bot using the SESSION_ID env var.
+          await new Promise((r) => setTimeout(r, 3000));
+          try {
+            stoppingSessions.add(sessionId);
+            delete activeSessions[sessionId];
+            sessionConnected[sessionId] = false;
+            sock.end(undefined);
+          } catch {}
         }, 5000);
       }
     }
@@ -306,7 +314,15 @@ export async function startPairingSession(
                 if (phone) {
                   setTimeout(async () => {
                     await sendSessionIdToUser(sessionId, phone, sock2);
-                    await promoteToUserSession(sessionId, sock2);
+                    // Session ID delivered — close pairing socket.
+                    // User deploys their own bot with SESSION_ID env var.
+                    await new Promise((r) => setTimeout(r, 3000));
+                    try {
+                      stoppingSessions.add(sessionId);
+                      delete activeSessions[sessionId];
+                      sessionConnected[sessionId] = false;
+                      sock2.end(undefined);
+                    } catch {}
                   }, 5000);
                 }
               }
