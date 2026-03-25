@@ -15,6 +15,7 @@ import {
   startPairingSession,
 } from "../lib/baileys.js";
 import { logger } from "../lib/logger.js";
+import { incrementPairings } from "./stats.js";
 
 const router: IRouter = Router();
 
@@ -111,6 +112,8 @@ router.post("/", async (req, res) => {
   try {
     const { pairingCode } = await startPairingSession(sessionId, number);
     const formattedCode = pairingCode.match(/.{1,4}/g)?.join("-") || pairingCode;
+
+    incrementPairings();
 
     const data = RequestPairingResponse.parse({
       success: true,
