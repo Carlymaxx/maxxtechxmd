@@ -94,7 +94,7 @@ export default function Dashboard() {
           <span className="text-sm text-muted-foreground">STATE:</span>
           <div className={`px-3 py-1 rounded-full border flex items-center gap-2 ${
             status?.connected 
-              ? 'bg-primary/10 border-primary text-primary shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
+              ? 'bg-primary/10 border-primary text-primary shadow-[0_0_15px_rgba(0,200,255,0.3)]' 
               : 'bg-destructive/10 border-destructive text-destructive'
           }`}>
             <span className={`w-2 h-2 rounded-full ${status?.connected ? 'bg-primary animate-pulse' : 'bg-destructive'}`} />
@@ -190,7 +190,7 @@ export default function Dashboard() {
               </div>
             ) : qrData?.qr ? (
               <div className="space-y-6 text-center">
-                <div className="bg-white p-4 rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                <div className="bg-white p-4 rounded-xl shadow-[0_0_30px_rgba(0,200,255,0.3)]">
                   {/* Depending on backend format. If it's a data URL, use img. If it's raw text string, use QRCode component. Assuming string for safety */}
                   {qrData.qr.startsWith('data:image') ? (
                     <img src={qrData.qr} alt="WhatsApp QR" className="w-48 h-48" />
