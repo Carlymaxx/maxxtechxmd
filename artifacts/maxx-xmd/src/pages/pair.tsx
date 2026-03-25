@@ -174,7 +174,7 @@ export default function Pair() {
         {/* Animated grid background */}
         <div className="absolute inset-0 opacity-5"
           style={{
-            backgroundImage: "linear-gradient(rgba(16,185,129,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.3) 1px, transparent 1px)",
+            backgroundImage: "linear-gradient(rgba(0,200,255,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,200,255,0.3) 1px, transparent 1px)",
             backgroundSize: "40px 40px",
           }}
         />
@@ -184,7 +184,7 @@ export default function Pair() {
         <div className="relative px-6 py-10 md:py-14 flex flex-col md:flex-row items-center gap-8">
           {/* Bot image */}
           <div className="relative flex-shrink-0">
-            <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl border-2 border-primary/40 overflow-hidden bg-black/60 shadow-[0_0_40px_rgba(16,185,129,0.3)]">
+            <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl border-2 border-primary/40 overflow-hidden bg-black/60 shadow-[0_0_40px_rgba(0,200,255,0.3)]">
               <img
                 src={`${import.meta.env.BASE_URL}images/bot-logo.png`}
                 alt="MAXX-XMD"
@@ -292,7 +292,7 @@ export default function Pair() {
                 {!pairingCode ? (
                   <Button
                     type="submit"
-                    className="w-full h-12 font-mono text-sm font-bold bg-primary hover:bg-primary/90 text-black transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]"
+                    className="w-full h-12 font-mono text-sm font-bold bg-primary hover:bg-primary/90 text-black transition-all shadow-[0_0_20px_rgba(0,200,255,0.3)] hover:shadow-[0_0_30px_rgba(0,200,255,0.5)]"
                     disabled={pairMut.isPending}
                   >
                     {pairMut.isPending ? (
@@ -396,10 +396,10 @@ export default function Pair() {
                     {/* SVG countdown ring */}
                     <div className="relative w-20 h-20 flex-shrink-0">
                       <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
-                        <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(16,185,129,0.1)" strokeWidth="6" />
+                        <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(0,200,255,0.1)" strokeWidth="6" />
                         <circle
                           cx="40" cy="40" r="34" fill="none"
-                          stroke={codeExpired ? "#ef4444" : codeSeconds <= 10 ? "#f59e0b" : "#10b981"}
+                          stroke={codeExpired ? "#ef4444" : codeSeconds <= 10 ? "#f59e0b" : "#00c8ff"}
                           strokeWidth="6"
                           strokeDasharray={`${2 * Math.PI * 34}`}
                           strokeDashoffset={`${2 * Math.PI * 34 * (1 - codeProgress)}`}
@@ -425,7 +425,7 @@ export default function Pair() {
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: i * 0.06 }}
-                            className={`w-10 h-12 bg-black/80 border-2 rounded-xl flex items-center justify-center font-mono text-xl font-bold text-white shadow-[0_0_15px_rgba(16,185,129,0.15)] ${codeExpired ? "border-red-500/50" : "border-primary/50"}`}
+                            className={`w-10 h-12 bg-black/80 border-2 rounded-xl flex items-center justify-center font-mono text-xl font-bold text-white shadow-[0_0_15px_rgba(0,200,255,0.15)] ${codeExpired ? "border-red-500/50" : "border-primary/50"}`}
                           >
                             {digit}
                           </motion.div>
@@ -473,7 +473,7 @@ export default function Pair() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", bounce: 0.5 }}
-                    className="w-20 h-20 mx-auto bg-primary/20 rounded-full border-2 border-primary flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.4)]"
+                    className="w-20 h-20 mx-auto bg-primary/20 rounded-full border-2 border-primary flex items-center justify-center shadow-[0_0_40px_rgba(0,200,255,0.4)]"
                   >
                     <ShieldCheck className="w-10 h-10 text-primary" />
                   </motion.div>
@@ -489,10 +489,10 @@ export default function Pair() {
                         {/* Small spinner ring with seconds */}
                         <div className="relative w-14 h-14 flex-shrink-0">
                           <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
-                            <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(16,185,129,0.1)" strokeWidth="4" />
+                            <circle cx="28" cy="28" r="22" fill="none" stroke="rgba(0,200,255,0.1)" strokeWidth="4" />
                             <circle
                               cx="28" cy="28" r="22" fill="none"
-                              stroke="#10b981"
+                              stroke="#00c8ff"
                               strokeWidth="4"
                               strokeDasharray={`${2 * Math.PI * 22}`}
                               strokeDashoffset={`${2 * Math.PI * 22 * (1 - sessionSeconds / 20)}`}
@@ -526,7 +526,7 @@ export default function Pair() {
                       </div>
                       <button
                         onClick={copySessionId}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-primary hover:bg-primary/90 text-black transition-all font-mono text-sm font-bold shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-primary hover:bg-primary/90 text-black transition-all font-mono text-sm font-bold shadow-[0_0_20px_rgba(0,200,255,0.3)]"
                       >
                         {copiedSession ? (
                           <><CheckCircle2 className="w-5 h-5" /> SESSION ID COPIED!</>
