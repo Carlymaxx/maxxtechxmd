@@ -2,19 +2,30 @@ import { registerCommand } from "./types";
 
 const FOOTER = "\n\n> _MAXX-XMD_ ⚡";
 
-// ── Pollinations text helper ──────────────────────────────────────────────────
+// ── Pollinations text helper (new OpenAI-compatible API) ─────────────────────
+// Only "openai" and "openai-fast" are available on the free tier.
+// Map all other model names to one of those two with appropriate system prompts.
+const MODEL_MAP: Record<string, string> = {
+  "openai": "openai", "openai-fast": "openai-fast", "openai-large": "openai",
+  "gemini": "openai-fast", "deepseek": "openai", "mistral": "openai-fast",
+  "llama": "openai-fast", "qwen": "openai-fast", "grok": "openai",
+  "claude-hybridspace": "openai", "claude": "openai",
+};
+
 async function pollinationsText(prompt: string, model = "openai", system = ""): Promise<string> {
+  const actualModel = MODEL_MAP[model] ?? "openai";
   const messages: any[] = [];
   if (system) messages.push({ role: "system", content: system });
   messages.push({ role: "user", content: prompt });
-  const res = await fetch("https://text.pollinations.ai/", {
+  const res = await fetch("https://text.pollinations.ai/openai", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, model, seed: Math.floor(Math.random() * 9999) }),
+    body: JSON.stringify({ model: actualModel, messages }),
     signal: AbortSignal.timeout(30000),
   });
   if (!res.ok) throw new Error("AI error " + res.status);
-  return (await res.text()).trim();
+  const j = await res.json() as any;
+  return (j?.choices?.[0]?.message?.content ?? "").trim();
 }
 
 // ── Pollinations image helper ─────────────────────────────────────────────────
@@ -399,21 +410,22 @@ registerCommand({
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const buf = await downloadMediaMessage(msg, "buffer", {});
       const base64 = (buf as Buffer).toString("base64");
-      const res = await fetch("https://text.pollinations.ai/", {
+      const res = await fetch("https://text.pollinations.ai/openai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          model: "openai",
           messages: [
             { role: "user", content: [
               { type: "text", text: caption },
               { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64}` } },
             ]},
           ],
-          model: "openai",
         }),
         signal: AbortSignal.timeout(30000),
       });
-      const ans = (await res.text()).trim();
+      const j2 = await res.json() as any;
+      const ans = (j2?.choices?.[0]?.message?.content ?? "").trim();
       await reply(`👁️ *Image Analysis*\n\n${ans}${FOOTER}`);
     } catch (e: any) {
       await reply(`❌ Vision failed: ${e.message}${FOOTER}`);

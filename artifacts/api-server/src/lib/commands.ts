@@ -727,26 +727,27 @@ registerCommand({
   },
 });
 
-// ── Pollinations text helper ──────────────────────────────────────────────────
+// ── Pollinations text helper (new OpenAI-compatible API) ─────────────────────
 async function pollinationsAsk(question: string, model: string, system = ""): Promise<string> {
   const messages: any[] = [];
   if (system) messages.push({ role: "system", content: system });
   messages.push({ role: "user", content: question });
-  const res = await fetch("https://text.pollinations.ai/", {
+  const res = await fetch("https://text.pollinations.ai/openai", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, model, seed: Math.floor(Math.random() * 9999) }),
+    body: JSON.stringify({ model, messages }),
     signal: AbortSignal.timeout(30000),
   });
   if (!res.ok) throw new Error(`AI error ${res.status}`);
-  const answer = (await res.text()).trim();
+  const j = await res.json() as any;
+  const answer = (j?.choices?.[0]?.message?.content ?? "").trim();
   if (!answer) throw new Error("Empty response");
   return answer;
 }
 
-// ── Gemini helper ─────────────────────────────────────────────────────────────
+// ── Gemini helper — uses openai-fast (Gemini model unavailable on free tier) ──
 async function askGemini(question: string, system = ""): Promise<{ answer: string; citations: string }> {
-  return { answer: await pollinationsAsk(question, "gemini", system), citations: "" };
+  return { answer: await pollinationsAsk(question, "openai-fast", system), citations: "" };
 }
 
 // ── GPT helper ────────────────────────────────────────────────────────────────
@@ -1307,11 +1308,11 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
       if (q) {
         sock.sendPresenceUpdate("composing", from).catch(() => {});
 
-        // ── Helper: Gemini AI (primary chatbot) ────────────────────────────
+        // ── Helper: Real AI chatbot (OpenAI via Pollinations) ──────────────
         async function tryElite(question: string): Promise<string> {
           return pollinationsAsk(
-            question, "gemini",
-            "You are MAXX-XMD, a helpful and friendly WhatsApp bot assistant. Keep responses concise and conversational."
+            question, "openai-fast",
+            "You are MAXX-XMD, a helpful and friendly WhatsApp bot assistant. Keep responses concise and conversational. Never say you are an AI made by OpenAI — you are MAXX-XMD."
           );
         }
 
