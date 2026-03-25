@@ -1,6 +1,5 @@
 import type { WASocket, WAMessage, proto } from "@whiskeysockets/baileys";
 import { downloadMediaMessage } from "@whiskeysockets/baileys";
-import sharp from "sharp";
 import { loadSettings, saveSettings, WORKSPACE_ROOT } from "./botState.js";
 import { logger } from "./logger.js";
 import fs from "fs";
@@ -17,6 +16,7 @@ async function getAutoSticker(): Promise<Buffer | null> {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const raw = Buffer.from(await res.arrayBuffer());
+    const sharp = (await import("sharp")).default;
     _cachedSticker = await sharp(raw)
       .resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .webp({ quality: 80 })
