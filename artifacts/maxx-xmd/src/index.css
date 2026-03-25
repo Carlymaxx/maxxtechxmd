@@ -11,33 +11,33 @@
   --font-display: 'Share Tech Mono', monospace;
 
   /* Electric Blue Cyberpunk Theme */
-  --color-background: hsl(222 47% 4%);
-  --color-foreground: hsl(199 80% 92%);
+  --color-background: hsl(350 30% 4%);
+  --color-foreground: hsl(350 80% 92%);
   
-  --color-card: hsl(222 40% 6%);
-  --color-card-foreground: hsl(199 80% 92%);
+  --color-card: hsl(350 25% 6%);
+  --color-card-foreground: hsl(350 80% 92%);
   
-  --color-popover: hsl(222 40% 6%);
-  --color-popover-foreground: hsl(199 80% 92%);
+  --color-popover: hsl(350 25% 6%);
+  --color-popover-foreground: hsl(350 80% 92%);
   
-  --color-primary: hsl(199 100% 50%); /* Electric Cyan-Blue */
-  --color-primary-foreground: hsl(222 47% 4%);
+  --color-primary: hsl(350 100% 58%); /* Electric Cyan-Blue */
+  --color-primary-foreground: hsl(350 30% 4%);
   
-  --color-secondary: hsl(222 30% 12%);
-  --color-secondary-foreground: hsl(199 80% 92%);
+  --color-secondary: hsl(350 20% 12%);
+  --color-secondary-foreground: hsl(350 80% 92%);
   
-  --color-muted: hsl(222 30% 12%);
-  --color-muted-foreground: hsl(199 25% 55%);
+  --color-muted: hsl(350 20% 12%);
+  --color-muted-foreground: hsl(350 25% 55%);
   
-  --color-accent: hsl(199 100% 50% / 0.2);
-  --color-accent-foreground: hsl(199 100% 50%);
+  --color-accent: hsl(350 100% 58% / 0.2);
+  --color-accent-foreground: hsl(350 100% 58%);
   
   --color-destructive: hsl(0 84% 60%);
   --color-destructive-foreground: hsl(0 0% 100%);
   
-  --color-border: hsl(199 100% 50% / 0.18);
-  --color-input: hsl(222 30% 12%);
-  --color-ring: hsl(199 100% 50%);
+  --color-border: hsl(350 100% 58% / 0.18);
+  --color-input: hsl(350 20% 12%);
+  --color-ring: hsl(350 100% 58%);
 
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
@@ -46,25 +46,25 @@
 }
 
 :root {
-  --background: 222 47% 4%;
-  --foreground: 199 80% 92%;
-  --card: 222 40% 6%;
-  --card-foreground: 199 80% 92%;
-  --popover: 222 40% 6%;
-  --popover-foreground: 199 80% 92%;
-  --primary: 199 100% 50%;
-  --primary-foreground: 222 47% 4%;
-  --secondary: 222 30% 12%;
-  --secondary-foreground: 199 80% 92%;
-  --muted: 222 30% 12%;
-  --muted-foreground: 199 25% 55%;
-  --accent: 199 100% 50%;
-  --accent-foreground: 199 80% 92%;
+  --background: 350 30% 4%;
+  --foreground: 350 80% 92%;
+  --card: 350 25% 6%;
+  --card-foreground: 350 80% 92%;
+  --popover: 350 25% 6%;
+  --popover-foreground: 350 80% 92%;
+  --primary: 350 100% 58%;
+  --primary-foreground: 350 30% 4%;
+  --secondary: 350 20% 12%;
+  --secondary-foreground: 350 80% 92%;
+  --muted: 350 20% 12%;
+  --muted-foreground: 350 25% 55%;
+  --accent: 350 100% 58%;
+  --accent-foreground: 350 80% 92%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 199 100% 50% / 0.18;
-  --input: 222 30% 12%;
-  --ring: 199 100% 50%;
+  --border: 350 100% 58% / 0.18;
+  --input: 350 20% 12%;
+  --ring: 350 100% 58%;
   --radius: 0.5rem;
 }
 
@@ -75,10 +75,10 @@
   body {
     @apply bg-background text-foreground font-sans antialiased min-h-screen selection:bg-primary/30 selection:text-primary-foreground;
     background-image: 
-      radial-gradient(ellipse at 50% 0%, hsl(199 100% 50% / 0.08) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 0%, hsl(350 100% 58% / 0.08) 0%, transparent 55%),
       radial-gradient(ellipse at 100% 100%, hsl(260 100% 60% / 0.05) 0%, transparent 50%),
-      linear-gradient(to right, hsl(199 100% 50% / 0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(199 100% 50% / 0.04) 1px, transparent 1px);
+      linear-gradient(to right, hsl(350 100% 58% / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(350 100% 58% / 0.04) 1px, transparent 1px);
     background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
     background-attachment: fixed;
   }
