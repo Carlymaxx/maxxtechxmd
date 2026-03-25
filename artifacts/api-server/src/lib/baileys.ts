@@ -25,6 +25,18 @@ export const latestQR: Record<string, string> = {};
 export const stoppingSessions: Set<string> = new Set();
 export const pendingPairings: Record<string, string> = {};
 
+// Cache of generated SESSION_IDs keyed by sessionId.
+// Kept for 30 minutes so the user can still copy from the website
+// even after the auth folder is cleaned up and the socket is closed.
+export const sessionIdCache: Map<string, { encodedId: string; generatedAt: number }> = new Map();
+setInterval(() => {
+  const THIRTY_MIN = 30 * 60 * 1000;
+  const now = Date.now();
+  for (const [sid, entry] of sessionIdCache.entries()) {
+    if (now - entry.generatedAt > THIRTY_MIN) sessionIdCache.delete(sid);
+  }
+}, 5 * 60 * 1000);
+
 const startupMessageSent = new Set<string>();
 
 const sessionIntervals: Record<string, ReturnType<typeof setInterval>[]> = {};
@@ -503,6 +515,10 @@ async function sendSessionIdToUser(
     logger.error({ sessionId }, "Could not generate session ID after retries — creds.json never got me.id");
     return;
   }
+
+  // ── Cache it immediately so the website can serve it even after cleanup ──────
+  sessionIdCache.set(sessionId, { encodedId: deploySessionId, generatedAt: Date.now() });
+  logger.info({ sessionId }, "SESSION_ID cached for website pickup");
 
   // ── Step 3: Send the session ID to the user (SESSION_ID first, always) ──────
   const userJid = phoneNumber.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
