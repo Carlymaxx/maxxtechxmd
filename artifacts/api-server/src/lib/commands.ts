@@ -727,38 +727,66 @@ registerCommand({
   },
 });
 
-// ── Gemini helper — powers all AI commands ───────────────────────────────────
-async function askGemini(question: string, system = ""): Promise<{ answer: string; citations: string }> {
+// ── Pollinations text helper ──────────────────────────────────────────────────
+async function pollinationsAsk(question: string, model: string, system = ""): Promise<string> {
   const messages: any[] = [];
   if (system) messages.push({ role: "system", content: system });
   messages.push({ role: "user", content: question });
   const res = await fetch("https://text.pollinations.ai/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages, model: "gemini", seed: Math.floor(Math.random() * 9999) }),
+    body: JSON.stringify({ messages, model, seed: Math.floor(Math.random() * 9999) }),
     signal: AbortSignal.timeout(30000),
   });
-  if (!res.ok) throw new Error(`Gemini error ${res.status}`);
+  if (!res.ok) throw new Error(`AI error ${res.status}`);
   const answer = (await res.text()).trim();
   if (!answer) throw new Error("Empty response");
-  return { answer, citations: "" };
+  return answer;
+}
+
+// ── Gemini helper ─────────────────────────────────────────────────────────────
+async function askGemini(question: string, system = ""): Promise<{ answer: string; citations: string }> {
+  return { answer: await pollinationsAsk(question, "gemini", system), citations: "" };
+}
+
+// ── GPT helper ────────────────────────────────────────────────────────────────
+async function askGPT(question: string, system = ""): Promise<{ answer: string; citations: string }> {
+  return { answer: await pollinationsAsk(question, "openai", system), citations: "" };
 }
 
 // ---- AI ----
 registerCommand({
   name: "gpt",
-  aliases: ["ai", "ask", "chatgpt", "copilot"],
+  aliases: ["chatgpt"],
+  category: "AI",
+  description: "Chat with GPT (OpenAI)",
+  handler: async ({ args, reply }) => {
+    const q = args.join(" ");
+    if (!q) return reply(`❓ Usage: .gpt <question>\nExample: .gpt Explain quantum physics`);
+    await reply(`🤖 *ChatGPT*\n\n⏳ Thinking...`);
+    try {
+      const { answer } = await askGPT(q);
+      await reply(`🤖 *ChatGPT*\n\n❓ *${q}*\n\n${answer}`);
+    } catch (e: any) {
+      await reply(`❌ GPT Error: ${e.message || "Try again later"}`);
+    }
+  },
+});
+
+registerCommand({
+  name: "ai",
+  aliases: ["ask"],
   category: "AI",
   description: "Chat with MAXX AI (powered by Gemini)",
   handler: async ({ args, reply }) => {
     const q = args.join(" ");
     if (!q) return reply(
-      `╔══════════════════════╗\n║ 🤖 *MAXX AI* 🤖\n╚══════════════════════╝\n\n❓ *Usage:* .ai <question>\n\n*Examples:*\n• .ai What is Nigeria's GDP?\n• .ask Write a love poem\n• .gpt Explain quantum physics`
+      `╔══════════════════════╗\n║ 🤖 *MAXX AI* 🤖\n╚══════════════════════╝\n\n❓ *Usage:* .ai <question>\n\n*Examples:*\n• .ai What is Nigeria's GDP?\n• .ask Write a love poem`
     );
     await reply(`╔══════════════════════╗\n║ 🤖 *MAXX AI* 🤖\n╚══════════════════════╝\n\n⏳ Thinking...`);
     try {
-      const { answer, citations } = await askGemini(q);
-      await reply(`╔══════════════════════╗\n║ 🤖 *MAXX AI* 🤖\n╚══════════════════════╝\n\n❓ *${q}*\n\n${answer}${citations}`);
+      const { answer } = await askGemini(q);
+      await reply(`╔══════════════════════╗\n║ 🤖 *MAXX AI* 🤖\n╚══════════════════════╝\n\n❓ *${q}*\n\n${answer}`);
     } catch (e: any) {
       await reply(`❌ AI Error: ${e.message || "Try again later"}`);
     }
@@ -1268,20 +1296,10 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
 
         // ── Helper: Gemini AI (primary chatbot) ────────────────────────────
         async function tryElite(question: string): Promise<string> {
-          const messages = [
-            { role: "system", content: "You are MAXX-XMD, a helpful and friendly WhatsApp bot assistant. Keep responses concise and conversational." },
-            { role: "user", content: question },
-          ];
-          const res = await fetch("https://text.pollinations.ai/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages, model: "gemini", seed: Math.floor(Math.random() * 9999) }),
-            signal: AbortSignal.timeout(20000),
-          });
-          if (!res.ok) throw new Error("http " + res.status);
-          const txt = (await res.text()).trim();
-          if (!txt) throw new Error("empty");
-          return txt;
+          return pollinationsAsk(
+            question, "gemini",
+            "You are MAXX-XMD, a helpful and friendly WhatsApp bot assistant. Keep responses concise and conversational."
+          );
         }
 
         // ── Helper: Wikipedia for "what is / who is" factual queries ───────

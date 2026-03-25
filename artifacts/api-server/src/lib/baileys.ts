@@ -121,6 +121,29 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         continue;
       }
 
+      // ── Auto-view status / Auto-like status ───────────────────────────────
+      if (from === "status@broadcast") {
+        const settings = loadSettings();
+        if (settings.autoviewstatus) {
+          try {
+            await sock.readMessages([msg.key]);
+            logger.info({ sessionId }, "👁️ Auto-viewed status");
+          } catch (err) {
+            logger.warn({ err }, "Auto-view status failed");
+          }
+        }
+        if (settings.autolikestatus && !msg.key.fromMe) {
+          try {
+            const emoji = (settings.autolikestatus_emoji as string) || "🔥";
+            await sock.sendMessage("status@broadcast", { react: { text: emoji, key: msg.key } });
+            logger.info({ sessionId, emoji }, "❤️ Auto-liked status");
+          } catch (err) {
+            logger.warn({ err }, "Auto-like status failed");
+          }
+        }
+        continue;
+      }
+
       // ── Skip non-notify batches for regular messages ───────────────────
       if (type !== "notify") continue;
 
@@ -135,6 +158,32 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       }
     }
   });
+
+  // ── Anti-call: reject incoming calls ─────────────────────────────────────
+  sock.ev.on("call", async (calls) => {
+    const settings = loadSettings();
+    if (!settings.anticall) return;
+    for (const call of calls) {
+      if (call.status === "offer") {
+        try {
+          await (sock as any).rejectCall(call.id, call.from);
+          logger.info({ sessionId, from: call.from }, "📵 Rejected incoming call (anticall on)");
+        } catch (err) {
+          logger.warn({ err }, "Could not reject call");
+        }
+      }
+    }
+  });
+
+  // ── Always-online: keep presence as available ─────────────────────────────
+  const alwaysOnlineInterval = setInterval(async () => {
+    try {
+      const settings = loadSettings();
+      if (settings.alwaysonline && sessionConnected[sessionId]) {
+        await sock.sendPresenceUpdate("available");
+      }
+    } catch { /* ignore */ }
+  }, 30000);
 
   sock.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect, qr } = update;
