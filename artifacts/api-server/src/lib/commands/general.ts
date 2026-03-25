@@ -178,7 +178,7 @@ registerCommand({
 Include country code, no + or spaces.
 
 🌐 *Or use web pairing:*
-https://maxxtechxmd.replit.app/pair`);
+https://pair.maxxtech.co.ke`);
     }
 
     await reply(`╔══════════════════════╗
