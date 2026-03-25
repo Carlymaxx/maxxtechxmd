@@ -3,8 +3,8 @@ import { useRequestPairing, useGetPairingStatus } from "@workspace/api-client-re
 import {
   Smartphone, Copy, CheckCircle2, ShieldCheck,
   AlertCircle, Zap, Loader2, ExternalLink, Terminal,
-  Users, Command, Star, Github, MessageCircle, Rocket,
-  Globe, ArrowRight, Bot,
+  Users, Command, Clock, Github, MessageCircle,
+  Globe, ArrowRight, Bot, Activity,
 } from "lucide-react";
 
 const PLATFORMS = [
@@ -29,12 +29,12 @@ const FEATURES = [
   { icon: "🌐", label: "Translate" },
 ];
 
-const STATS = [
-  { icon: Users, value: "12K+", label: "Active Users" },
-  { icon: Command, value: "200+", label: "Commands" },
-  { icon: Star, value: "99.9%", label: "Uptime" },
-  { icon: Rocket, value: "Free", label: "To Deploy" },
-];
+interface LiveStats {
+  activePairings: number;
+  totalPairings: number;
+  commandCount: number;
+  uptimeFormatted: string;
+}
 
 const SOCIALS = [
   { icon: Github, label: "GitHub", url: "https://github.com/Carlymaxx/maxxtechxmd", color: "#e2e8f0" },
@@ -58,7 +58,20 @@ export default function LinkPage() {
   const [countdown, setCountdown]   = useState(120);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedSid, setCopiedSid]   = useState(false);
+  const [liveStats, setLiveStats]   = useState<LiveStats | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch("/api/stats");
+        if (res.ok) setLiveStats(await res.json());
+      } catch {}
+    }
+    fetchStats();
+    const interval = setInterval(fetchStats, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const pairMut = useRequestPairing({
     mutation: {
@@ -255,20 +268,64 @@ export default function LinkPage() {
             </div>
           </div>
 
-          {/* Stats bar */}
+          {/* Live stats bar */}
           <div style={{
             display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginBottom:24,
           }}>
-            {STATS.map((s) => (
-              <div key={s.label} className="stat-card" style={{
-                background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
-                borderRadius:12, padding:"14px 8px", textAlign:"center",
-              }}>
-                <s.icon size={16} color={G} style={{ margin:"0 auto 6px" }} />
-                <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>{s.value}</div>
-                <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>{s.label}</div>
+            {/* Active right now */}
+            <div className="stat-card" style={{
+              background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
+              borderRadius:12, padding:"14px 8px", textAlign:"center", position:"relative",
+            }}>
+              {liveStats !== null && (
+                <span style={{
+                  position:"absolute", top:6, right:7,
+                  width:6, height:6, borderRadius:"50%",
+                  background:"#22c55e", animation:"pulse 2s infinite",
+                }} />
+              )}
+              <Activity size={16} color={G} style={{ margin:"0 auto 6px" }} />
+              <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>
+                {liveStats === null ? "—" : liveStats.activePairings}
               </div>
-            ))}
+              <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Active Now</div>
+            </div>
+
+            {/* Total sessions since boot */}
+            <div className="stat-card" style={{
+              background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
+              borderRadius:12, padding:"14px 8px", textAlign:"center",
+            }}>
+              <Users size={16} color={G} style={{ margin:"0 auto 6px" }} />
+              <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>
+                {liveStats === null ? "—" : liveStats.totalPairings}
+              </div>
+              <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Sessions</div>
+            </div>
+
+            {/* Real command count */}
+            <div className="stat-card" style={{
+              background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
+              borderRadius:12, padding:"14px 8px", textAlign:"center",
+            }}>
+              <Command size={16} color={G} style={{ margin:"0 auto 6px" }} />
+              <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>
+                {liveStats === null ? "—" : liveStats.commandCount}
+              </div>
+              <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Commands</div>
+            </div>
+
+            {/* Server uptime */}
+            <div className="stat-card" style={{
+              background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
+              borderRadius:12, padding:"14px 8px", textAlign:"center",
+            }}>
+              <Clock size={16} color={G} style={{ margin:"0 auto 6px" }} />
+              <div style={{ color:"#fff", fontWeight:700, fontSize:15, letterSpacing:1 }}>
+                {liveStats === null ? "—" : liveStats.uptimeFormatted}
+              </div>
+              <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Uptime</div>
+            </div>
           </div>
 
           {/* Social links */}
