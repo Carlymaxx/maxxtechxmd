@@ -88,7 +88,7 @@ export default function Send() {
             <Button 
               type="submit" 
               disabled={sendMut.isPending}
-              className="w-full cyber-button h-12 font-mono text-lg bg-primary text-primary-foreground shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.6)]"
+              className="w-full cyber-button h-12 font-mono text-lg bg-primary text-primary-foreground shadow-[0_0_15px_rgba(0,200,255,0.3)] hover:shadow-[0_0_25px_rgba(0,200,255,0.6)]"
             >
               <SendIcon className="w-5 h-5 mr-2" />
               {sendMut.isPending ? 'TRANSMITTING...' : 'EXECUTE_SEND'}
