@@ -1,6 +1,6 @@
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
-import { restoreSessionFromEnv, startBotSession, restoreAllSessions } from "./lib/baileys.js";
+import { restoreSessionFromEnv, startBotSession } from "./lib/baileys.js";
 import { getYtdlpBin } from "./lib/ytdlpUtil.js";
 
 const rawPort = process.env["PORT"];
@@ -39,8 +39,4 @@ app.listen(port, async (err?: Error) => {
     logger.warn({ err }, "Could not start main bot session on startup");
   }
 
-  // Restore all user sessions that were linked before this restart
-  restoreAllSessions().catch((err) =>
-    logger.warn({ err }, "Error during user session restore")
-  );
 });
