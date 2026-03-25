@@ -222,6 +222,8 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
               `🌐 *Mode:* ${mode}\n` +
               `👤 *Owner:* ${envOwner || "Not set — add OWNER_NUMBER env var"}\n\n` +
               `Type *${prefix}menu* to see all ${prefix === "." ? "580+" : ""} commands.\n\n` +
+              `📢 *Follow our channel for updates & tips:*\n` +
+              `👉 https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
               `> _Powered by MAXX-XMD_ ⚡`;
 
             // Try to fetch a fire logo image for the startup message
