@@ -10,7 +10,7 @@
 
 ## 🔑 Step 1 — Get Your SESSION_ID
 
-### 👉 [https://asset-manager-pussyinnit.replit.app/](https://asset-manager-pussyinnit.replit.app/)
+### 👉 [https://pair.maxxtech.co.ke](https://asset-manager-pussyinnit.replit.app/)
 
 1. Open the link above
 2. Enter your WhatsApp number (with country code, no `+` or spaces)
