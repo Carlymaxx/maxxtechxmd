@@ -209,7 +209,7 @@ Please wait up to 30 seconds...`);
       await reply(`❌ Failed to generate pairing code.
 
 Try the web method instead:
-🌐 https://maxxtechxmd.replit.app/pair
+🌐 https://pair.maxxtech.co.ke
 
 Error: ${e.message?.slice(0, 100) || "Unknown"}`);
     }
