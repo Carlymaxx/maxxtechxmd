@@ -137,18 +137,8 @@ registerCommand({
   aliases: ["setpp", "setavatar"],
   category: "Owner",
   description: "Set bot profile picture (reply to image)",
-  handler: async ({ sock, msg, reply }) => {
-    const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-    const imgMsg = quoted?.imageMessage;
-    if (!imgMsg) return reply("❌ Reply to an image to set as profile picture.");
-    try {
-      const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
-      const buf = await downloadMediaMessage({ message: { imageMessage: imgMsg } } as any, "buffer", {});
-      await sock.updateProfilePicture(sock.user!.id, buf as Buffer);
-      await reply("✅ Profile picture updated!");
-    } catch (e: any) {
-      await reply(`❌ Failed: ${e.message}`);
-    }
+  handler: async ({ reply }) => {
+    await reply("🔒 *Bot profile picture is locked by the developer and cannot be changed.*\n\n> _MAXX-XMD_ ⚡");
   },
 });
 
