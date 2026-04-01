@@ -134,6 +134,23 @@ export function deleteSessionMeta(id: string): void {
 export const AUTH_DIR = path.join(WORKSPACE_ROOT, "auth_info_baileys");
 export { WORKSPACE_ROOT };
 
+// ── Live session counter (shared between baileys.ts and commands) ─────────────
+let _liveSessionCount = 0;
+const _liveSessionJids: Map<string, string> = new Map(); // sessionId → phone JID
+
+export function registerLiveSession(sessionId: string, jid: string) {
+  _liveSessionJids.set(sessionId, jid);
+  _liveSessionCount = _liveSessionJids.size;
+}
+export function unregisterLiveSession(sessionId: string) {
+  _liveSessionJids.delete(sessionId);
+  _liveSessionCount = _liveSessionJids.size;
+}
+export function getLiveSessionCount(): number { return _liveSessionCount; }
+export function getLiveSessions(): { sessionId: string; jid: string }[] {
+  return [..._liveSessionJids.entries()].map(([sessionId, jid]) => ({ sessionId, jid }));
+}
+
 export function ensureAuthDir(): void {
   if (!fs.existsSync(AUTH_DIR)) {
     fs.mkdirSync(AUTH_DIR, { recursive: true });
