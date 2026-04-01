@@ -76,6 +76,11 @@
       "description": "Keep all bot packages after build — do not change this value",
       "required": false,
       "value": "false"
+    },
+    "NODE_MODULES_CACHE": {
+      "description": "Disable build cache for clean installs — do not change this value",
+      "required": false,
+      "value": "false"
     }
   },
   "formation": {
