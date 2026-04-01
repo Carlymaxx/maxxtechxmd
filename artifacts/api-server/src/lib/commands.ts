@@ -1,6 +1,6 @@
 import type { WASocket, WAMessage, proto } from "@whiskeysockets/baileys";
 import { downloadMediaMessage } from "@whiskeysockets/baileys";
-import { loadSettings, saveSettings, WORKSPACE_ROOT } from "./botState.js";
+import { loadSettings, saveSettings, WORKSPACE_ROOT, incrementCmdUsage } from "./botState.js";
 import { logger } from "./logger.js";
 import fs from "fs";
 import path from "path";
@@ -1663,6 +1663,7 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
 
   try {
     await command.handler(ctx as any);
+    incrementCmdUsage();
   } catch (e: any) {
     logger.error({ err: e }, `Command error: ${commandName}`);
     await reply(`❌ Error: ${e.message || "Something went wrong"}`);
