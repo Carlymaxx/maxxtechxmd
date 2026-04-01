@@ -6,12 +6,26 @@ async function sendPhoto(sock: any, from: string, msg: any, url: string, caption
   await sock.sendMessage(from, { image: { url }, caption }, { quoted: msg });
 }
 
-// AI-generated images via eliteprotech (works on Replit + all deploy platforms)
+// AI-generated images — tries eliteprotech first, falls back to pollinations
 async function aiImg(prompt: string): Promise<Buffer> {
-  const res = await fetch(`https://eliteprotech-apis.zone.id/imagine?prompt=${encodeURIComponent(prompt)}`);
-  if (!res.ok) throw new Error(`imagine API returned ${res.status}`);
-  const ab = await res.arrayBuffer();
-  return Buffer.from(ab);
+  // Primary: eliteprotech
+  try {
+    const res = await fetch(
+      `https://eliteprotech-apis.zone.id/imagine?prompt=${encodeURIComponent(prompt)}`,
+      { signal: AbortSignal.timeout(20000) }
+    );
+    if (res.ok) {
+      const ct = res.headers.get("content-type") || "";
+      if (ct.startsWith("image/")) return Buffer.from(await res.arrayBuffer());
+    }
+  } catch {}
+
+  // Fallback: pollinations.ai (flux model, reliable)
+  const seed = Math.floor(Math.random() * 999999);
+  const pollUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&model=flux&seed=${seed}&nologo=true`;
+  const res2 = await fetch(pollUrl, { signal: AbortSignal.timeout(40000) });
+  if (!res2.ok) throw new Error(`Image generation failed (${res2.status})`);
+  return Buffer.from(await res2.arrayBuffer());
 }
 
 // Fallback pollinations.ai URL (for deployed servers: Heroku/Railway/Render)

@@ -1466,7 +1466,7 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
         if (!responseText) { responseText = localSmartReply(q); }
 
         try {
-          await sock.sendMessage(from, { text: responseText + "\n\n> _MAXX-XMD_ ⚡" }, { quoted: msg });
+          await sock.sendMessage(from, { text: responseText }, { quoted: msg });
         } catch {}
       }
     }

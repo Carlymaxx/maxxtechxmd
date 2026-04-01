@@ -253,6 +253,45 @@ registerCommand({
 });
 
 registerCommand({
+  name: "getjid",
+  aliases: ["jidgen", "tojid", "numtojid", "phonetojid"],
+  category: "Tools",
+  description: "Convert a phone number to a WhatsApp JID, or get JID of a mentioned user",
+  handler: async ({ msg, args, reply }) => {
+    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+    if (mentioned) {
+      const num = mentioned.split("@")[0];
+      return reply(
+        `╔═══════════════════╗\n║ 🆔 *JID LOOKUP* 🆔\n╚═══════════════════╝\n\n` +
+        `📞 *Number:* +${num}\n` +
+        `👤 *Personal JID:*\n${mentioned}\n\n` +
+        `> _MAXX-XMD_ ⚡`
+      );
+    }
+
+    const raw = args.join("").replace(/[^0-9]/g, "");
+    if (!raw) {
+      return reply(
+        `╔═══════════════════╗\n║ 🆔 *JID GENERATOR* 🆔\n╚═══════════════════╝\n\n` +
+        `📌 *Usage:*\n• .getjid 254712345678\n• .getjid @mention\n\n` +
+        `_Include country code, no + or spaces_${FOOTER}`
+      );
+    }
+
+    const personalJid = `${raw}@s.whatsapp.net`;
+    const groupJid = `${raw}-<timestamp>@g.us`;
+    await reply(
+      `╔═══════════════════╗\n║ 🆔 *JID GENERATOR* 🆔\n╚═══════════════════╝\n\n` +
+      `📞 *Number:* +${raw}\n\n` +
+      `👤 *Personal JID:*\n${personalJid}\n\n` +
+      `👥 *Group JID format:*\n${groupJid}\n\n` +
+      `💡 _Group JIDs include a timestamp — use .groupinfo in the group to get the exact JID_\n\n` +
+      `> _MAXX-XMD_ ⚡`
+    );
+  },
+});
+
+registerCommand({
   name: "totext",
   aliases: ["caps", "upper", "lower"],
   category: "Tools",

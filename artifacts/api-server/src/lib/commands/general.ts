@@ -249,7 +249,7 @@ registerCommand({
   aliases: ["getid", "session", "pairdevice"],
   category: "General",
   description: "Generate a WhatsApp pairing code for any device",
-  handler: async ({ args, settings, reply }) => {
+  handler: async ({ sock, from, msg, args, settings, reply }) => {
     const phone = args[0]?.replace(/\D/g, "");
     if (!phone || phone.length < 7) {
       return reply(`╔══════════════════════╗
@@ -280,15 +280,22 @@ Please wait up to 30 seconds...`);
 
       await reply(`✅ *PAIRING CODE READY!*
 
-🔑 Code: *${pairingCode}*
+╔══════════════════════╗
+║  🔑  ${pairingCode}  🔑
+╚══════════════════════╝
 
 📱 *Steps on WhatsApp:*
 1️⃣ Open WhatsApp Settings
-2️⃣ Linked Devices
-3️⃣ Link a Device
-4️⃣ Enter the code above 👆
+2️⃣ Tap *Linked Devices*
+3️⃣ Tap *Link a Device*
+4️⃣ Choose *Link with phone number*
+5️⃣ Type the code below 👇
 
 ⏱️ _Code expires in ~60 seconds!_`);
+
+      // Send code as a plain standalone message for easy one-tap copy
+      await sock.sendMessage(from, { text: pairingCode }, { quoted: msg });
+
     } catch (e: any) {
       await reply(`❌ Failed to generate pairing code.
 
