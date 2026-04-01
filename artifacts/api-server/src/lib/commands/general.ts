@@ -505,12 +505,6 @@ registerCommand({
         text += `╚${"═".repeat(22)}╝\n\n`;
       }
 
-      text += `╔══════════════════════════╗\n`;
-      text += `║  📢 *VIEW CHANNEL* 📢\n`;
-      text += `╠══════════════════════════╣\n`;
-      text += `║ Tap below to join our WhatsApp Channel 👇\n`;
-      text += `║ https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n`;
-      text += `╚══════════════════════════╝\n\n`;
       text += `> _Powered by ${botName}_ ⚡`;
 
       const MENU_IMAGES = [
@@ -530,9 +524,9 @@ registerCommand({
       } catch {
         await sock.sendMessage(from, { text }, { quoted: msg });
       }
-      // Send channel URL as a separate standalone message so WhatsApp renders the "View channel" button
+      // Send ONLY the bare URL — WhatsApp auto-renders the native green "View channel" button
       await sock.sendMessage(from, {
-        text: `📢 *Follow ${botName} on WhatsApp Channel* — tap below 👇\n\nhttps://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J`,
+        text: `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J`,
       });
       return;
     }
@@ -552,9 +546,12 @@ registerCommand({
       }
       out += `┗▣\n\n`;
       out += `💡 _${cmds.length} command${cmds.length !== 1 ? "s" : ""} in ${matchedCat}_\n\n`;
-      out += `📢 *VIEW CHANNEL:* https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n`;
       out += `> _MAXX-XMD_ ⚡`;
       await reply(out);
+      // Bare URL triggers native green "View channel" button in WhatsApp
+      await sock.sendMessage(from, {
+        text: `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J`,
+      });
     } else {
       const cats = [...grouped.keys()].map(k => `${CAT_EMOJI[k] || "📌"} ${p}menu ${k.toLowerCase()}`).join("\n");
       await reply(`❌ Category *${cat}* not found.\n\n📋 *Available categories:*\n${cats}`);
