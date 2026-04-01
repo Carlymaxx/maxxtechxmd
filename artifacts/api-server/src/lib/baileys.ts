@@ -538,6 +538,57 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
   return sock;
 }
 
+/**
+ * Lightweight helper used by the .pair WhatsApp bot command.
+ * Creates a temporary socket, requests a pairing code, then closes
+ * the socket immediately — no SESSION_ID delivery, no channel follows.
+ */
+export async function generatePairingCode(phoneNumber: string): Promise<string> {
+  ensureAuthDir();
+  const sessionId = `cmd-pair-${Date.now()}`;
+  const sessionFolder = path.join(AUTH_DIR, sessionId);
+  fs.mkdirSync(sessionFolder, { recursive: true });
+
+  const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
+  const { version } = await fetchLatestBaileysVersion();
+
+  const sock = makeWASocket({
+    version,
+    auth: state,
+    printQRInTerminal: false,
+    browser: ["Mac OS", "Chrome", "14.4.1"] as [string, string, string],
+    connectTimeoutMs: 30000,
+    defaultQueryTimeoutMs: undefined,
+  });
+
+  sock.ev.on("creds.update", saveCreds);
+
+  // Clean up helper — idempotent
+  const cleanup = () => {
+    try { sock.end(undefined); } catch {}
+    try { fs.rmSync(sessionFolder, { recursive: true, force: true }); } catch {}
+    delete activeSessions[sessionId];
+  };
+
+  activeSessions[sessionId] = sock;
+
+  try {
+    // Give the WS handshake ~4 s to complete before requesting the code
+    await new Promise((r) => setTimeout(r, 4000));
+
+    if ((sock.authState.creds as any).registered) {
+      throw new Error("Temporary session already registered — please retry.");
+    }
+
+    const code = await sock.requestPairingCode(phoneNumber);
+    const formatted = code.match(/.{1,4}/g)?.join("-") ?? code;
+    return formatted;
+  } finally {
+    // Always clean up the temp socket
+    setTimeout(cleanup, 500);
+  }
+}
+
 export async function startPairingSession(
   sessionId: string,
   phoneNumber: string
