@@ -2,16 +2,10 @@ import { registerCommand } from "./types";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import { WORKSPACE_ROOT } from "../botState";
+import { WORKSPACE_ROOT, getGroupActivity } from "../botState";
 
 const FOOTER = "\n\n> _MAXX-XMD_ ⚡";
-const ACTIVITY_FILE = path.join(WORKSPACE_ROOT, "activity.json");
 const CONFESSION_FILE = path.join(WORKSPACE_ROOT, "confessions.json");
-
-// ── Shared helpers ────────────────────────────────────────────────────────────
-function loadActivity(): Record<string, Record<string, { count: number; lastSeen: number }>> {
-  try { return JSON.parse(fs.readFileSync(ACTIVITY_FILE, "utf8")); } catch { return {}; }
-}
 function loadConfessions(): Record<string, { groupJid: string; pending: string[] }> {
   try { return JSON.parse(fs.readFileSync(CONFESSION_FILE, "utf8")); } catch { return {}; }
 }
@@ -52,8 +46,7 @@ registerCommand({
     try {
       const meta = await sock.groupMetadata(from);
       const participants = meta.participants;
-      const activity = loadActivity();
-      const groupActivity = activity[from] || {};
+      const groupActivity = getGroupActivity(from);
       const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
 
       const inactive: string[] = [];
@@ -305,8 +298,7 @@ registerCommand({
   handler: async ({ sock, from, sender, msg, reply }) => {
     if (!from.endsWith("@g.us")) return reply(`❌ This command only works in groups!${FOOTER}`);
 
-    const activity = loadActivity();
-    const groupActivity = activity[from] || {};
+    const groupActivity = getGroupActivity(from);
     const entries = Object.entries(groupActivity)
       .sort((a, b) => b[1].count - a[1].count);
 
@@ -366,8 +358,7 @@ registerCommand({
   handler: async ({ sock, from, msg, reply }) => {
     if (!from.endsWith("@g.us")) return reply(`❌ Only works in groups!${FOOTER}`);
 
-    const activity = loadActivity();
-    const groupActivity = activity[from] || {};
+    const groupActivity = getGroupActivity(from);
     const entries = Object.entries(groupActivity)
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 10);
@@ -390,5 +381,3 @@ registerCommand({
   },
 });
 
-// Export for activity tracking
-export { ACTIVITY_FILE };
