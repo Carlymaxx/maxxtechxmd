@@ -387,21 +387,64 @@ registerCommand({
       } else {
         let ytUrl = query;
 
-        // Plain text → scrape YouTube search (bypasses yt-dlp bot detection)
+        // Plain text → scrape YouTube search
         if (!query.match(/youtube\.com|youtu\.be/i)) {
           const { searchYouTube } = await import("./ytdlpUtil.js");
           ytUrl = await searchYouTube(query);
         }
 
-        const res = await fetch(`https://eliteprotech-apis.zone.id/yt?url=${encodeURIComponent(ytUrl)}`);
-        const data = await res.json() as any;
-        if (!data.status || !data.downloadUrl) throw new Error("Could not get download link from YouTube");
-        downloadUrl = data.downloadUrl;
-        title     = data.title   || "Unknown";
-        artist    = data.channel || "";
-        thumbnail = data.thumbnail || "";
-        const secs = data.duration || 0;
-        duration = `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, "0")}`;
+        // Try multiple APIs in order until one works
+        let apiData: any = null;
+
+        // API 1: eliteprotech
+        try {
+          const res1 = await fetch(`https://eliteprotech-apis.zone.id/yt?url=${encodeURIComponent(ytUrl)}`, { signal: AbortSignal.timeout(15000) });
+          const d1 = await res1.json() as any;
+          if (d1.status && d1.downloadUrl) apiData = { url: d1.downloadUrl, title: d1.title, channel: d1.channel, thumbnail: d1.thumbnail, duration: d1.duration };
+        } catch {}
+
+        // API 2: siputzx
+        if (!apiData) {
+          try {
+            const res2 = await fetch(`https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(ytUrl)}`, { signal: AbortSignal.timeout(15000) });
+            const d2 = await res2.json() as any;
+            if (d2.status && d2.data?.dl) apiData = { url: d2.data.dl, title: d2.data.title || "Unknown", channel: "", thumbnail: d2.data.thumb || "", duration: 0 };
+          } catch {}
+        }
+
+        // API 3: giftedtech
+        if (!apiData) {
+          try {
+            const res3 = await fetch(`https://api.giftedtech.web.id/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}&apikey=gifted`, { signal: AbortSignal.timeout(15000) });
+            const d3 = await res3.json() as any;
+            if (d3.success && d3.result?.download_url) apiData = { url: d3.result.download_url, title: d3.result.title || "Unknown", channel: d3.result.channel || "", thumbnail: d3.result.thumbnail || "", duration: 0 };
+          } catch {}
+        }
+
+        // Fallback: direct yt-dlp
+        if (!apiData) {
+          const { downloadAudio } = await import("./ytdlpUtil.js");
+          const dl = await downloadAudio(ytUrl, 600);
+          const { createReadStream } = await import("fs");
+          const chunks: Buffer[] = [];
+          for await (const chunk of createReadStream(dl.filePath)) chunks.push(Buffer.from(chunk));
+          const buf = Buffer.concat(chunks);
+          const { unlink } = await import("fs/promises");
+          await unlink(dl.filePath).catch(() => {});
+          const mins = Math.floor(dl.duration / 60);
+          const secs2 = dl.duration % 60;
+          const caption2 = [`🎵 *${dl.title}*`, `⏱️ ${mins}:${secs2.toString().padStart(2, "0")}`, "", `> _MAXX-XMD_ ⚡`].join("\n");
+          await sock.sendMessage(from, { audio: buf, mimetype: "audio/mpeg", fileName: `${dl.title}.mp3`, caption: caption2 } as any, { quoted: msg });
+          return;
+        }
+
+        if (!apiData) throw new Error("All download APIs failed. Try a direct YouTube link.");
+        downloadUrl = apiData.url;
+        title     = apiData.title   || "Unknown";
+        artist    = apiData.channel || "";
+        thumbnail = apiData.thumbnail || "";
+        const secs = apiData.duration || 0;
+        duration = secs ? `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, "0")}` : "";
       }
 
       // ── Fetch audio buffer ────────────────────────
