@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRequestPairing, useGetPairingStatus } from "@workspace/api-client-react";
 import {
   Smartphone, Copy, CheckCircle2, ShieldCheck,
   AlertCircle, Zap, Loader2, ExternalLink, Terminal,
   Users, Command, Clock, Github, MessageCircle,
-  Globe, ArrowRight, Bot, Activity,
+  Globe, ArrowRight, Bot, Activity, QrCode, RefreshCw,
 } from "lucide-react";
 
 const PLATFORMS = [
@@ -50,7 +50,10 @@ const BORDER_LO = "rgba(0,212,255,.1)";
 const BG  = "#030c14";
 const MONO = "'Share Tech Mono', 'Courier New', monospace";
 
+type QrStatus = { connected: boolean; deploySessionId: string | null; expired?: boolean } | null;
+
 export default function LinkPage() {
+  // ── Phone tab state ──
   const [number, setNumber]         = useState("");
   const [error, setError]           = useState("");
   const [sessionId, setSessionId]   = useState<string | null>(null);
@@ -61,7 +64,71 @@ export default function LinkPage() {
   const [liveStats, setLiveStats]   = useState<LiveStats | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // ── Tab ──
+  const [activeTab, setActiveTab] = useState<"phone" | "qr">("phone");
+
+  // ── QR tab state ──
+  const [qrSessionId, setQrSessionId]     = useState<string | null>(null);
+  const [qrCode, setQrCode]               = useState<string | null>(null);
+  const [qrStatus, setQrStatus]           = useState<QrStatus>(null);
+  const [qrLoading, setQrLoading]         = useState(false);
+  const [qrError, setQrError]             = useState<string | null>(null);
+  const [copiedQrSid, setCopiedQrSid]     = useState(false);
+  const qrPollRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const qrStatusRef  = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const apiBase = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") ?? "";
+
+  // ── QR helpers ──
+  const stopQrPolling = useCallback(() => {
+    if (qrPollRef.current)   { clearInterval(qrPollRef.current);   qrPollRef.current   = null; }
+    if (qrStatusRef.current) { clearInterval(qrStatusRef.current); qrStatusRef.current = null; }
+  }, []);
+
+  useEffect(() => () => stopQrPolling(), [stopQrPolling]);
+
+  async function startQrPairing() {
+    setQrLoading(true); setQrError(null); setQrCode(null); setQrStatus(null);
+    stopQrPolling();
+    try {
+      const res = await fetch(`${apiBase}/api/qr-pair/start`, { method: "POST" });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || "Failed to start QR session"); }
+      const { sessionId: sid } = await res.json();
+      setQrSessionId(sid);
+      setQrLoading(false);
+      qrPollRef.current = setInterval(async () => {
+        try {
+          const r = await fetch(`${apiBase}/api/qr-pair/${sid}/code`);
+          const d = await r.json();
+          if (d.qr) setQrCode(d.qr);
+        } catch {}
+      }, 2000);
+      qrStatusRef.current = setInterval(async () => {
+        try {
+          const r = await fetch(`${apiBase}/api/qr-pair/${sid}/status`);
+          const d = await r.json();
+          setQrStatus(d);
+          if (d.connected || d.deploySessionId || d.expired) { stopQrPolling(); setQrCode(null); }
+        } catch {}
+      }, 3000);
+    } catch (e: any) {
+      setQrError(e.message || "Failed to start QR session");
+      setQrLoading(false);
+    }
+  }
+
+  function resetQr() {
+    stopQrPolling();
+    setQrSessionId(null); setQrCode(null); setQrStatus(null);
+    setQrError(null); setQrLoading(false); setCopiedQrSid(false);
+  }
+
+  function copyQrSid() {
+    if (!qrStatus?.deploySessionId) return;
+    navigator.clipboard.writeText(qrStatus.deploySessionId);
+    setCopiedQrSid(true);
+    setTimeout(() => setCopiedQrSid(false), 2500);
+  }
 
   useEffect(() => {
     async function fetchStats() {
@@ -346,7 +413,206 @@ export default function LinkPage() {
             ))}
           </div>
 
-          {/* Form card */}
+          {/* ── Method tabs ── */}
+          <div style={{
+            display:"flex", gap:6, background:"rgba(0,18,35,.7)",
+            border:`1px solid ${BORDER_LO}`, borderRadius:12, padding:5, marginBottom:20,
+          }}>
+            {([
+              { id:"phone", label:"Phone Number", Icon: Smartphone },
+              { id:"qr",    label:"Scan QR Code", Icon: QrCode     },
+            ] as const).map(({ id, label, Icon }) => (
+              <button key={id} onClick={() => { setActiveTab(id); if (id === "qr" && !qrSessionId && !qrLoading) startQrPairing(); }}
+                style={{
+                  flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+                  padding:"10px 14px", borderRadius:9, border:"none", cursor:"pointer",
+                  fontFamily:MONO, fontSize:12, fontWeight:700, letterSpacing:1,
+                  transition:"all .2s",
+                  background: activeTab === id
+                    ? `linear-gradient(135deg, ${G}, ${G2})`
+                    : "transparent",
+                  color: activeTab === id ? "#000" : "rgba(0,212,255,.5)",
+                  boxShadow: activeTab === id ? `0 0 18px rgba(0,212,255,.25)` : "none",
+                }}>
+                <Icon size={14} />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* ── QR Panel ── */}
+          {activeTab === "qr" && (
+            <div style={{
+              width:"100%", background:"rgba(0,18,35,.75)",
+              border:`1px solid ${BORDER}`, borderRadius:20, padding:"28px 24px",
+              boxShadow:"0 4px 60px rgba(0,0,0,.5)",
+              marginBottom:28,
+            }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:18,
+                borderBottom:`1px solid ${BORDER_LO}`, paddingBottom:14 }}>
+                <QrCode size={15} color={G} />
+                <span style={{ color:G, fontSize:11, letterSpacing:3, textTransform:"uppercase" }}>
+                  Scan QR Code
+                </span>
+              </div>
+
+              {/* Loading */}
+              {qrLoading && (
+                <div style={{ textAlign:"center", padding:"32px 0" }}>
+                  <Loader2 size={36} color={G} style={{ animation:"spin 1s linear infinite", margin:"0 auto 12px" }} />
+                  <p style={{ color:G, fontSize:13 }}>Starting QR session...</p>
+                </div>
+              )}
+
+              {/* Error */}
+              {qrError && !qrLoading && (
+                <div style={{ textAlign:"center", padding:"20px 0" }}>
+                  <div style={{
+                    background:"rgba(127,29,29,.25)", border:"1px solid rgba(248,113,113,.3)",
+                    borderRadius:10, padding:"12px 16px", marginBottom:16, fontSize:13, color:"#f87171",
+                    display:"flex", alignItems:"flex-start", gap:8,
+                  }}>
+                    <AlertCircle size={14} style={{ marginTop:2, flexShrink:0 }} />
+                    {qrError}
+                  </div>
+                  <button onClick={startQrPairing} style={{
+                    display:"inline-flex", alignItems:"center", gap:7, padding:"11px 24px",
+                    background:`linear-gradient(135deg, ${G}, ${G2})`, color:"#000",
+                    fontFamily:MONO, fontWeight:700, fontSize:13, border:"none",
+                    borderRadius:10, cursor:"pointer",
+                  }}>
+                    <RefreshCw size={14} /> Try Again
+                  </button>
+                </div>
+              )}
+
+              {/* QR Code display */}
+              {!qrLoading && !qrError && qrCode && !qrStatus?.connected && (
+                <div style={{ textAlign:"center" }}>
+                  <p style={{ color:"rgba(0,212,255,.5)", fontSize:11, letterSpacing:2, marginBottom:16, textTransform:"uppercase" }}>
+                    Open WhatsApp → Menu → Linked Devices → Link a Device
+                  </p>
+                  <div style={{
+                    display:"inline-block", background:"#fff", padding:14,
+                    borderRadius:14, marginBottom:16,
+                    boxShadow:`0 0 40px rgba(0,212,255,.2)`,
+                    border:`2px solid rgba(0,212,255,.3)`,
+                  }}>
+                    <img src={qrCode} alt="WhatsApp QR Code" style={{ width:220, height:220, display:"block" }} />
+                  </div>
+                  <p style={{ color:"#475569", fontSize:12, marginBottom:8 }}>
+                    QR refreshes automatically every 30 seconds
+                  </p>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:5, fontSize:12, color:"#22c55e" }}>
+                    <span style={{ width:7, height:7, borderRadius:"50%", background:"#22c55e", animation:"pulse 1s infinite", display:"inline-block" }} />
+                    Waiting for scan...
+                  </div>
+                  <div style={{ marginTop:16 }}>
+                    <button onClick={resetQr} style={{
+                      padding:"9px 20px", background:"transparent",
+                      border:`1px solid rgba(255,255,255,.07)`, borderRadius:9,
+                      color:"#475569", fontFamily:MONO, fontSize:12, cursor:"pointer",
+                    }}>↺ Restart QR</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Waiting for QR (session started, no code yet) */}
+              {!qrLoading && !qrError && !qrCode && qrSessionId && !qrStatus?.connected && !qrStatus?.expired && (
+                <div style={{ textAlign:"center", padding:"24px 0" }}>
+                  <Loader2 size={28} color={G} style={{ animation:"spin 1s linear infinite", margin:"0 auto 10px" }} />
+                  <p style={{ color:G, fontSize:13 }}>Generating QR code...</p>
+                  <p style={{ color:"#475569", fontSize:12, marginTop:4 }}>This takes just a moment</p>
+                </div>
+              )}
+
+              {/* Connected via QR */}
+              {qrStatus?.connected && (
+                <div style={{ textAlign:"center" }}>
+                  <div style={{
+                    width:72, height:72, margin:"0 auto 14px",
+                    background:"rgba(0,212,255,.1)", border:`2px solid rgba(0,212,255,.5)`,
+                    borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+                    boxShadow:"0 0 40px rgba(0,212,255,.25)",
+                  }}>
+                    <ShieldCheck size={34} color={G} />
+                  </div>
+                  <h3 style={{ color:G, fontSize:20, fontWeight:700, margin:"0 0 6px" }}>WhatsApp Linked! 🎉</h3>
+                  <p style={{ color:"#64748b", fontSize:13, marginBottom:20 }}>Your bot is ready. Copy the session ID below.</p>
+
+                  {qrStatus.deploySessionId ? (
+                    <>
+                      <div style={{
+                        background:"rgba(0,0,0,.6)", borderRadius:10, padding:"10px 14px", marginBottom:12,
+                        wordBreak:"break-all", fontSize:11, color:"rgba(0,212,255,.8)", lineHeight:1.6,
+                        border:"1px solid rgba(0,212,255,.15)", textAlign:"left",
+                      }}>
+                        {qrStatus.deploySessionId.slice(0, 60)}…
+                      </div>
+                      <button onClick={copyQrSid} style={{
+                        width:"100%", padding:"14px",
+                        background: copiedQrSid ? "rgba(34,197,94,.15)" : `linear-gradient(135deg, ${G}, ${G2})`,
+                        color: copiedQrSid ? "#22c55e" : "#000",
+                        fontFamily:MONO, fontWeight:700, fontSize:14, letterSpacing:1,
+                        border: copiedQrSid ? "1px solid rgba(34,197,94,.4)" : "none",
+                        borderRadius:11, cursor:"pointer",
+                        display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                        boxShadow: copiedQrSid ? "none" : "0 0 30px rgba(0,212,255,.3)",
+                        transition:"all .25s",
+                      }}>
+                        {copiedQrSid ? <><CheckCircle2 size={17} /> SESSION ID COPIED!</> : <><Copy size={17} /> COPY SESSION ID</>}
+                      </button>
+                      <p style={{ color:"#334155", fontSize:11, marginTop:10 }}>Also sent to your WhatsApp as a .txt file</p>
+                    </>
+                  ) : (
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, color:G, fontSize:13 }}>
+                      <Loader2 size={18} style={{ animation:"spin 1s linear infinite" }} /> Generating Session ID...
+                    </div>
+                  )}
+
+                  <button onClick={resetQr} style={{
+                    width:"100%", marginTop:12, padding:"11px", background:"transparent",
+                    border:`1px solid rgba(255,255,255,.07)`, borderRadius:10,
+                    color:"#475569", fontFamily:MONO, fontSize:13, cursor:"pointer",
+                  }}>↺ Pair Another Device</button>
+                </div>
+              )}
+
+              {/* Expired */}
+              {qrStatus?.expired && !qrStatus?.connected && (
+                <div style={{ textAlign:"center", padding:"20px 0" }}>
+                  <p style={{ color:"#f87171", fontSize:13, marginBottom:14 }}>⏰ QR Code expired. Please try again.</p>
+                  <button onClick={() => { resetQr(); startQrPairing(); }} style={{
+                    display:"inline-flex", alignItems:"center", gap:7, padding:"11px 24px",
+                    background:`linear-gradient(135deg, ${G}, ${G2})`, color:"#000",
+                    fontFamily:MONO, fontWeight:700, fontSize:13, border:"none",
+                    borderRadius:10, cursor:"pointer",
+                  }}>
+                    <RefreshCw size={14} /> Generate New QR
+                  </button>
+                </div>
+              )}
+
+              {/* No session yet, not loading, not error */}
+              {!qrLoading && !qrError && !qrSessionId && (
+                <div style={{ textAlign:"center", padding:"24px 0" }}>
+                  <p style={{ color:"#475569", fontSize:13, marginBottom:16 }}>Click below to generate a QR code</p>
+                  <button onClick={startQrPairing} style={{
+                    display:"inline-flex", alignItems:"center", gap:7, padding:"13px 28px",
+                    background:`linear-gradient(135deg, ${G}, ${G2})`, color:"#000",
+                    fontFamily:MONO, fontWeight:700, fontSize:13, border:"none",
+                    borderRadius:11, cursor:"pointer",
+                    boxShadow:"0 0 25px rgba(0,212,255,.3)",
+                  }}>
+                    <QrCode size={16} /> Generate QR Code
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Form card — Phone tab only */}
+          {activeTab === "phone" && (
           <form onSubmit={submit} style={{
             width:"100%", background:"rgba(0,18,35,.75)",
             border:`1px solid ${BORDER}`, borderRadius:20,
@@ -454,6 +720,7 @@ export default function LinkPage() {
               ))}
             </div>
           </form>
+          )}
 
           {/* Deploy platforms */}
           <div style={{ marginTop:36 }}>
