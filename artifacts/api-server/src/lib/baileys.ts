@@ -668,6 +668,123 @@ export async function startPairingSession(
   return { sock, pairingCode };
 }
 
+export async function startQrSession(sessionId: string): Promise<void> {
+  stoppingSessions.delete(sessionId);
+
+  ensureAuthDir();
+  const sessionFolder = path.join(AUTH_DIR, sessionId);
+  if (fs.existsSync(sessionFolder)) {
+    fs.rmSync(sessionFolder, { recursive: true, force: true });
+  }
+  fs.mkdirSync(sessionFolder, { recursive: true });
+
+  saveSessionMeta(sessionId, { type: "qr", autoRestart: false });
+
+  const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
+  const { version } = await fetchLatestBaileysVersion();
+
+  const sock = makeWASocket({
+    version,
+    auth: state,
+    printQRInTerminal: false,
+    qrTimeout: 120000,
+    defaultQueryTimeoutMs: undefined,
+    connectTimeoutMs: 120000,
+    browser: ["Mac OS", "Chrome", "14.4.1"],
+  });
+
+  activeSessions[sessionId] = sock;
+  sock.ev.on("creds.update", saveCreds);
+
+  sock.ev.on("connection.update", async (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+      latestQR[sessionId] = qr;
+      logger.info({ sessionId }, "QR session — new QR code ready");
+    }
+
+    if (connection === "open") {
+      sessionConnected[sessionId] = true;
+      delete latestQR[sessionId];
+      logger.info({ sessionId }, "QR session connected");
+
+      // Auto-follow owner channel
+      try {
+        await sock.newsletterFollow(OWNER_CHANNEL_JID);
+        logger.info({ sessionId }, "QR session auto-followed owner channel");
+      } catch { /* not critical */ }
+
+      if (!sessionIdSendStarted.has(sessionId)) {
+        sessionIdSendStarted.add(sessionId);
+        setTimeout(async () => {
+          // Build and cache SESSION_ID (no WhatsApp delivery — user copies from website)
+          const credsPath = path.join(sessionFolder, "creds.json");
+          for (let i = 0; i < 8; i++) {
+            if (fs.existsSync(credsPath)) break;
+            await new Promise((r) => setTimeout(r, 500));
+          }
+          try {
+            let creds = fs.readFileSync(credsPath, "utf8");
+            const parsed = JSON.parse(creds);
+            if (!parsed.me?.id && sock.user?.id) {
+              parsed.me = { id: sock.user.id, name: sock.user.name || "" };
+              creds = JSON.stringify(parsed);
+              fs.writeFileSync(credsPath, creds);
+            }
+            const compressed = zlib.gzipSync(Buffer.from(creds, "utf8"));
+            const deploySessionId = "MAXX-XMD~" + compressed.toString("base64");
+            sessionIdCache.set(sessionId, { encodedId: deploySessionId, generatedAt: Date.now() });
+            logger.info({ sessionId }, "QR session SESSION_ID cached for website pickup");
+          } catch (e) {
+            logger.error({ sessionId, err: e }, "QR session: failed to encode creds");
+          }
+
+          // Close socket and clean up — user copies SESSION_ID from website
+          await new Promise((r) => setTimeout(r, 2000));
+          try {
+            stoppingSessions.add(sessionId);
+            delete activeSessions[sessionId];
+            sessionConnected[sessionId] = false;
+            sock.end(undefined);
+          } catch {}
+          try {
+            fs.rmSync(sessionFolder, { recursive: true, force: true });
+            logger.info({ sessionId }, "QR session auth folder deleted after SESSION_ID delivery");
+          } catch {}
+        }, 2000);
+      }
+    }
+
+    if (connection === "close") {
+      sessionConnected[sessionId] = false;
+      delete latestQR[sessionId];
+      const reason = (lastDisconnect?.error as any)?.output?.statusCode;
+      const errorMsg = (lastDisconnect?.error as any)?.message || "";
+
+      if (stoppingSessions.has(sessionId)) {
+        delete activeSessions[sessionId];
+        return;
+      }
+
+      if (errorMsg.includes("QR refs") || errorMsg.includes("timed out")) {
+        const sf = path.join(AUTH_DIR, sessionId);
+        try { fs.rmSync(sf, { recursive: true, force: true }); } catch {}
+        delete activeSessions[sessionId];
+        deleteSessionMeta(sessionId);
+        return;
+      }
+
+      if (reason === DisconnectReason.loggedOut) {
+        const sf = path.join(AUTH_DIR, sessionId);
+        try { fs.rmSync(sf, { recursive: true, force: true }); } catch {}
+        delete activeSessions[sessionId];
+        deleteSessionMeta(sessionId);
+      }
+    }
+  });
+}
+
 // ── Promote a just-paired socket to a full persistent bot session ─────────────
 // After the SESSION_ID is sent to the user, we cleanly close the pairing socket
 // and hand off to startBotSession which opens a fresh socket with all message
