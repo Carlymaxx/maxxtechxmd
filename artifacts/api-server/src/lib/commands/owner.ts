@@ -526,10 +526,103 @@ registerCommand({
 
 registerCommand({
   name: "update",
-  aliases: [],
+  aliases: ["upgrade", "checkupdate"],
   category: "Owner",
-  description: "Check for bot updates",
-  handler: async ({ reply }) => {
-    await reply("🔍 *Checking for updates...*\n\n✅ You are running *MAXX XMD v2.0.0*\n\n🔗 Check: https://github.com/Carlymaxx/maxxtechxmd");
+  ownerOnly: true,
+  description: "Check GitHub for new changes and auto-update the bot",
+  usage: ".update",
+  handler: async ({ reply, react }) => {
+    await react("🔍");
+    await reply("🔍 *Checking GitHub for updates...*");
+
+    const REPO = "Carlymaxx/maxxtechxmd";
+    const BRANCH = "main";
+
+    try {
+      // Fetch latest commits from GitHub (no auth needed for public repo)
+      const commitsRes = await fetch(
+        `https://api.github.com/repos/${REPO}/commits?sha=${BRANCH}&per_page=5`,
+        { headers: { "User-Agent": "MAXX-XMD-Bot", "Accept": "application/vnd.github.v3+json" } }
+      );
+
+      if (!commitsRes.ok) {
+        return reply(`❌ Could not reach GitHub (${commitsRes.status}). Check your internet connection.`);
+      }
+
+      const commits: any[] = await commitsRes.json();
+      if (!Array.isArray(commits) || commits.length === 0) {
+        return reply("❌ No commits found on GitHub.");
+      }
+
+      const latestSha = commits[0].sha as string;
+      const shortSha = latestSha.substring(0, 7);
+
+      // Build changelog from last 5 commits
+      const changelog = commits.map((c: any, i: number) => {
+        const msg = (c.commit?.message as string || "").split("\n")[0].substring(0, 60);
+        const date = new Date(c.commit?.author?.date || "").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        return `${i === 0 ? "🆕" : "📝"} *[${c.sha.substring(0, 7)}]* ${msg} _(${date})_`;
+      }).join("\n");
+
+      // Check if auto-deploy via Heroku API is available
+      const herokuKey = process.env.HEROKU_API_KEY;
+      const herokuApp = process.env.HEROKU_APP_NAME;
+
+      if (herokuKey && herokuApp) {
+        // Trigger a new Heroku build from latest GitHub commit
+        await reply(
+          `📦 *MAXX-XMD Update Available*\n\n` +
+          `*Latest commit:* \`${shortSha}\`\n\n` +
+          `*Recent changes:*\n${changelog}\n\n` +
+          `⚡ *Triggering auto-update on Heroku...*`
+        );
+
+        const buildRes = await fetch(`https://api.heroku.com/apps/${herokuApp}/builds`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${herokuKey}`,
+            "Accept": "application/vnd.heroku+json; version=3",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            source_blob: {
+              url: `https://codeload.github.com/${REPO}/legacy.tar.gz/refs/heads/${BRANCH}`,
+              version: latestSha,
+            },
+          }),
+        });
+
+        if (buildRes.ok) {
+          const build: any = await buildRes.json();
+          await reply(
+            `✅ *Update triggered successfully!*\n\n` +
+            `🔨 Build ID: \`${(build.id as string).substring(0, 8)}\`\n` +
+            `⏳ Your bot will restart with the latest code in ~2-3 minutes.\n\n` +
+            `🔗 Track: https://dashboard.heroku.com/apps/${herokuApp}/activity`
+          );
+        } else {
+          const err: any = await buildRes.json().catch(() => ({}));
+          await reply(
+            `⚠️ *Build trigger failed* (${buildRes.status})\n${err?.message || "Unknown error"}\n\n` +
+            `Redeploy manually from:\nhttps://dashboard.heroku.com/apps/${herokuApp}/deploy/github`
+          );
+        }
+      } else {
+        // No Heroku API key — just show the changelog and instructions
+        await reply(
+          `📦 *MAXX-XMD Latest Changes*\n\n` +
+          `*Latest commit:* \`${shortSha}\`\n\n` +
+          `*Recent changes:*\n${changelog}\n\n` +
+          `━━━━━━━━━━━━━━━━\n` +
+          `*To update your bot:*\n` +
+          `• *Heroku:* Dashboard → Deploy → Manual deploy → Deploy Branch\n` +
+          `• *Railway/Render/Koyeb:* Redeploy from your dashboard\n\n` +
+          `💡 *Tip:* Set HEROKU_API_KEY + HEROKU_APP_NAME in your config vars for one-command auto-updates!\n\n` +
+          `🔗 https://github.com/${REPO}`
+        );
+      }
+    } catch (e: any) {
+      await reply(`❌ Update check failed: ${e.message}`);
+    }
   },
 });
