@@ -1,5 +1,6 @@
 import os from "os";
 import { registerCommand, commandRegistry } from "./types";
+import { getLiveSessions } from "../botState";
 
 function ramBar(pct: number): string {
   const filled = Math.round(pct / 10);
@@ -478,6 +479,17 @@ registerCommand({
       const ownerName = settings.ownerName || "MAXX";
       const totalCmds = uniqueCmds.length;
 
+      // ── Live session feed ─────────────────────────────────────────────────
+      const liveSessions = getLiveSessions();
+      const liveCount = liveSessions.length;
+      const sessionLines = liveSessions.slice(0, 10).map((s, i) => {
+        const num = s.jid.split(":")[0].split("@")[0];
+        return `│ 🟢 Bot ${i + 1}: +${num}`;
+      }).join("\n");
+      const liveBlock = liveCount > 0
+        ? `╔══ 🤖 *LIVE BOTS* (${liveCount}) ══╗\n${sessionLines}\n╚${"═".repeat(24)}╝\n\n`
+        : "";
+
       let text =
         `╔══════════════════════════╗\n` +
         `║  ✨ *${botName} MENU* ✨\n` +
@@ -489,7 +501,8 @@ registerCommand({
         `🕒 *Time:* ${timeStr}  📅 ${dateStr}\n` +
         `⏱️ *Uptime:* ${hours}h ${mins}m\n` +
         `💾 *RAM:* ${usedMem}MB / ${totalMem}MB\n` +
-        `📦 *Commands:* ${totalCmds} total\n\n`;
+        `📦 *Commands:* ${totalCmds} total\n\n` +
+        liveBlock;
 
       // Build each category section in order
       const orderedCats = [
