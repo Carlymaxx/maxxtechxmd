@@ -1,1 +1,1 @@
-web: node --enable-source-maps artifacts/api-server/dist/index.mjs
+web: node --enable-source-maps --max-old-space-size=400 --expose-gc artifacts/api-server/dist/index.mjs
