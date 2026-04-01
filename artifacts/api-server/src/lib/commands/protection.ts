@@ -9,24 +9,23 @@ if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 const GS_FILE = path.join(DATA_DIR, "groupsettings.json");
 const WARN_FILE = path.join(DATA_DIR, "warnings.json");
 
-function loadGS(): Record<string, any> {
-  try { return JSON.parse(fs.readFileSync(GS_FILE, "utf8")); } catch { return {}; }
-}
-function saveGS(d: Record<string, any>) { fs.writeFileSync(GS_FILE, JSON.stringify(d, null, 2)); }
-function loadWarns(): Record<string, Record<string, number>> {
-  try { return JSON.parse(fs.readFileSync(WARN_FILE, "utf8")); } catch { return {}; }
-}
-function saveWarns(d: Record<string, Record<string, number>>) { fs.writeFileSync(WARN_FILE, JSON.stringify(d, null, 2)); }
+// ── Load ONCE at startup — no repeated disk reads ─────────────────────────────
+let _gs: Record<string, any> = {};
+let _warns: Record<string, Record<string, number>> = {};
+try { _gs = JSON.parse(fs.readFileSync(GS_FILE, "utf8")); } catch {}
+try { _warns = JSON.parse(fs.readFileSync(WARN_FILE, "utf8")); } catch {}
+
+function saveGS() { try { fs.writeFileSync(GS_FILE, JSON.stringify(_gs)); } catch {} }
+function saveWarns() { try { fs.writeFileSync(WARN_FILE, JSON.stringify(_warns)); } catch {} }
 
 // ── Export functions for middleware use ────────────────────────────────────────
 export function getGroupSettings(groupJid: string) {
-  return loadGS()[groupJid] || {};
+  return _gs[groupJid] || {};
 }
 export function setGroupSetting(groupJid: string, key: string, value: any) {
-  const gs = loadGS();
-  if (!gs[groupJid]) gs[groupJid] = {};
-  gs[groupJid][key] = value;
-  saveGS(gs);
+  if (!_gs[groupJid]) _gs[groupJid] = {};
+  _gs[groupJid][key] = value;
+  saveGS();
 }
 
 // ── Toggle helper ─────────────────────────────────────────────────────────────
@@ -121,17 +120,16 @@ registerCommand({
       || (msg as any).message?.extendedTextMessage?.contextInfo?.participant;
     if (!mentioned) return reply(`❓ Usage: .warn @user [reason]\nExample: .warn @user spamming${FOOTER}`);
     const reason = args.slice(1).join(" ") || "No reason given";
-    const warns = loadWarns();
-    if (!warns[from]) warns[from] = {};
-    warns[from][mentioned] = (warns[from][mentioned] || 0) + 1;
-    const count = warns[from][mentioned];
-    saveWarns(warns);
+    if (!_warns[from]) _warns[from] = {};
+    _warns[from][mentioned] = (_warns[from][mentioned] || 0) + 1;
+    const count = _warns[from][mentioned];
+    saveWarns();
     const name = groupMetadata?.participants?.find((p: any) => p.id === mentioned)?.name || mentioned.split("@")[0];
     if (count >= 3) {
       await reply(`⚠️ *@${mentioned.split("@")[0]}* has been warned *${count}/3* times.\n🚫 Auto-kicking for exceeding warn limit!\n📝 Reason: ${reason}${FOOTER}`);
       try { await sock.groupParticipantsUpdate(from, [mentioned], "remove"); } catch {}
-      warns[from][mentioned] = 0;
-      saveWarns(warns);
+      _warns[from][mentioned] = 0;
+      saveWarns();
     } else {
       await reply(`⚠️ *Warning ${count}/3* issued to @${mentioned.split("@")[0]}\n📝 Reason: ${reason}\n\n_3 warnings = automatic kick_${FOOTER}`);
     }
@@ -145,7 +143,7 @@ registerCommand({
   description: "List all warnings in this group",
   groupOnly: true,
   handler: async ({ from, reply }) => {
-    const warns = loadWarns()[from] || {};
+    const warns = _warns[from] || {};
     const entries = Object.entries(warns).filter(([, v]) => (v as number) > 0);
     if (!entries.length) return reply(`✅ No active warnings in this group.${FOOTER}`);
     const list = entries.map(([jid, count]) => `• @${jid.split("@")[0]}: ${count}/3 warns`).join("\n");
@@ -162,9 +160,8 @@ registerCommand({
   handler: async ({ from, msg, reply }) => {
     const mentioned = (msg as any).message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
     if (!mentioned) return reply(`❓ Usage: .clearwarn @user${FOOTER}`);
-    const warns = loadWarns();
-    if (warns[from]) delete warns[from][mentioned];
-    saveWarns(warns);
+    if (_warns[from]) delete _warns[from][mentioned];
+    saveWarns();
     await reply(`✅ Warnings cleared for @${mentioned.split("@")[0]}${FOOTER}`);
   },
 });
@@ -176,9 +173,8 @@ registerCommand({
   description: "Clear ALL warnings in this group",
   groupOnly: true,
   handler: async ({ from, reply }) => {
-    const warns = loadWarns();
-    delete warns[from];
-    saveWarns(warns);
+    delete _warns[from];
+    saveWarns();
     await reply(`✅ All warnings cleared in this group.${FOOTER}`);
   },
 });
@@ -227,11 +223,10 @@ registerCommand({
   handler: async ({ from, args, reply }) => {
     const word = args[0]?.toLowerCase();
     if (!word) return reply(`❓ Usage: .addbadword <word>`);
-    const gs = loadGS();
-    if (!gs[from]) gs[from] = {};
-    if (!gs[from].badwordList) gs[from].badwordList = [];
-    if (!gs[from].badwordList.includes(word)) gs[from].badwordList.push(word);
-    saveGS(gs);
+    if (!_gs[from]) _gs[from] = {};
+    if (!_gs[from].badwordList) _gs[from].badwordList = [];
+    if (!_gs[from].badwordList.includes(word)) _gs[from].badwordList.push(word);
+    saveGS();
     await reply(`✅ Added *"${word}"* to the filter list.${FOOTER}`);
   },
 });
@@ -245,10 +240,9 @@ registerCommand({
   handler: async ({ from, args, reply }) => {
     const word = args[0]?.toLowerCase();
     if (!word) return reply(`❓ Usage: .removebadword <word>`);
-    const gs = loadGS();
-    if (gs[from]?.badwordList) {
-      gs[from].badwordList = gs[from].badwordList.filter((w: string) => w !== word);
-      saveGS(gs);
+    if (_gs[from]?.badwordList) {
+      _gs[from].badwordList = _gs[from].badwordList.filter((w: string) => w !== word);
+      saveGS();
     }
     await reply(`✅ Removed *"${word}"* from filter list.${FOOTER}`);
   },
