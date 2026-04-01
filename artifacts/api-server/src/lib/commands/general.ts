@@ -337,7 +337,7 @@ registerCommand({
 Include country code, no + or spaces.
 
 🌐 *Or use web pairing:*
-https://www.maxxtech.co.ke
+https://pair.maxxtech.co.ke
 
 > _MAXX-XMD_ ⚡`);
     }
@@ -379,7 +379,7 @@ Please wait up to 30 seconds...`);
       await reply(`❌ Failed to generate pairing code.
 
 Try the web method instead:
-🌐 https://www.maxxtech.co.ke
+🌐 https://pair.maxxtech.co.ke
 
 Error: ${e.message?.slice(0, 100) || "Unknown"}`);
     }
