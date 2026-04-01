@@ -27,6 +27,16 @@
       "required": false,
       "value": "."
     },
+    "WORK_MODE": {
+      "description": "Bot mode: public (everyone can use) or private (owner only)",
+      "required": false,
+      "value": "public"
+    },
+    "AUTO_VIEW_STATUS": {
+      "description": "Automatically view status updates from contacts",
+      "required": false,
+      "value": "true"
+    },
     "AUTO_LIKE_STATUS": {
       "description": "Automatically like status updates from contacts",
       "required": false,
@@ -36,6 +46,26 @@
       "description": "Automatically react to status updates",
       "required": false,
       "value": "true"
+    },
+    "AUTO_READ": {
+      "description": "Automatically mark messages as read",
+      "required": false,
+      "value": "false"
+    },
+    "AUTO_TYPING": {
+      "description": "Show typing indicator when the bot is processing a command",
+      "required": false,
+      "value": "true"
+    },
+    "WELCOME_MSG": {
+      "description": "Send a welcome message when a new member joins a group",
+      "required": false,
+      "value": "true"
+    },
+    "ANTI_SPAM": {
+      "description": "Automatically block spam accounts that message the bot",
+      "required": false,
+      "value": "false"
     },
     "ANTICALL": {
       "description": "Reject incoming calls automatically",
