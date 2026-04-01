@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# pnpm lockfile — excluded so Heroku buildpack uses npm (postbuild installs pnpm)
+pnpm-lock.yaml
