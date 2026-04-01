@@ -34,6 +34,15 @@ interface LiveStats {
   totalPairings: number;
   commandCount: number;
   uptimeFormatted: string;
+  activeUsers: number;
+}
+
+interface ActiveUser {
+  jid: string;
+  name: string;
+  phone: string;
+  lastSeen: number;
+  msgCount: number;
 }
 
 const SOCIALS = [
@@ -63,6 +72,7 @@ export default function LinkPage() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedSid, setCopiedSid]   = useState(false);
   const [liveStats, setLiveStats]   = useState<LiveStats | null>(null);
+  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // ── Tab ──
@@ -138,9 +148,20 @@ export default function LinkPage() {
         if (res.ok) setLiveStats(await res.json());
       } catch {}
     }
+    async function fetchUsers() {
+      try {
+        const res = await fetch(`${apiBase}/api/active-users`);
+        if (res.ok) {
+          const d = await res.json();
+          setActiveUsers(d.users || []);
+        }
+      } catch {}
+    }
     fetchStats();
-    const interval = setInterval(fetchStats, 30_000);
-    return () => clearInterval(interval);
+    fetchUsers();
+    const si = setInterval(fetchStats, 30_000);
+    const ui = setInterval(fetchUsers, 15_000);
+    return () => { clearInterval(si); clearInterval(ui); };
   }, []);
 
   const pairMut = useRequestPairing({
@@ -260,6 +281,18 @@ export default function LinkPage() {
           </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          {liveStats !== null && (
+            <div style={{
+              display:"flex", alignItems:"center", gap:5, fontSize:11,
+              color:"#22c55e", background:"rgba(34,197,94,.08)",
+              border:"1px solid rgba(34,197,94,.25)", borderRadius:7, padding:"5px 11px",
+              fontFamily: MONO,
+            }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", display:"inline-block", animation:"pulse 2s infinite" }} />
+              <Users size={11} color="#22c55e" />
+              {liveStats.activeUsers ?? 0} users
+            </div>
+          )}
           <a href="https://github.com/Carlymaxx/maxxtechxmd" target="_blank" rel="noopener noreferrer"
             style={{
               display:"flex", alignItems:"center", gap:5, fontSize:11,
@@ -338,63 +371,84 @@ export default function LinkPage() {
             </div>
           </div>
 
-          {/* Live stats bar */}
-          <div style={{
-            display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8, marginBottom:24,
-          }}>
-            {/* Active right now */}
-            <div className="stat-card" style={{
-              background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
-              borderRadius:12, padding:"14px 8px", textAlign:"center", position:"relative",
-            }}>
-              {liveStats !== null && (
-                <span style={{
-                  position:"absolute", top:6, right:7,
-                  width:6, height:6, borderRadius:"50%",
-                  background:"#22c55e", animation:"pulse 2s infinite",
-                }} />
-              )}
-              <Activity size={16} color={G} style={{ margin:"0 auto 6px" }} />
-              <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>
-                {liveStats === null ? "—" : liveStats.activePairings}
+          {/* Live stats bar — 3 cols top row, 2 cols bottom row */}
+          <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:24 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
+              {/* Active right now */}
+              <div className="stat-card" style={{
+                background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
+                borderRadius:12, padding:"14px 8px", textAlign:"center", position:"relative",
+              }}>
+                {liveStats !== null && (
+                  <span style={{
+                    position:"absolute", top:6, right:7,
+                    width:6, height:6, borderRadius:"50%",
+                    background:"#22c55e", animation:"pulse 2s infinite",
+                  }} />
+                )}
+                <Activity size={16} color={G} style={{ margin:"0 auto 6px" }} />
+                <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>
+                  {liveStats === null ? "—" : liveStats.activePairings}
+                </div>
+                <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Active Now</div>
               </div>
-              <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Active Now</div>
+
+              {/* Bot users — highlighted */}
+              <div className="stat-card" style={{
+                background:"rgba(34,197,94,.06)", border:"1px solid rgba(34,197,94,.25)",
+                borderRadius:12, padding:"14px 8px", textAlign:"center", position:"relative",
+              }}>
+                {liveStats !== null && (liveStats.activeUsers ?? 0) > 0 && (
+                  <span style={{
+                    position:"absolute", top:6, right:7,
+                    width:6, height:6, borderRadius:"50%",
+                    background:"#22c55e", animation:"pulse 1.5s infinite",
+                  }} />
+                )}
+                <Users size={16} color="#22c55e" style={{ margin:"0 auto 6px" }} />
+                <div style={{ color:"#22c55e", fontWeight:700, fontSize:16, letterSpacing:1 }}>
+                  {liveStats === null ? "—" : (liveStats.activeUsers ?? 0)}
+                </div>
+                <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Bot Users</div>
+              </div>
+
+              {/* Total sessions since boot */}
+              <div className="stat-card" style={{
+                background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
+                borderRadius:12, padding:"14px 8px", textAlign:"center",
+              }}>
+                <Bot size={16} color={G} style={{ margin:"0 auto 6px" }} />
+                <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>
+                  {liveStats === null ? "—" : liveStats.totalPairings}
+                </div>
+                <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Sessions</div>
+              </div>
             </div>
 
-            {/* Total sessions since boot */}
-            <div className="stat-card" style={{
-              background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
-              borderRadius:12, padding:"14px 8px", textAlign:"center",
-            }}>
-              <Users size={16} color={G} style={{ margin:"0 auto 6px" }} />
-              <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>
-                {liveStats === null ? "—" : liveStats.totalPairings}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(2,1fr)", gap:8 }}>
+              {/* Real command count */}
+              <div className="stat-card" style={{
+                background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
+                borderRadius:12, padding:"14px 8px", textAlign:"center",
+              }}>
+                <Command size={16} color={G} style={{ margin:"0 auto 6px" }} />
+                <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>
+                  {liveStats === null ? "—" : liveStats.commandCount}
+                </div>
+                <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Commands</div>
               </div>
-              <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Sessions</div>
-            </div>
 
-            {/* Real command count */}
-            <div className="stat-card" style={{
-              background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
-              borderRadius:12, padding:"14px 8px", textAlign:"center",
-            }}>
-              <Command size={16} color={G} style={{ margin:"0 auto 6px" }} />
-              <div style={{ color:"#fff", fontWeight:700, fontSize:16, letterSpacing:1 }}>
-                {liveStats === null ? "—" : liveStats.commandCount}
+              {/* Server uptime */}
+              <div className="stat-card" style={{
+                background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
+                borderRadius:12, padding:"14px 8px", textAlign:"center",
+              }}>
+                <Clock size={16} color={G} style={{ margin:"0 auto 6px" }} />
+                <div style={{ color:"#fff", fontWeight:700, fontSize:15, letterSpacing:1 }}>
+                  {liveStats === null ? "—" : liveStats.uptimeFormatted}
+                </div>
+                <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Uptime</div>
               </div>
-              <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Commands</div>
-            </div>
-
-            {/* Server uptime */}
-            <div className="stat-card" style={{
-              background:"rgba(0,18,35,.7)", border:`1px solid ${BORDER_LO}`,
-              borderRadius:12, padding:"14px 8px", textAlign:"center",
-            }}>
-              <Clock size={16} color={G} style={{ margin:"0 auto 6px" }} />
-              <div style={{ color:"#fff", fontWeight:700, fontSize:15, letterSpacing:1 }}>
-                {liveStats === null ? "—" : liveStats.uptimeFormatted}
-              </div>
-              <div style={{ color:"#475569", fontSize:10, letterSpacing:1, marginTop:2 }}>Uptime</div>
             </div>
           </div>
 
@@ -412,6 +466,82 @@ export default function LinkPage() {
                 <span style={{ color:"#94a3b8", fontSize:11 }}>{s.label}</span>
               </a>
             ))}
+          </div>
+
+          {/* ── ACTIVE BOT USERS PANEL ── */}
+          <div style={{
+            width:"100%", background:"rgba(0,18,35,.75)",
+            border:`1px solid rgba(34,197,94,.2)`, borderRadius:16,
+            padding:"18px 20px", marginBottom:28,
+          }}>
+            <div style={{
+              display:"flex", alignItems:"center", justifyContent:"space-between",
+              marginBottom:14, paddingBottom:12, borderBottom:"1px solid rgba(34,197,94,.1)",
+            }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{
+                  width:8, height:8, borderRadius:"50%", background:"#22c55e",
+                  display:"inline-block", animation:"pulse 2s infinite",
+                }} />
+                <span style={{ color:"#22c55e", fontSize:11, letterSpacing:3, textTransform:"uppercase" }}>
+                  Active Bot Users
+                </span>
+              </div>
+              <span style={{
+                background:"rgba(34,197,94,.12)", border:"1px solid rgba(34,197,94,.25)",
+                color:"#22c55e", fontSize:11, fontWeight:700,
+                padding:"2px 10px", borderRadius:20, letterSpacing:1,
+              }}>
+                {activeUsers.length} / {liveStats?.activeUsers ?? 0} total
+              </span>
+            </div>
+
+            {activeUsers.length === 0 ? (
+              <div style={{ textAlign:"center", padding:"20px 0", color:"#475569", fontSize:12 }}>
+                <Users size={28} color="#1e3a2f" style={{ margin:"0 auto 8px" }} />
+                <p style={{ margin:0 }}>No users yet — they'll appear here once someone messages the bot.</p>
+              </div>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:6, maxHeight:240, overflowY:"auto" }}>
+                {activeUsers.slice(0, 10).map((u) => {
+                  const minsAgo = Math.floor((Date.now() - u.lastSeen) / 60000);
+                  const timeStr = minsAgo < 1 ? "just now" : minsAgo < 60 ? `${minsAgo}m ago` : `${Math.floor(minsAgo/60)}h ago`;
+                  const initials = u.name.slice(0, 2).toUpperCase();
+                  return (
+                    <div key={u.jid} style={{
+                      display:"flex", alignItems:"center", gap:12,
+                      padding:"8px 10px", borderRadius:10,
+                      background:"rgba(34,197,94,.04)", border:"1px solid rgba(34,197,94,.1)",
+                    }}>
+                      <div style={{
+                        width:34, height:34, borderRadius:"50%", flexShrink:0,
+                        background:`linear-gradient(135deg, rgba(0,212,255,.2), rgba(34,197,94,.2))`,
+                        border:"1px solid rgba(34,197,94,.3)",
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        fontSize:12, fontWeight:700, color:"#22c55e",
+                      }}>{initials}</div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ color:"#e2e8f0", fontSize:12, fontWeight:700, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                          {u.name}
+                        </div>
+                        <div style={{ color:"#475569", fontSize:10, marginTop:2 }}>
+                          +{u.phone}
+                        </div>
+                      </div>
+                      <div style={{ textAlign:"right", flexShrink:0 }}>
+                        <div style={{ color:"#22c55e", fontSize:10 }}>{timeStr}</div>
+                        <div style={{ color:"#475569", fontSize:10, marginTop:2 }}>{u.msgCount} msgs</div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {activeUsers.length > 10 && (
+                  <div style={{ textAlign:"center", color:"#475569", fontSize:11, paddingTop:4 }}>
+                    +{activeUsers.length - 10} more users
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* ── Method tabs ── */}

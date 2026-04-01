@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { sessionIdCache, activeSessions } from "../lib/baileys.js";
+import { activeUsersMap } from "../lib/commands.js";
 
 const router: IRouter = Router();
 
@@ -33,6 +34,7 @@ router.get("/", (_req, res) => {
     commandCount: COMMAND_COUNT,
     uptimeSeconds,
     uptimeFormatted: formatUptime(uptimeSeconds),
+    activeUsers: activeUsersMap.size,
   });
 });
 

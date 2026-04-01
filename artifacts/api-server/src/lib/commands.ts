@@ -5,6 +5,16 @@ import { logger } from "./logger.js";
 import fs from "fs";
 import path from "path";
 
+// ── Active user tracker ───────────────────────────────────────────────────────
+export interface ActiveUserEntry {
+  jid: string;
+  name: string;
+  phone: string;
+  lastSeen: number;
+  msgCount: number;
+}
+export const activeUsersMap = new Map<string, ActiveUserEntry>();
+
 // ── Sticker cache — built once, reused for every auto-react ──────────────────
 const BOT_STICKER_URL = "https://i.postimg.cc/YSXgK0Wb/Whats-App-Image-2025-11-22-at-08-20-26.jpg";
 let _cachedSticker: Buffer | null = null;
@@ -1263,6 +1273,20 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
   // bot; allow it everywhere (groups AND DMs) so commands work in all chats.
   if (msg.key.fromMe && !body.startsWith(settings.prefix || ".")) return;
   const prefix = settings.prefix || ".";
+
+  // ── Track every non-bot sender as an active user ──────────────────────────
+  if (!msg.key.fromMe) {
+    const phone = sender.replace("@s.whatsapp.net", "").replace(/[^0-9]/g, "");
+    const name = (msg.pushName as string | undefined)?.trim() || phone;
+    const existing = activeUsersMap.get(sender);
+    activeUsersMap.set(sender, {
+      jid: sender,
+      name,
+      phone,
+      lastSeen: Date.now(),
+      msgCount: (existing?.msgCount ?? 0) + 1,
+    });
+  }
 
   // Auto-read
   if (settings.autoread) {

@@ -6,6 +6,7 @@ import pairingRouter from "./pairing.js";
 import qrPairingRouter from "./qrPairing.js";
 import settingsRouter from "./settings.js";
 import statsRouter from "./stats.js";
+import activeUsersRouter from "./active-users.js";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use("/pair", pairingRouter);
 router.use("/qr-pair", qrPairingRouter);
 router.use("/settings", settingsRouter);
 router.use("/stats", statsRouter);
+router.use("/active-users", activeUsersRouter);
 
 export default router;
