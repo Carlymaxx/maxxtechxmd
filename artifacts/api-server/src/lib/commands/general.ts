@@ -842,23 +842,25 @@ registerCommand({
   description: "Silently wipe all chat history — no message, no box, just clean",
   handler: async ({ sock, from, msg }) => {
     try {
-      // 1. Silently delete the command message itself
+      // 1. Delete the command message itself (silent)
       try { await sock.sendMessage(from, { delete: msg.key }); } catch {}
 
-      // 2. Full chat clear on bot's WhatsApp (removes all messages from bot's view)
+      // 2. Wipe entire chat history from bot's WhatsApp — all messages, all time
       try { await (sock as any).chatModify({ clear: true }, from); } catch {}
-
-      // 3. Reset notification state
+      // Also archive then unarchive to force a full reset of chat state
+      try { await (sock as any).chatModify({ archive: true }, from); } catch {}
+      try { await (sock as any).chatModify({ archive: false }, from); } catch {}
+      // Mark as read to clear notification badge
       try { await (sock as any).chatModify({ markRead: true }, from); } catch {}
 
-      // 4. Send a completely invisible message (zero-width spaces only, 500 lines)
-      //    This visually pushes all old messages off-screen on the other side
-      const invisible = "\u200b\u200c\u200d\uFEFF".repeat(10) + "\n";
-      const ghost = invisible.repeat(500);
+      // 3. Send a completely invisible ghost message (2000 lines of zero-width chars)
+      //    Pushes ALL old messages far off-screen on both sides
+      const invisible = "\u200b\u200c\u200d\uFEFF".repeat(8) + "\n";
+      const ghost = invisible.repeat(2000);
       const ghostMsg = await sock.sendMessage(from, { text: ghost });
 
-      // 5. Immediately delete the invisible message too — leaves chat 100% blank
-      await new Promise(r => setTimeout(r, 800));
+      // 4. Delete the invisible message — chat looks completely empty
+      await new Promise(r => setTimeout(r, 900));
       if (ghostMsg?.key) {
         try { await sock.sendMessage(from, { delete: ghostMsg.key }); } catch {}
       }
