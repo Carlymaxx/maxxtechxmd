@@ -1035,7 +1035,7 @@ registerCommand({
       `• 10+ AI content generators\n` +
       `• Reaction GIF system\n\n` +
       `*v1.0*\n` +
-      `• Initial 150+ commands\n` +
+      `• Initial 580+ commands\n` +
       `• Photo generation (AI + Unsplash)\n` +
       `• Music & video download\n` +
       `• Group management\n` +

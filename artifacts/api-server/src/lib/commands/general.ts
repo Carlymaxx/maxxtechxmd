@@ -47,7 +47,8 @@ registerCommand({
 ⏰ *Uptime:* ${h}h ${m}m ${s}s
 💾 *RAM:* ${usedMB}MB / ${totalMB}MB [${pct}%]
 ${bar}
-📦 *Version:* 2.0.0
+📦 *Version:* 3.0.0
+🌍 *Website:* www.maxxtech.co.ke
 🟢 *Status:* Active & Running
 
 `;
@@ -158,8 +159,8 @@ registerCommand({
       `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
       `💻 *GitHub (Source Code):*\n` +
       `https://github.com/Carlymaxx/maxxtechxmd\n\n` +
-      `🌍 *Pairing Website:*\n` +
-      `https://pair.maxxtech.co.ke\n\n` +
+      `🌍 *Website:*\n` +
+      `https://www.maxxtech.co.ke\n\n` +
       `> _⭐ Star us on GitHub — it helps a lot!_ ⚡`;
     await sock.sendMessage(from, { text }, { quoted: msg });
     await sock.sendMessage(from, {
@@ -262,7 +263,9 @@ registerCommand({
 Include country code, no + or spaces.
 
 🌐 *Or use web pairing:*
-https://pair.maxxtech.co.ke`);
+https://www.maxxtech.co.ke
+
+> _MAXX-XMD_ ⚡`);
     }
 
     await reply(`╔══════════════════════╗
@@ -302,7 +305,7 @@ Please wait up to 30 seconds...`);
       await reply(`❌ Failed to generate pairing code.
 
 Try the web method instead:
-🌐 https://pair.maxxtech.co.ke
+🌐 https://www.maxxtech.co.ke
 
 Error: ${e.message?.slice(0, 100) || "Unknown"}`);
     }
@@ -323,19 +326,22 @@ registerCommand({
 👑 *Owner:* ${settings.ownerName}
 📌 *Prefix:* ${settings.prefix}
 🌐 *Mode:* ${settings.mode}
-📦 *Version:* 2.0.0
+📦 *Version:* 3.0.0
 ⚡ *Uptime:* ${uptime()}
 🛠️ *Platform:* Node.js / Baileys
 
 📋 *Features:*
-• 1150+ Commands
+• 580+ Commands
 • Group Management
 • Auto-Reply & AI Chat
 • Media Downloads
 • Sports Updates
 • Fun & Games
 
-🔗 *Repo:* github.com/Carlymaxx/maxxtechxmd`);
+🔗 *Repo:* github.com/Carlymaxx/maxxtechxmd
+🌍 *Website:* www.maxxtech.co.ke
+
+> _MAXX-XMD_ ⚡`);
   },
 });
 
@@ -758,16 +764,18 @@ registerCommand({
   name: "clearchat",
   aliases: ["clear"],
   category: "General",
-  description: "Clear the current chat",
-  handler: async ({ sock, from, msg, reply }) => {
+  description: "Clear the current chat by pushing messages out of view",
+  handler: async ({ sock, from, msg }) => {
     try {
-      await sock.chatModify(
-        { delete: true, lastMessages: [{ key: msg.key, messageTimestamp: (msg as any).messageTimestamp }] },
-        from
-      );
-      await reply("🧹 Chat cleared!");
+      // Delete the .clear command message itself
+      try { await sock.sendMessage(from, { delete: msg.key }); } catch {}
+      // Push old messages out of view with zero-width space padding
+      const padding = "\u200b\n".repeat(40);
+      await sock.sendMessage(from, {
+        text: `${padding}╔═══════════════════╗\n║  🧹 *CHAT CLEARED*  ║\n╚═══════════════════╝\n\n> _MAXX-XMD_ ⚡`,
+      });
     } catch {
-      await reply("❌ Could not clear chat. Bot may not have permission here.");
+      await sock.sendMessage(from, { text: "❌ Could not clear chat.\n\n> _MAXX-XMD_ ⚡" });
     }
   },
 });
@@ -778,12 +786,17 @@ registerCommand({
   category: "General",
   description: "Show bot version",
   handler: async ({ settings, reply }) => {
-    await reply(`🤖 *MAXX-XMD Bot*
+    await reply(`╔══════════════════════╗
+║  🤖 *MAXX-XMD v3.0.0*  ║
+╚══════════════════════╝
 
-📦 *Version:* 2.0.0
+📦 *Version:* 3.0.0
 👑 *Owner:* ${settings.ownerName}
 🛠️ *Platform:* Node.js / Baileys
-🔧 *Commands:* 150+
-🌐 *Repo:* github.com/Carlymaxx/maxxtechxmd`);
+🔧 *Commands:* 580+
+🌍 *Website:* www.maxxtech.co.ke
+🔗 *GitHub:* github.com/Carlymaxx/maxxtechxmd
+
+> _MAXX-XMD_ ⚡`);
   },
 });
