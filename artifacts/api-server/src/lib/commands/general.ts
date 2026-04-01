@@ -839,36 +839,30 @@ registerCommand({
   name: "clearchat",
   aliases: ["clear", "clr", "chatclear"],
   category: "General",
-  description: "Nuke the chat — wipes all history and starts completely fresh",
+  description: "Silently wipe all chat history — no message, no box, just clean",
   handler: async ({ sock, from, msg }) => {
     try {
-      // 1. Delete the triggering command message
+      // 1. Silently delete the command message itself
       try { await sock.sendMessage(from, { delete: msg.key }); } catch {}
 
-      // 2. Full chat clear on bot's device (removes all messages from memory)
+      // 2. Full chat clear on bot's WhatsApp (removes all messages from bot's view)
       try { await (sock as any).chatModify({ clear: true }, from); } catch {}
 
-      // 3. Also mark chat as unread then read to reset notification state
-      try { await (sock as any).chatModify({ markRead: false }, from); } catch {}
+      // 3. Reset notification state
       try { await (sock as any).chatModify({ markRead: true }, from); } catch {}
 
-      // 4. Massive zero-width padding — visually pushes ALL old messages far off-screen
-      const ZWSP = "\u200b";
-      const padding = `${ZWSP}\n`.repeat(500);
+      // 4. Send a completely invisible message (zero-width spaces only, 500 lines)
+      //    This visually pushes all old messages off-screen on the other side
+      const invisible = "\u200b\u200c\u200d\uFEFF".repeat(10) + "\n";
+      const ghost = invisible.repeat(500);
+      const ghostMsg = await sock.sendMessage(from, { text: ghost });
 
-      await sock.sendMessage(from, {
-        text:
-          `${padding}` +
-          `╔══════════════════════════╗\n` +
-          `║  🧹 *FRESH START* 🧹\n` +
-          `╚══════════════════════════╝\n\n` +
-          `✅ *Chat has been cleared!*\n\n` +
-          `Everything above this message\nhas been wiped. You're starting\nfresh right here 🚀\n\n` +
-          `> _MAXX-XMD_ ⚡`,
-      });
-    } catch {
-      await sock.sendMessage(from, { text: "❌ Could not clear chat.\n\n> _MAXX-XMD_ ⚡" });
-    }
+      // 5. Immediately delete the invisible message too — leaves chat 100% blank
+      await new Promise(r => setTimeout(r, 800));
+      if (ghostMsg?.key) {
+        try { await sock.sendMessage(from, { delete: ghostMsg.key }); } catch {}
+      }
+    } catch { /* fail silently */ }
   },
 });
 
