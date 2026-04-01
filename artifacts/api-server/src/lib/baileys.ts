@@ -6,7 +6,7 @@ import makeWASocket, {
   downloadMediaMessage,
 } from "@whiskeysockets/baileys";
 import { handleMessage } from "./commands.js";
-import { WORKSPACE_ROOT, registerLiveSession, unregisterLiveSession } from "./botState.js";
+import { WORKSPACE_ROOT, registerLiveSession, unregisterLiveSession, recordActivity } from "./botState.js";
 import fs from "fs";
 import path from "path";
 import zlib from "zlib";
@@ -223,18 +223,9 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         } catch { /* silently skip react errors */ }
       }
 
-      // ── Activity tracking for .rank / .inactive ──────────────────────────
+      // ── Activity tracking for .rank / .inactive (in-memory, zero disk) ──
       if (from.endsWith("@g.us") && !msg.key.fromMe && msg.key.participant) {
-        try {
-          const activityFile = path.join(WORKSPACE_ROOT, "activity.json");
-          let activity: Record<string, Record<string, { count: number; lastSeen: number }>> = {};
-          try { activity = JSON.parse(fs.readFileSync(activityFile, "utf8")); } catch {}
-          if (!activity[from]) activity[from] = {};
-          const userId = msg.key.participant;
-          const prev = activity[from][userId] || { count: 0, lastSeen: 0 };
-          activity[from][userId] = { count: prev.count + 1, lastSeen: Date.now() };
-          fs.writeFileSync(activityFile, JSON.stringify(activity));
-        } catch { /* non-critical */ }
+        recordActivity(from, msg.key.participant);
       }
 
       try {
@@ -296,27 +287,7 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         if (cleaned > 0) logger.info({ cleaned }, "🧹 Auto-cleaned old tmp files");
       } catch { /* non-critical */ }
 
-      // Also trim activity.json — keep only last 30 days per user
-      try {
-        const activityFile = path.join(WORKSPACE_ROOT, "activity.json");
-        if (!fs.existsSync(activityFile)) return;
-        const activity: Record<string, Record<string, { count: number; lastSeen: number }>> = JSON.parse(fs.readFileSync(activityFile, "utf8"));
-        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        let trimmed = 0;
-        for (const groupJid of Object.keys(activity)) {
-          for (const userJid of Object.keys(activity[groupJid])) {
-            if (activity[groupJid][userJid].lastSeen < cutoff) {
-              delete activity[groupJid][userJid];
-              trimmed++;
-            }
-          }
-          if (Object.keys(activity[groupJid]).length === 0) delete activity[groupJid];
-        }
-        if (trimmed > 0) {
-          fs.writeFileSync(activityFile, JSON.stringify(activity));
-          logger.info({ trimmed }, "🗂️ Trimmed old activity.json entries");
-        }
-      } catch { /* non-critical */ }
+      // Activity is in-memory only — no disk cleanup needed
     }, 30 * 60 * 1000); // every 30 minutes
   }
 
