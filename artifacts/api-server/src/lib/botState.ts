@@ -134,6 +134,22 @@ export function deleteSessionMeta(id: string): void {
 export const AUTH_DIR = path.join(WORKSPACE_ROOT, "auth_info_baileys");
 export { WORKSPACE_ROOT };
 
+// ── In-memory activity tracking (zero disk writes) ───────────────────────────
+const _activityMemory = new Map<string, Map<string, { count: number; lastSeen: number }>>();
+
+export function recordActivity(groupJid: string, userJid: string): void {
+  if (!_activityMemory.has(groupJid)) _activityMemory.set(groupJid, new Map());
+  const group = _activityMemory.get(groupJid)!;
+  const prev = group.get(userJid) || { count: 0, lastSeen: 0 };
+  group.set(userJid, { count: prev.count + 1, lastSeen: Date.now() });
+}
+
+export function getGroupActivity(groupJid: string): Record<string, { count: number; lastSeen: number }> {
+  const group = _activityMemory.get(groupJid);
+  if (!group) return {};
+  return Object.fromEntries(group.entries());
+}
+
 // ── Live session counter (shared between baileys.ts and commands) ─────────────
 let _liveSessionCount = 0;
 const _liveSessionJids: Map<string, string> = new Map(); // sessionId → phone JID
