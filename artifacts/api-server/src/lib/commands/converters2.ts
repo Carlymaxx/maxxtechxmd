@@ -302,3 +302,121 @@ registerCommand({
     }
   },
 });
+
+// ── Audio Effects helper ──────────────────────────────────────────────────────
+async function applyAudioEffect(
+  msg: any, sock: any, from: string,
+  ffArgs: string[], label: string, emoji: string, reply: (t: string) => Promise<any>
+) {
+  const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
+  const m = msg.message as any;
+  const quoted = m?.extendedTextMessage?.contextInfo?.quotedMessage;
+  const audMsg = m?.audioMessage || quoted?.audioMessage || m?.videoMessage || quoted?.videoMessage;
+  if (!audMsg) return reply(`❌ Reply to an audio or voice note with *${label}*${FOOTER}`);
+  await reply(`${emoji} Applying *${label}* effect... ⏳`);
+  try {
+    const isVid = !!(m?.videoMessage || quoted?.videoMessage);
+    const fakeMsg = (m?.audioMessage || m?.videoMessage) ? msg
+      : { ...msg, message: isVid ? { videoMessage: quoted?.videoMessage } : { audioMessage: quoted?.audioMessage } } as any;
+    const buf = await downloadMediaMessage(fakeMsg, "buffer", {}) as Buffer;
+    const inExt = isVid ? "mp4" : "ogg";
+    const outBuf = await ffmpegConvert(buf, inExt, "mp3", ["-vn", ...ffArgs]);
+    await sock.sendMessage(from, {
+      audio: outBuf, mimetype: "audio/mpeg",
+      fileName: `${label.toLowerCase().replace(/ /g, "_")}.mp3`,
+    } as any, { quoted: msg });
+  } catch (e: any) {
+    await reply(`❌ Failed: ${e.message}${FOOTER}`);
+  }
+}
+
+// ── Bass Boost ────────────────────────────────────────────────────────────────
+registerCommand({
+  name: "bass",
+  aliases: ["bassboost", "bassboosted"],
+  category: "Converter",
+  description: "Apply bass boost effect to audio — reply to audio/voice",
+  handler: async ({ msg, sock, from, reply }) => {
+    await applyAudioEffect(msg, sock, from,
+      ["-af", "equalizer=f=80:width_type=o:width=2:g=12,equalizer=f=40:width_type=o:width=2:g=8"],
+      "Bass Boost", "🔊", reply);
+  },
+});
+
+// ── Blown Speaker ─────────────────────────────────────────────────────────────
+registerCommand({
+  name: "blown",
+  aliases: ["blownup", "blownspeaker", "distort"],
+  category: "Converter",
+  description: "Blown/distorted speaker effect on audio — reply to audio/voice",
+  handler: async ({ msg, sock, from, reply }) => {
+    await applyAudioEffect(msg, sock, from,
+      ["-af", "acrusher=level_in=8:level_out=1:bits=4:mode=log:aa=1,volume=6dB"],
+      "Blown Speaker", "💥", reply);
+  },
+});
+
+// ── Deep / Pitch Down ─────────────────────────────────────────────────────────
+registerCommand({
+  name: "deep",
+  aliases: ["deeper", "pitchdown", "slowdeep"],
+  category: "Converter",
+  description: "Deep pitched-down audio effect — reply to audio/voice",
+  handler: async ({ msg, sock, from, reply }) => {
+    await applyAudioEffect(msg, sock, from,
+      ["-af", "asetrate=44100*0.75,aresample=44100,atempo=1.333"],
+      "Deep Voice", "🔉", reply);
+  },
+});
+
+// ── Nightcore / Pitch Up ──────────────────────────────────────────────────────
+registerCommand({
+  name: "nightcore",
+  aliases: ["pitchup", "nightcored", "chipmunk"],
+  category: "Converter",
+  description: "Nightcore (pitched-up) audio effect — reply to audio/voice",
+  handler: async ({ msg, sock, from, reply }) => {
+    await applyAudioEffect(msg, sock, from,
+      ["-af", "asetrate=44100*1.25,aresample=44100,atempo=0.8"],
+      "Nightcore", "🌙", reply);
+  },
+});
+
+// ── Reverb / Echo ─────────────────────────────────────────────────────────────
+registerCommand({
+  name: "reverb",
+  aliases: ["echo", "reverbecho"],
+  category: "Converter",
+  description: "Reverb/echo effect on audio — reply to audio/voice",
+  handler: async ({ msg, sock, from, reply }) => {
+    await applyAudioEffect(msg, sock, from,
+      ["-af", "aecho=0.8:0.88:60:0.4"],
+      "Reverb", "🏔️", reply);
+  },
+});
+
+// ── Slow Down ─────────────────────────────────────────────────────────────────
+registerCommand({
+  name: "slowmo",
+  aliases: ["slow", "slowaudio"],
+  category: "Converter",
+  description: "Slow down audio to 75% speed — reply to audio/voice",
+  handler: async ({ msg, sock, from, reply }) => {
+    await applyAudioEffect(msg, sock, from,
+      ["-af", "atempo=0.75"],
+      "Slow Motion", "🐢", reply);
+  },
+});
+
+// ── Speed Up ──────────────────────────────────────────────────────────────────
+registerCommand({
+  name: "fast",
+  aliases: ["speed", "fastaudio", "speedup"],
+  category: "Converter",
+  description: "Speed up audio to 1.5× speed — reply to audio/voice",
+  handler: async ({ msg, sock, from, reply }) => {
+    await applyAudioEffect(msg, sock, from,
+      ["-af", "atempo=1.5"],
+      "Speed Up", "⚡", reply);
+  },
+});
