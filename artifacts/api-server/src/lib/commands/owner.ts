@@ -275,14 +275,49 @@ registerCommand({
   name: "disk",
   aliases: ["storage"],
   category: "Owner",
-  description: "Show disk usage",
+  description: "Show disk and memory usage",
   handler: async ({ reply }) => {
     try {
-      const { stdout } = await execAsync("df -h / 2>/dev/null | tail -1");
-      const parts = stdout.trim().split(/\s+/);
-      await reply(`💾 *Disk Usage*\n\n📦 Total: *${parts[1]}*\n✅ Used: *${parts[2]}*\n🆓 Free: *${parts[3]}*\n📊 Usage: *${parts[4]}*`);
-    } catch {
-      await reply("❌ Could not fetch disk info.");
+      const { stdout: dfOut } = await execAsync("df -h / 2>/dev/null | tail -1");
+      const parts = dfOut.trim().split(/\s+/);
+      const [, total, used, free, pct] = parts;
+
+      // RAM from os module
+      const os = await import("os");
+      const totalRam = os.totalmem();
+      const freeRam  = os.freemem();
+      const usedRam  = totalRam - freeRam;
+      const ramPct   = Math.round((usedRam / totalRam) * 100);
+
+      function toMB(b: number) { return (b / 1024 / 1024).toFixed(0) + " MB"; }
+      function diskBar(pctStr: string) {
+        const n = parseInt(pctStr);
+        const filled = Math.round(n / 10);
+        return "█".repeat(filled) + "░".repeat(10 - filled) + ` ${n}%`;
+      }
+      function ramBar(pct: number) {
+        const filled = Math.round(pct / 10);
+        return "█".repeat(filled) + "░".repeat(10 - filled) + ` ${pct}%`;
+      }
+
+      await reply(
+        `╔════════════════════════╗\n` +
+        `║  💾 *SYSTEM RESOURCES*  ║\n` +
+        `╚════════════════════════╝\n\n` +
+        `📀 *Disk Storage:*\n` +
+        `├ Total:  *${total}*\n` +
+        `├ Used:   *${used}*\n` +
+        `├ Free:   *${free}*\n` +
+        `└ ${diskBar(pct)}\n\n` +
+        `🧠 *RAM Memory:*\n` +
+        `├ Total:  *${toMB(totalRam)}*\n` +
+        `├ Used:   *${toMB(usedRam)}*\n` +
+        `├ Free:   *${toMB(freeRam)}*\n` +
+        `└ ${ramBar(ramPct)}\n\n` +
+        `> _MAXX-XMD_ ⚡`
+      );
+    } catch (e: any) {
+      await reply(`❌ Could not fetch system info: ${e.message}`);
     }
   },
 });
