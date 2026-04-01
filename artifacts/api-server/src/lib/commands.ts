@@ -72,6 +72,7 @@ import "./commands/uploader.js";
 import "./commands/converters2.js";
 import "./commands/channel.js";
 import "./commands/plugins.js";
+import "./commands/kenya.js";
 
 // ── Tools / download / audio / AI — inline here ──────────────────────────────
 import { registerCommand } from "./commands/types.js";
