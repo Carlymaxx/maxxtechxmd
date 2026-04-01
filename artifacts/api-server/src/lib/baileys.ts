@@ -6,6 +6,7 @@ import makeWASocket, {
   downloadMediaMessage,
 } from "@whiskeysockets/baileys";
 import { handleMessage } from "./commands.js";
+import { WORKSPACE_ROOT } from "./botState.js";
 import fs from "fs";
 import path from "path";
 import zlib from "zlib";
@@ -220,6 +221,20 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
             logger.info({ sessionId, from, emoji }, "✅ Auto-reacted to message");
           }
         } catch { /* silently skip react errors */ }
+      }
+
+      // ── Activity tracking for .rank / .inactive ──────────────────────────
+      if (from.endsWith("@g.us") && !msg.key.fromMe && msg.key.participant) {
+        try {
+          const activityFile = path.join(WORKSPACE_ROOT, "activity.json");
+          let activity: Record<string, Record<string, { count: number; lastSeen: number }>> = {};
+          try { activity = JSON.parse(fs.readFileSync(activityFile, "utf8")); } catch {}
+          if (!activity[from]) activity[from] = {};
+          const userId = msg.key.participant;
+          const prev = activity[from][userId] || { count: 0, lastSeen: 0 };
+          activity[from][userId] = { count: prev.count + 1, lastSeen: Date.now() };
+          fs.writeFileSync(activityFile, JSON.stringify(activity));
+        } catch { /* non-critical */ }
       }
 
       try {
