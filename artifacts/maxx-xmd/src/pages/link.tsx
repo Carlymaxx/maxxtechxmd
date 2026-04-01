@@ -259,7 +259,7 @@ export default function LinkPage() {
         .digit-box   { animation: fadeIn .35s ease forwards; }
         .plat-card:hover  { transform:translateY(-4px) scale(1.04); box-shadow:0 10px 30px rgba(0,212,255,.15)!important; }
         .plat-card   { transition: all .2s ease; }
-        .copy-btn:hover   { background:rgba(0,212,255,.1)!important; }
+        .copy-btn:hover   { background:#1aad54!important; transform:scale(1.02); }
         .feature-pill     { animation: fadeIn .4s ease forwards; }
         .stat-card:hover  { border-color:rgba(0,212,255,.4)!important; transform:translateY(-2px); }
         .stat-card  { transition: all .2s ease; }
@@ -991,14 +991,18 @@ export default function LinkPage() {
               </div>
 
               <button onClick={copyCode} className="copy-btn" style={{
-                display:"inline-flex", alignItems:"center", gap:8,
-                padding:"12px 28px", border:`1px solid ${copiedCode ? G : "rgba(0,212,255,.4)"}`, borderRadius:10,
-                background: copiedCode ? "rgba(0,212,255,.15)" : "transparent",
-                color: copiedCode ? "#fff" : G, fontFamily:MONO, fontSize:14, fontWeight:700, cursor:"pointer",
-                letterSpacing:1, transition:"all .2s",
-                boxShadow: copiedCode ? `0 0 18px rgba(0,212,255,.25)` : "none",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:10,
+                width:"100%", padding:"15px 24px",
+                border:"none", borderRadius:12,
+                background: copiedCode ? "#1aad54" : "#25D366",
+                color:"#fff", fontSize:16, fontWeight:700, cursor:"pointer",
+                letterSpacing:.4, transition:"all .2s",
+                boxShadow: copiedCode ? "0 4px 18px rgba(37,211,102,.35)" : "0 4px 24px rgba(37,211,102,.45)",
+                transform: copiedCode ? "scale(0.98)" : "scale(1)",
               }}>
-                {copiedCode ? <><CheckCircle2 size={16} /> COPIED!</> : <><Copy size={16} /> COPY CODE</>}
+                {copiedCode
+                  ? <><CheckCircle2 size={20} /> Code Copied!</>
+                  : <><Copy size={20} />📋 Copy Pairing Code</>}
               </button>
 
               {/* MAXX-XMD footer branding */}
