@@ -288,6 +288,9 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       } catch { /* non-critical */ }
 
       // Activity is in-memory only — no disk cleanup needed
+
+      // Hint V8 to garbage-collect freed media buffers
+      try { if (typeof (global as any).gc === "function") (global as any).gc(); } catch {}
     }, 30 * 60 * 1000); // every 30 minutes
   }
 
