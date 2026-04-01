@@ -350,25 +350,6 @@ registerCommand({
         } catch {}
       }
 
-      // Trim activity.json entries older than 30 days
-      let actTrimmed = 0;
-      const { WORKSPACE_ROOT } = await import("../botState.js");
-      const actFile = path.default.join(WORKSPACE_ROOT, "activity.json");
-      if (fs.default.existsSync(actFile)) {
-        const activity = JSON.parse(fs.default.readFileSync(actFile, "utf8"));
-        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        for (const gid of Object.keys(activity)) {
-          for (const uid of Object.keys(activity[gid])) {
-            if (activity[gid][uid].lastSeen < cutoff) {
-              delete activity[gid][uid];
-              actTrimmed++;
-            }
-          }
-          if (!Object.keys(activity[gid]).length) delete activity[gid];
-        }
-        fs.default.writeFileSync(actFile, JSON.stringify(activity));
-      }
-
       // Get current disk stats
       const { execFile } = await import("child_process");
       const { promisify } = await import("util");
@@ -383,7 +364,7 @@ registerCommand({
         `║  🧹 *DISK CLEAN DONE* 🧹\n` +
         `╚══════════════════════════╝\n\n` +
         `🗑️ Temp files deleted: *${tmpCleaned}* (${mb} MB freed)\n` +
-        `🗂️ Activity entries trimmed: *${actTrimmed}*\n\n` +
+        `🧠 Activity: in-memory only (zero disk use)\n\n` +
         `📀 *Disk after clean:*\n` +
         `├ Total: *${total}*\n` +
         `├ Used:  *${used}*\n` +
