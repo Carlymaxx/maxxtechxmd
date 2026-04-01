@@ -3,6 +3,7 @@ import healthRouter from "./health.js";
 import botRouter from "./bot.js";
 import sessionsRouter from "./sessions.js";
 import pairingRouter from "./pairing.js";
+import qrPairingRouter from "./qrPairing.js";
 import settingsRouter from "./settings.js";
 import statsRouter from "./stats.js";
 
@@ -12,6 +13,7 @@ router.use(healthRouter);
 router.use("/bot", botRouter);
 router.use("/sessions", sessionsRouter);
 router.use("/pair", pairingRouter);
+router.use("/qr-pair", qrPairingRouter);
 router.use("/settings", settingsRouter);
 router.use("/stats", statsRouter);
 
