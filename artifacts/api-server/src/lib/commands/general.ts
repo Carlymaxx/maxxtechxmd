@@ -482,13 +482,7 @@ registerCommand({
       // ── Live session feed ─────────────────────────────────────────────────
       const liveSessions = getLiveSessions();
       const liveCount = liveSessions.length;
-      const sessionLines = liveSessions.slice(0, 10).map((s, i) => {
-        const num = s.jid.split(":")[0].split("@")[0];
-        return `│ 🟢 Bot ${i + 1}: +${num}`;
-      }).join("\n");
-      const liveBlock = liveCount > 0
-        ? `╔══ 🤖 *LIVE BOTS* (${liveCount}) ══╗\n${sessionLines}\n╚${"═".repeat(24)}╝\n\n`
-        : "";
+      const liveBlock = liveCount > 0 ? `🤖 *Bots:* ${liveCount} active\n` : "";
 
       let text =
         `╔══════════════════════════╗\n` +
