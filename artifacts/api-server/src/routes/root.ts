@@ -4,7 +4,7 @@ import { sessionConnected } from "../lib/baileys.js";
 const router: IRouter = Router();
 
 router.get("/", (_req, res) => {
-  const isConnected = !!sessionConnected["main"];
+  const isConnected = Object.values(sessionConnected).some(Boolean);
   const statusColor = isConnected ? "#00ff88" : "#ff4444";
   const statusText = isConnected ? "🟢 ONLINE" : "🔴 OFFLINE";
   const statusLabel = isConnected ? "Bot is Connected & Ready" : "Bot is Offline";
