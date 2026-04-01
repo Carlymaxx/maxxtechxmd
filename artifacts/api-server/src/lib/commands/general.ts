@@ -354,17 +354,17 @@ Please wait up to 30 seconds...`);
       const { generatePairingCode } = await import("../baileys.js");
       const pairingCode = await generatePairingCode(phone);
 
-      // Send the code as plain text — simple and guaranteed to show on all clients
+      // Code in its own monospace code-block box, then instructions below
       await reply(
-        `🔑 *PAIRING CODE*\n\n` +
-        `*${pairingCode}*\n\n` +
-        `📱 *How to link:*\n` +
-        `1. Open WhatsApp Settings\n` +
-        `2. Tap Linked Devices\n` +
-        `3. Tap Link a Device\n` +
-        `4. Choose "Link with phone number"\n` +
-        `5. Enter the code above\n\n` +
-        `_Code expires in ~60 seconds_\n\n` +
+        `🔑 *YOUR PAIRING CODE*\n\n` +
+        `\`\`\`\n${pairingCode}\n\`\`\`\n\n` +
+        `📱 *Steps to link your device:*\n` +
+        `1️⃣ Open WhatsApp Settings\n` +
+        `2️⃣ Tap *Linked Devices*\n` +
+        `3️⃣ Tap *Link a Device*\n` +
+        `4️⃣ Choose *Link with phone number*\n` +
+        `5️⃣ Enter the code shown above\n\n` +
+        `⏱️ _Expires in ~60 seconds_\n\n` +
         `> _MAXX-XMD_ ⚡`
       );
 
