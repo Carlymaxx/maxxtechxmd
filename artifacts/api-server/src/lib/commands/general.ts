@@ -1,6 +1,5 @@
 import os from "os";
 import { registerCommand, commandRegistry } from "./types";
-import { generateWAMessageFromContent, proto } from "@whiskeysockets/baileys";
 
 function ramBar(pct: number): string {
   const filled = Math.round(pct / 10);
@@ -355,59 +354,27 @@ Please wait up to 30 seconds...`);
       const { generatePairingCode } = await import("../baileys.js");
       const pairingCode = await generatePairingCode(phone);
 
-      // ALWAYS send the code as plain text first — guaranteed to arrive
-      await sock.sendMessage(
-        from,
-        {
-          text: `╔══════════════════════╗\n║ 🔑 *PAIRING CODE* 🔑\n╚══════════════════════╝\n\n*${pairingCode}*\n\n📱 *Steps:*\n1️⃣ Open WhatsApp → Settings\n2️⃣ Tap *Linked Devices*\n3️⃣ Tap *Link a Device*\n4️⃣ Choose *Link with phone number*\n5️⃣ Enter the code above\n\n⏱️ _Code expires in ~60 seconds!_\n\n> _MAXX-XMD_ ⚡`,
-        },
-        { quoted: msg }
+      // Send the code as plain text — simple and guaranteed to show on all clients
+      await reply(
+        `🔑 *PAIRING CODE*\n\n` +
+        `*${pairingCode}*\n\n` +
+        `📱 *How to link:*\n` +
+        `1. Open WhatsApp Settings\n` +
+        `2. Tap Linked Devices\n` +
+        `3. Tap Link a Device\n` +
+        `4. Choose "Link with phone number"\n` +
+        `5. Enter the code above\n\n` +
+        `_Code expires in ~60 seconds_\n\n` +
+        `> _MAXX-XMD_ ⚡`
       );
 
-      // Also try a native "Copy" button as a bonus — may not appear on all clients
-      const rawCode = pairingCode.replace(/-/g, "");
-      try {
-        const interactive = generateWAMessageFromContent(
-          from,
-          proto.Message.fromObject({
-            interactiveMessage: proto.Message.InteractiveMessage.fromObject({
-              body: proto.Message.InteractiveMessage.Body.fromObject({
-                text: `📋 *Tap to copy the code:* *${pairingCode}*`,
-              }),
-              footer: proto.Message.InteractiveMessage.Footer.fromObject({
-                text: "> _MAXX-XMD_ ⚡",
-              }),
-              header: proto.Message.InteractiveMessage.Header.fromObject({
-                hasMediaAttachment: false,
-              }),
-              nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
-                messageVersion: 1,
-                buttons: [
-                  {
-                    name: "cta_copy",
-                    buttonParamsJson: JSON.stringify({
-                      display_text: "📋 Copy Pairing Code",
-                      copy_code: rawCode,
-                    }),
-                  },
-                ],
-              }),
-            }),
-          }),
-          { userJid: from }
-        );
-        await sock.relayMessage(from, interactive.message!, { messageId: interactive.key.id! });
-      } catch {
-        // Interactive button failed — plain text above is already delivered, no further action needed
-      }
-
     } catch (e: any) {
-      await reply(`❌ Failed to generate pairing code.
-
-Try the web method instead:
-🌐 https://pair.maxxtech.co.ke
-
-Error: ${e.message?.slice(0, 100) || "Unknown"}`);
+      await reply(
+        `❌ *Could not generate pairing code*\n\n` +
+        `${e.message?.slice(0, 120) || "Unknown error"}\n\n` +
+        `Use the web method instead:\n` +
+        `https://pair.maxxtech.co.ke`
+      );
     }
   },
 });
