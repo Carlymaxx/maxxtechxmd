@@ -61,10 +61,12 @@ export default function LinkPage() {
   const [liveStats, setLiveStats]   = useState<LiveStats | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const apiBase = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, "") ?? "";
+
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch("/api/stats");
+        const res = await fetch(`${apiBase}/api/stats`);
         if (res.ok) setLiveStats(await res.json());
       } catch {}
     }
