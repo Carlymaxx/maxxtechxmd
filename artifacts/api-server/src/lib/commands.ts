@@ -418,8 +418,21 @@ registerCommand({
         } catch {}
       }
 
-      // ── Send in ONE box: audio with rich preview card ─────────────────────
-      const caption = `🎵 *${title}*${artist ? `\n👤 ${artist}` : ""}${duration ? `\n⏱️ ${duration}` : ""}\n\n> _MAXX-XMD_ ⚡`;
+      // ── Send in ONE box: audio with rich preview card + footer ───────────
+      const caption = [
+        `🎵 *${title}*`,
+        artist ? `👤 *${artist}*` : "",
+        duration ? `⏱️ ${duration}` : "",
+        "",
+        `> _MAXX-XMD_ ⚡`,
+      ].filter(Boolean).join("\n");
+
+      const cardBody = [
+        artist,
+        duration,
+        "⚡ MAXX-XMD",
+      ].filter(Boolean).join(" • ");
+
       await sock.sendMessage(from, {
         audio: buffer,
         mimetype: "audio/mpeg",
@@ -429,13 +442,13 @@ registerCommand({
         contextInfo: {
           externalAdReply: {
             title: title,
-            body: `${artist ? artist + " • " : ""}${duration || ""}`.trim(),
+            body: cardBody,
             thumbnailUrl: thumbnail || "",
             thumbnail: thumbBuf,
             mediaType: 1,
             renderLargerThumbnail: false,
             showAdAttribution: false,
-            sourceUrl: "",
+            sourceUrl: "https://pair.maxxtech.co.ke",
           },
         },
       } as any, { quoted: msg });
