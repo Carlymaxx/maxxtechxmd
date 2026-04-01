@@ -47,12 +47,8 @@ registerCommand({
   category: "Settings",
   sudoOnly: true,
   description: "Change the bot name",
-  handler: async ({ args, settings, reply }) => {
-    const name = args.join(" ");
-    if (!name) return reply(`❓ Current name: *${settings.botName}*\n\nUsage: .setbotname MAXX XMD`);
-    settings.botName = name;
-    saveSettings(settings);
-    await reply(`✅ Bot name changed to *${name}*`);
+  handler: async ({ reply }) => {
+    await reply("🔒 *Bot name is locked by the developer and cannot be changed.*\n\n> _MAXX-XMD_ ⚡");
   },
 });
 
@@ -62,12 +58,8 @@ registerCommand({
   category: "Settings",
   sudoOnly: true,
   description: "Set owner name",
-  handler: async ({ args, settings, reply }) => {
-    const name = args.join(" ");
-    if (!name) return reply(`❓ Current: *${settings.ownerName}*\n\nUsage: .setownername John`);
-    settings.ownerName = name;
-    saveSettings(settings);
-    await reply(`✅ Owner name set to *${name}*`);
+  handler: async ({ reply }) => {
+    await reply("🔒 *Owner name is locked by the developer and cannot be changed.*\n\n> _MAXX-XMD_ ⚡");
   },
 });
 
@@ -77,12 +69,8 @@ registerCommand({
   category: "Settings",
   sudoOnly: true,
   description: "Set owner number",
-  handler: async ({ args, settings, reply }) => {
-    const num = args[0]?.replace(/[^0-9]/g, "");
-    if (!num) return reply(`❓ Current: *${settings.ownerNumber || "Not set"}*\n\nUsage: .setownernumber 254712345678`);
-    settings.ownerNumber = num;
-    saveSettings(settings);
-    await reply(`✅ Owner number set to *${num}*`);
+  handler: async ({ reply }) => {
+    await reply("🔒 *Owner number is locked by the developer and cannot be changed.*\n\n> _MAXX-XMD_ ⚡");
   },
 });
 
