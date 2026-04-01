@@ -529,100 +529,38 @@ registerCommand({
   aliases: ["upgrade", "checkupdate"],
   category: "Owner",
   ownerOnly: true,
-  description: "Check GitHub for new changes and auto-update the bot",
+  description: "Pull latest changes from GitHub and hot-reload all commands instantly",
   usage: ".update",
   handler: async ({ reply, react }) => {
-    await react("🔍");
-    await reply("🔍 *Checking GitHub for updates...*");
-
-    const REPO = "Carlymaxx/maxxtechxmd";
-    const BRANCH = "main";
+    await react("🔄");
+    await reply("🔄 *Fetching latest changes from GitHub...*\n\n⏳ Reloading all commands live — no restart needed.");
 
     try {
-      // Fetch latest commits from GitHub (no auth needed for public repo)
-      const commitsRes = await fetch(
-        `https://api.github.com/repos/${REPO}/commits?sha=${BRANCH}&per_page=5`,
-        { headers: { "User-Agent": "MAXX-XMD-Bot", "Accept": "application/vnd.github.v3+json" } }
+      const { hotReloadCommands } = await import("../hotReload.js");
+      const result = await hotReloadCommands();
+
+      const changelogText = result.changelog.length
+        ? result.changelog.join("\n")
+        : "No recent commits found.";
+
+      const errorText = result.errors.length
+        ? `\n\n⚠️ *Skipped (${result.errors.length}):*\n${result.errors.slice(0, 3).join("\n")}`
+        : "";
+
+      await react("✅");
+      await reply(
+        `✅ *MAXX-XMD Hot-Reload Complete!*\n\n` +
+        `📦 *Latest commit:* \`${result.latestCommit || "unknown"}\`\n` +
+        `📁 *Files reloaded:* ${result.updated}/${33}\n` +
+        `🔧 *Commands loaded:* ${result.commandsAfter}\n\n` +
+        `*Recent changes on GitHub:*\n${changelogText}` +
+        errorText +
+        `\n\n✨ All commands are now up to date — try any command to confirm!`
       );
 
-      if (!commitsRes.ok) {
-        return reply(`❌ Could not reach GitHub (${commitsRes.status}). Check your internet connection.`);
-      }
-
-      const commits: any[] = await commitsRes.json();
-      if (!Array.isArray(commits) || commits.length === 0) {
-        return reply("❌ No commits found on GitHub.");
-      }
-
-      const latestSha = commits[0].sha as string;
-      const shortSha = latestSha.substring(0, 7);
-
-      // Build changelog from last 5 commits
-      const changelog = commits.map((c: any, i: number) => {
-        const msg = (c.commit?.message as string || "").split("\n")[0].substring(0, 60);
-        const date = new Date(c.commit?.author?.date || "").toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        return `${i === 0 ? "🆕" : "📝"} *[${c.sha.substring(0, 7)}]* ${msg} _(${date})_`;
-      }).join("\n");
-
-      // Check if auto-deploy via Heroku API is available
-      const herokuKey = process.env.HEROKU_API_KEY;
-      const herokuApp = process.env.HEROKU_APP_NAME;
-
-      if (herokuKey && herokuApp) {
-        // Trigger a new Heroku build from latest GitHub commit
-        await reply(
-          `📦 *MAXX-XMD Update Available*\n\n` +
-          `*Latest commit:* \`${shortSha}\`\n\n` +
-          `*Recent changes:*\n${changelog}\n\n` +
-          `⚡ *Triggering auto-update on Heroku...*`
-        );
-
-        const buildRes = await fetch(`https://api.heroku.com/apps/${herokuApp}/builds`, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${herokuKey}`,
-            "Accept": "application/vnd.heroku+json; version=3",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            source_blob: {
-              url: `https://codeload.github.com/${REPO}/legacy.tar.gz/refs/heads/${BRANCH}`,
-              version: latestSha,
-            },
-          }),
-        });
-
-        if (buildRes.ok) {
-          const build: any = await buildRes.json();
-          await reply(
-            `✅ *Update triggered successfully!*\n\n` +
-            `🔨 Build ID: \`${(build.id as string).substring(0, 8)}\`\n` +
-            `⏳ Your bot will restart with the latest code in ~2-3 minutes.\n\n` +
-            `🔗 Track: https://dashboard.heroku.com/apps/${herokuApp}/activity`
-          );
-        } else {
-          const err: any = await buildRes.json().catch(() => ({}));
-          await reply(
-            `⚠️ *Build trigger failed* (${buildRes.status})\n${err?.message || "Unknown error"}\n\n` +
-            `Redeploy manually from:\nhttps://dashboard.heroku.com/apps/${herokuApp}/deploy/github`
-          );
-        }
-      } else {
-        // No Heroku API key — just show the changelog and instructions
-        await reply(
-          `📦 *MAXX-XMD Latest Changes*\n\n` +
-          `*Latest commit:* \`${shortSha}\`\n\n` +
-          `*Recent changes:*\n${changelog}\n\n` +
-          `━━━━━━━━━━━━━━━━\n` +
-          `*To update your bot:*\n` +
-          `• *Heroku:* Dashboard → Deploy → Manual deploy → Deploy Branch\n` +
-          `• *Railway/Render/Koyeb:* Redeploy from your dashboard\n\n` +
-          `💡 *Tip:* Set HEROKU_API_KEY + HEROKU_APP_NAME in your config vars for one-command auto-updates!\n\n` +
-          `🔗 https://github.com/${REPO}`
-        );
-      }
     } catch (e: any) {
-      await reply(`❌ Update check failed: ${e.message}`);
+      await react("❌");
+      await reply(`❌ *Hot-reload failed:* ${e.message}\n\nTry redeploying from your Heroku dashboard.`);
     }
   },
 });
