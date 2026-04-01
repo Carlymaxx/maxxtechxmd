@@ -71,6 +71,11 @@
       "description": "Reject incoming calls automatically",
       "required": false,
       "value": "false"
+    },
+    "NPM_CONFIG_PRODUCTION": {
+      "description": "Keep all bot packages after build — do not change this value",
+      "required": false,
+      "value": "false"
     }
   },
   "formation": {
