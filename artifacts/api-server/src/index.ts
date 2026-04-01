@@ -47,11 +47,15 @@ app.listen(port, async (err?: Error) => {
     .then((bin) => logger.info({ bin }, "yt-dlp ready"))
     .catch((e) => logger.warn({ err: e.message }, "yt-dlp unavailable — .song/.video will fail"));
 
-  try {
-    await startBotSession("main");
-    logger.info("Main bot session started");
-  } catch (err) {
-    logger.warn({ err }, "Could not start main bot session on startup");
+  if (process.env.SESSION_ID) {
+    try {
+      await startBotSession("main");
+      logger.info("Main bot session started");
+    } catch (err) {
+      logger.warn({ err }, "Could not start main bot session on startup");
+    }
+  } else {
+    logger.info("No SESSION_ID set — running as pairing-only server (no personal bot session)");
   }
 
 });
