@@ -1,53 +1,57 @@
 {
-    "name": "MAXX-XMD WhatsApp Bot",
-    "description": "The most powerful WhatsApp multi-device bot with 580+ commands. Deploy in one click.",
-    "keywords": ["whatsapp", "bot", "nodejs", "maxx-xmd"],
-    "website": "https://pair.maxxtech.co.ke",
-    "repository": "https://github.com/Carlymaxx/maxxtechxmd",
-    "logo": "https://files.catbox.moe/8jx0q3.jpg",
-    "success_url": "/api/healthz",
-    "env": {
-      "NODE_MODULES_CACHE": {
-        "description": "Disable node_modules cache for pnpm compatibility",
-        "value": "false",
-        "required": true
-      },
-      "NPM_CONFIG_PRODUCTION": {
-        "description": "Install all dependencies including devDependencies needed for build",
-        "value": "false",
-        "required": true
-      },
-      "SESSION_ID": {
-        "description": "Your WhatsApp session ID. Get it from https://pair.maxxtech.co.ke",
-        "required": false,
-        "value": ""
-      },
-      "OWNER_NUMBER": {
-        "description": "Your WhatsApp number with country code (e.g. 254700000000)",
-        "required": false,
-        "value": ""
-      },
-      "BOT_NAME": {
-        "description": "Name for your bot",
-        "required": false,
-        "value": "MAXX-XMD"
-      },
-      "PREFIX": {
-        "description": "Command prefix (e.g. . or ! or /)",
-        "required": false,
-        "value": "."
-      }
+  "name": "MAXX-XMD WhatsApp Bot",
+  "description": "The most powerful WhatsApp multi-device bot with 580+ commands. Deploy in one click.",
+  "keywords": ["whatsapp", "bot", "nodejs", "maxx-xmd"],
+  "website": "https://pair.maxxtech.co.ke",
+  "repository": "https://github.com/Carlymaxx/maxxtechxmd",
+  "logo": "https://files.catbox.moe/8jx0q3.jpg",
+  "success_url": "/api/healthz",
+  "env": {
+    "SESSION_ID": {
+      "description": "MAXX-XMD SESSION ID. Get it from https://pair.maxxtech.co.ke",
+      "required": false,
+      "value": ""
     },
-    "formation": {
-      "web": {
-        "quantity": 1,
-        "size": "basic"
-      }
+    "OWNER_NUMBER": {
+      "description": "Your WhatsApp number with country code (e.g. 254700000000)",
+      "required": false,
+      "value": ""
     },
-    "buildpacks": [
-      {
-        "url": "heroku/nodejs"
-      }
-    ]
-  }
-  
+    "BOT_NAME": {
+      "description": "Name for your bot",
+      "required": false,
+      "value": "MAXX-XMD"
+    },
+    "PREFIX": {
+      "description": "Command prefix (e.g. . or ! or /)",
+      "required": false,
+      "value": "."
+    },
+    "AUTO_LIKE_STATUS": {
+      "description": "Automatically like status updates from contacts",
+      "required": false,
+      "value": "true"
+    },
+    "AUTOREACT_STATUS": {
+      "description": "Automatically react to status updates",
+      "required": false,
+      "value": "true"
+    },
+    "ANTICALL": {
+      "description": "Reject incoming calls automatically",
+      "required": false,
+      "value": "false"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
