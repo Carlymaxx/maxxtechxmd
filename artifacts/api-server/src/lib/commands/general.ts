@@ -355,16 +355,24 @@ Please wait up to 30 seconds...`);
       const { generatePairingCode } = await import("../baileys.js");
       const pairingCode = await generatePairingCode(phone);
 
-      // Try to send as a native WhatsApp "Copy" interactive button first
+      // ALWAYS send the code as plain text first — guaranteed to arrive
+      await sock.sendMessage(
+        from,
+        {
+          text: `╔══════════════════════╗\n║ 🔑 *PAIRING CODE* 🔑\n╚══════════════════════╝\n\n*${pairingCode}*\n\n📱 *Steps:*\n1️⃣ Open WhatsApp → Settings\n2️⃣ Tap *Linked Devices*\n3️⃣ Tap *Link a Device*\n4️⃣ Choose *Link with phone number*\n5️⃣ Enter the code above\n\n⏱️ _Code expires in ~60 seconds!_\n\n> _MAXX-XMD_ ⚡`,
+        },
+        { quoted: msg }
+      );
+
+      // Also try a native "Copy" button as a bonus — may not appear on all clients
       const rawCode = pairingCode.replace(/-/g, "");
-      let sentInteractive = false;
       try {
         const interactive = generateWAMessageFromContent(
           from,
           proto.Message.fromObject({
             interactiveMessage: proto.Message.InteractiveMessage.fromObject({
               body: proto.Message.InteractiveMessage.Body.fromObject({
-                text: `🔑 *Your Pairing Code*\n\n*${pairingCode}*\n\n_Tap the button below to copy, then paste in WhatsApp → Linked Devices → Link with phone number._`,
+                text: `📋 *Tap to copy the code:* *${pairingCode}*`,
               }),
               footer: proto.Message.InteractiveMessage.Footer.fromObject({
                 text: "> _MAXX-XMD_ ⚡",
@@ -389,19 +397,8 @@ Please wait up to 30 seconds...`);
           { userJid: from }
         );
         await sock.relayMessage(from, interactive.message!, { messageId: interactive.key.id! });
-        sentInteractive = true;
       } catch {
-        // Interactive button not supported — fall back to plain text below
-      }
-
-      if (!sentInteractive) {
-        await sock.sendMessage(
-          from,
-          {
-            text: `✅ *PAIRING CODE READY!*\n\n*${pairingCode}*\n\n📱 WhatsApp → Settings → Linked Devices → Link with phone number → enter code above\n\n⏱️ _Expires in ~60 seconds!_\n\n> _MAXX-XMD_ ⚡`,
-          },
-          { quoted: msg }
-        );
+        // Interactive button failed — plain text above is already delivered, no further action needed
       }
 
     } catch (e: any) {
