@@ -1,5 +1,15 @@
 {
   "buildCommand": "npm install -g pnpm@10.11.0 && pnpm install --no-frozen-lockfile && pnpm --filter @workspace/maxx-xmd build",
   "outputDirectory": "artifacts/maxx-xmd/dist/public",
-  "installCommand": "echo 'install handled in buildCommand'"
+  "installCommand": "echo 'install handled in buildCommand'",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://maxx-xmd-bot-6890ef3ee355.herokuapp.com/api/:path*"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
