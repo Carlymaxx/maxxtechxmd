@@ -151,6 +151,22 @@ export function getLiveSessions(): { sessionId: string; jid: string }[] {
   return [..._liveSessionJids.entries()].map(([sessionId, jid]) => ({ sessionId, jid }));
 }
 
+// ── Command usage counter ─────────────────────────────────────────────────────
+const USAGE_FILE = path.join(WORKSPACE_ROOT, "usage.json");
+function loadUsage(): { total: number } {
+  try { return JSON.parse(fs.readFileSync(USAGE_FILE, "utf8")); } catch { return { total: 0 }; }
+}
+export function incrementCmdUsage(): void {
+  try {
+    const u = loadUsage();
+    u.total = (u.total || 0) + 1;
+    fs.writeFileSync(USAGE_FILE, JSON.stringify(u));
+  } catch {}
+}
+export function getCmdUsageCount(): number {
+  return loadUsage().total;
+}
+
 export function ensureAuthDir(): void {
   if (!fs.existsSync(AUTH_DIR)) {
     fs.mkdirSync(AUTH_DIR, { recursive: true });
