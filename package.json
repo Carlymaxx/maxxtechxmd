@@ -10,7 +10,8 @@
     "preinstall": "sh -c 'if [ -n \"$DYNO\" ] || [ \"$CI\" = \"true\" ] || [ \"$NODE_ENV\" = \"production\" ]; then exit 0; fi; rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
     "postinstall": "npm install -g pnpm@10.11.0 2>/dev/null || true",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
-    "heroku-postbuild": "npm install -g pnpm@10.11.0 && pnpm install --frozen-lockfile=false && pnpm --filter @workspace/api-server run build",
+    "heroku-prebuild": "npm install -g pnpm@10.11.0",
+    "heroku-postbuild": "pnpm install --frozen-lockfile=false && pnpm --filter @workspace/api-server run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
