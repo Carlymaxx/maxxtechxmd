@@ -271,6 +271,55 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
     } catch { /* ignore */ }
   }, 30000);
 
+  // ── Auto disk cleanup — runs every 30 min on the FIRST session only ────────
+  if (!global._diskCleanupStarted) {
+    (global as any)._diskCleanupStarted = true;
+    setInterval(() => {
+      try {
+        const tmpDir = "/tmp";
+        const now = Date.now();
+        const ONE_HOUR = 60 * 60 * 1000;
+        const files = fs.readdirSync(tmpDir);
+        let cleaned = 0;
+        for (const file of files) {
+          // Only delete files matching bot download patterns
+          if (!file.match(/^(maxx_|ytaudio_|ytvideo_|sticker_|thumb_)/)) continue;
+          const fp = path.join(tmpDir, file);
+          try {
+            const stat = fs.statSync(fp);
+            if (now - stat.mtimeMs > ONE_HOUR) {
+              fs.rmSync(fp, { recursive: true, force: true });
+              cleaned++;
+            }
+          } catch {}
+        }
+        if (cleaned > 0) logger.info({ cleaned }, "🧹 Auto-cleaned old tmp files");
+      } catch { /* non-critical */ }
+
+      // Also trim activity.json — keep only last 30 days per user
+      try {
+        const activityFile = path.join(WORKSPACE_ROOT, "activity.json");
+        if (!fs.existsSync(activityFile)) return;
+        const activity: Record<string, Record<string, { count: number; lastSeen: number }>> = JSON.parse(fs.readFileSync(activityFile, "utf8"));
+        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        let trimmed = 0;
+        for (const groupJid of Object.keys(activity)) {
+          for (const userJid of Object.keys(activity[groupJid])) {
+            if (activity[groupJid][userJid].lastSeen < cutoff) {
+              delete activity[groupJid][userJid];
+              trimmed++;
+            }
+          }
+          if (Object.keys(activity[groupJid]).length === 0) delete activity[groupJid];
+        }
+        if (trimmed > 0) {
+          fs.writeFileSync(activityFile, JSON.stringify(activity));
+          logger.info({ trimmed }, "🗂️ Trimmed old activity.json entries");
+        }
+      } catch { /* non-critical */ }
+    }, 30 * 60 * 1000); // every 30 minutes
+  }
+
   // ── Autobio: rotate WhatsApp "About" text periodically ────────────────────
   const AUTOBIO_TEXTS = [
     "🤖 MAXX-XMD Bot | Always Online | Type .menu",
