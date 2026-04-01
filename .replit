@@ -17,6 +17,27 @@ env = { "CI" = "true" }
 [workflows]
 runButton = "Project"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "MAXX-XMD Frontend"
+
+[[workflows.workflow]]
+name = "MAXX-XMD Frontend"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=23403 BASE_PATH=/ pnpm --filter @workspace/maxx-xmd run dev"
+waitForPort = 23403
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true

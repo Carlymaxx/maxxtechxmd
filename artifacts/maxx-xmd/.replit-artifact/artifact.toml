@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MAXX-XMD Dashboard"
+version = "1.0.0"
+id = "artifacts/maxx-xmd"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23403
+
+[services.development]
+run = "pnpm --filter @workspace/maxx-xmd run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/maxx-xmd", "run", "build" ]
+publicDir = "artifacts/maxx-xmd/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23403"
+BASE_PATH = "/"

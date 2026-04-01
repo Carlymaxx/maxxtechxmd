@@ -1,0 +1,19 @@
+packages:
+  "framer-motion": "For premium page transitions and cyberpunk UI animations"
+  "react-hook-form": "For robust form state management in settings and pairing"
+  "@hookform/resolvers": "For Zod validation integration"
+  "date-fns": "For formatting uptime and connection dates"
+  "react-qr-code": "For rendering the bot connection QR code cleanly"
+
+images:
+  - path: "artifacts/maxx-xmd/public/images/bot-logo.png"
+    description: "A sleek, minimalist cyberpunk bot face or artificial intelligence core in neon green and dark graphite, vector style, transparent background"
+    aspect_ratio: "1:1"
+  - path: "artifacts/maxx-xmd/public/images/cyber-bg.png"
+    description: "Dark abstract cyberpunk background with subtle dark green grid lines, glowing binary code fading into darkness, moody atmospheric lighting"
+    aspect_ratio: "16:9"
+
+notes:
+  - The API is generated in @workspace/api-client-react and uses React Query v5
+  - Assuming the API returns proper JSON matching the OpenAPI spec
+  - Polling is implemented for dashboard status and pairing status

@@ -1,15 +1,25 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: MAXX-XMD WhatsApp Bot API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: bot
+    description: Bot operations
+  - name: sessions
+    description: Session management
+  - name: pairing
+    description: Pairing operations
+  - name: settings
+    description: Bot settings
+  - name: stats
+    description: Statistics
+
 paths:
   /healthz:
     get:
@@ -24,6 +34,271 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /bot/status:
+    get:
+      operationId: getBotStatus
+      tags: [bot]
+      summary: Get main bot connection status
+      responses:
+        "200":
+          description: Bot status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/start:
+    post:
+      operationId: startBot
+      tags: [bot]
+      summary: Start the main bot session
+      responses:
+        "200":
+          description: Bot starting
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bot/qr:
+    get:
+      operationId: getBotQr
+      tags: [bot]
+      summary: Get QR code for main bot session
+      responses:
+        "200":
+          description: QR code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QrResponse"
+
+  /bot/send:
+    post:
+      operationId: sendMessage
+      tags: [bot]
+      summary: Send a message via the main bot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "200":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bot/info:
+    get:
+      operationId: getBotInfo
+      tags: [bot]
+      summary: Get bot info and config
+      responses:
+        "200":
+          description: Bot info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotInfo"
+
+  /sessions:
+    get:
+      operationId: listSessions
+      tags: [sessions]
+      summary: List all sessions
+      responses:
+        "200":
+          description: Sessions list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionsResponse"
+    post:
+      operationId: createSession
+      tags: [sessions]
+      summary: Create a new session
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSessionRequest"
+      responses:
+        "200":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateSessionResponse"
+
+  /sessions/{id}:
+    delete:
+      operationId: deleteSession
+      tags: [sessions]
+      summary: Delete a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionActionResponse"
+
+  /sessions/{id}/start:
+    post:
+      operationId: startSession
+      tags: [sessions]
+      summary: Start a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionActionResponse"
+
+  /sessions/{id}/stop:
+    post:
+      operationId: stopSession
+      tags: [sessions]
+      summary: Stop a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionActionResponse"
+
+  /sessions/{id}/send:
+    post:
+      operationId: sendSessionMessage
+      tags: [sessions]
+      summary: Send a message via a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "200":
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /pair:
+    post:
+      operationId: requestPairing
+      tags: [pairing]
+      summary: Request a pairing code for a WhatsApp number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PairRequest"
+      responses:
+        "200":
+          description: Pairing code generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PairResponse"
+
+  /pair/{sessionId}/status:
+    get:
+      operationId: getPairingStatus
+      tags: [pairing]
+      summary: Get pairing status for a session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pairing status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PairingStatusResponse"
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get bot settings
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotSettings"
+    patch:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update bot settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotSettingsUpdate"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotSettings"
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [stats]
+      summary: Get bot statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +309,299 @@ components:
       required:
         - status
 
+    BotStatus:
+      type: object
+      properties:
+        connected:
+          type: boolean
+        hasQR:
+          type: boolean
+        uptime:
+          type: number
+      required:
+        - connected
+        - hasQR
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    QrResponse:
+      type: object
+      properties:
+        qr:
+          type: string
+          nullable: true
+        message:
+          type: string
+      required:
+        - qr
+
+    SendMessageRequest:
+      type: object
+      properties:
+        number:
+          type: string
+        message:
+          type: string
+      required:
+        - number
+        - message
+
+    BotInfo:
+      type: object
+      properties:
+        botName:
+          type: string
+        owner:
+          type: string
+        developer:
+          type: string
+        prefix:
+          type: string
+        activeSessions:
+          type: number
+        uptime:
+          type: number
+      required:
+        - botName
+        - owner
+        - prefix
+        - activeSessions
+        - uptime
+
+    SessionStatus:
+      type: string
+      enum:
+        - connected
+        - disconnected
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          $ref: "#/components/schemas/SessionStatus"
+        connected:
+          type: boolean
+        phoneNumber:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        createdAt:
+          type: number
+          nullable: true
+        lastConnected:
+          type: number
+          nullable: true
+        autoRestart:
+          type: boolean
+      required:
+        - id
+        - status
+        - connected
+        - autoRestart
+
+    SessionsResponse:
+      type: object
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Session"
+      required:
+        - sessions
+
+    CreateSessionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    CreateSessionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        session:
+          $ref: "#/components/schemas/Session"
+      required:
+        - success
+        - session
+
+    SessionActionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    PairRequest:
+      type: object
+      properties:
+        number:
+          type: string
+      required:
+        - number
+
+    PairResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        pairingCode:
+          type: string
+        message:
+          type: string
+      required:
+        - sessionId
+
+    PairingStatusResponseStatus:
+      type: string
+      enum:
+        - pending
+        - connected
+        - failed
+        - expired
+
+    PairingStatusResponse:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/PairingStatusResponseStatus"
+        connected:
+          type: boolean
+        sessionId:
+          type: string
+          nullable: true
+        pairingCode:
+          type: string
+          nullable: true
+      required:
+        - status
+        - connected
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: string
+      required:
+        - error
+
+    BotSettings:
+      type: object
+      properties:
+        prefix:
+          type: string
+        botName:
+          type: string
+        ownerName:
+          type: string
+        ownerNumber:
+          type: string
+        mode:
+          type: string
+        welcomeMessage:
+          type: boolean
+        goodbyeMessage:
+          type: boolean
+        anticall:
+          type: boolean
+        chatbot:
+          type: boolean
+        autoread:
+          type: boolean
+        autoviewstatus:
+          type: boolean
+        autolikestatus:
+          type: boolean
+        autolikestatus_emoji:
+          type: string
+        antilink:
+          type: boolean
+        alwaysonline:
+          type: boolean
+        autotyping:
+          type: boolean
+        autobio:
+          type: boolean
+        autoreaction:
+          type: boolean
+      required:
+        - prefix
+        - botName
+        - ownerName
+        - ownerNumber
+        - mode
+
+    BotSettingsUpdate:
+      type: object
+      properties:
+        prefix:
+          type: string
+        botName:
+          type: string
+        ownerName:
+          type: string
+        ownerNumber:
+          type: string
+        mode:
+          type: string
+        welcomeMessage:
+          type: boolean
+        goodbyeMessage:
+          type: boolean
+        anticall:
+          type: boolean
+        chatbot:
+          type: boolean
+        autoread:
+          type: boolean
+        autoviewstatus:
+          type: boolean
+        autolikestatus:
+          type: boolean
+        autolikestatus_emoji:
+          type: string
+        antilink:
+          type: boolean
+        alwaysonline:
+          type: boolean
+        autotyping:
+          type: boolean
+        autobio:
+          type: boolean
+        autoreaction:
+          type: boolean
+
+    StatsResponse:
+      type: object
+      properties:
+        activePairings:
+          type: number
+        totalPairings:
+          type: number
+        commandCount:
+          type: number
+        uptimeFormatted:
+          type: string
+      required:
+        - activePairings
+        - totalPairings
+        - commandCount
+        - uptimeFormatted

@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'Outfit', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-display: 'Share Tech Mono', monospace;
+
+  /* Electric Cyan Theme */
+  --color-background: hsl(209 100% 5%);
+  --color-foreground: hsl(200 80% 92%);
+  
+  --color-card: hsl(209 80% 7%);
+  --color-card-foreground: hsl(200 80% 92%);
+  
+  --color-popover: hsl(209 80% 7%);
+  --color-popover-foreground: hsl(200 80% 92%);
+  
+  --color-primary: hsl(192 100% 50%);
+  --color-primary-foreground: hsl(209 100% 5%);
+  
+  --color-secondary: hsl(209 60% 12%);
+  --color-secondary-foreground: hsl(200 80% 92%);
+  
+  --color-muted: hsl(209 60% 12%);
+  --color-muted-foreground: hsl(209 30% 50%);
+  
+  --color-accent: hsl(192 100% 50% / 0.2);
+  --color-accent-foreground: hsl(192 100% 50%);
+  
+  --color-destructive: hsl(0 84% 60%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  
+  --color-border: hsl(192 100% 50% / 0.18);
+  --color-input: hsl(209 60% 12%);
+  --color-ring: hsl(192 100% 50%);
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+:root {
+  --background: 209 100% 5%;
+  --foreground: 200 80% 92%;
+  --card: 209 80% 7%;
+  --card-foreground: 200 80% 92%;
+  --popover: 209 80% 7%;
+  --popover-foreground: 200 80% 92%;
+  --primary: 192 100% 50%;
+  --primary-foreground: 209 100% 5%;
+  --secondary: 209 60% 12%;
+  --secondary-foreground: 200 80% 92%;
+  --muted: 209 60% 12%;
+  --muted-foreground: 209 30% 50%;
+  --accent: 192 100% 50%;
+  --accent-foreground: 200 80% 92%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 192 100% 50% / 0.18;
+  --input: 209 60% 12%;
+  --ring: 192 100% 50%;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased min-h-screen selection:bg-primary/30 selection:text-primary-foreground;
+    background-image: 
+      radial-gradient(ellipse at 50% 0%, hsl(192 100% 50% / 0.08) 0%, transparent 55%),
+      radial-gradient(ellipse at 100% 100%, hsl(220 100% 60% / 0.04) 0%, transparent 50%),
+      linear-gradient(to right, hsl(192 100% 50% / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(192 100% 50% / 0.04) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    background-attachment: fixed;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-mono tracking-tight text-primary;
+    text-shadow: 0 0 24px hsl(var(--primary) / 0.4);
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-card/80 backdrop-blur-md border border-primary/20 shadow-[0_0_30px_rgba(0,0,0,0.5)];
+  }
+  
+  .glow-text {
+    text-shadow: 0 0 12px hsl(var(--primary) / 0.6);
+  }
+  
+  .glow-border {
+    box-shadow: 0 0 18px hsl(var(--primary) / 0.25), inset 0 0 18px hsl(var(--primary) / 0.08);
+  }
+
+  .cyber-button {
+    @apply relative overflow-hidden transition-all duration-300;
+  }
+  
+  .cyber-button::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[150%] transition-transform duration-500 ease-out;
+  }
+  
+  .cyber-button:hover::before {
+    @apply translate-x-[150%];
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
