@@ -87,10 +87,12 @@ registerCommand({
   name: "kick",
   aliases: ["remove", "ban"],
   category: "Group",
-  description: "Remove a member from the group",
+  description: "Remove a member from the group (admins only)",
   groupOnly: true,
-  handler: async ({ sock, from, msg, groupMetadata, reply }) => {
+  handler: async ({ sock, from, msg, sender, groupMetadata, isSudo, reply }) => {
     if (!groupMetadata) return reply("❌ Not in a group.");
+    const isAdmin = groupMetadata.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
+    if (!isAdmin) return reply("⛔ Only group admins can kick members.");
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
     if (!mentioned) return reply("❌ Please mention the user to kick.\nExample: .kick @user");
     try {
@@ -125,9 +127,11 @@ registerCommand({
   name: "promote",
   aliases: ["admin"],
   category: "Group",
-  description: "Promote a member to admin",
+  description: "Promote a member to admin (admins only)",
   groupOnly: true,
-  handler: async ({ sock, from, msg, reply }) => {
+  handler: async ({ sock, from, msg, sender, groupMetadata, isSudo, reply }) => {
+    const isAdmin = groupMetadata?.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
+    if (!isAdmin) return reply("⛔ Only group admins can promote members.");
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
     if (!mentioned) return reply("❌ Please mention the user to promote.\nExample: .promote @user");
     try {
@@ -143,9 +147,11 @@ registerCommand({
   name: "demote",
   aliases: [],
   category: "Group",
-  description: "Demote an admin to member",
+  description: "Demote an admin to member (admins only)",
   groupOnly: true,
-  handler: async ({ sock, from, msg, reply }) => {
+  handler: async ({ sock, from, msg, sender, groupMetadata, isSudo, reply }) => {
+    const isAdmin = groupMetadata?.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
+    if (!isAdmin) return reply("⛔ Only group admins can demote members.");
     const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
     if (!mentioned) return reply("❌ Please mention the user to demote.\nExample: .demote @user");
     try {
@@ -298,10 +304,12 @@ registerCommand({
   name: "kickall",
   aliases: [],
   category: "Group",
-  description: "Kick all non-admin members",
+  description: "Kick all non-admin members (admins/owner only)",
   groupOnly: true,
-  handler: async ({ sock, from, groupMetadata, sender, reply }) => {
+  handler: async ({ sock, from, groupMetadata, sender, isSudo, reply }) => {
     if (!groupMetadata) return reply("❌ Could not fetch group info.");
+    const isAdmin = groupMetadata.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
+    if (!isAdmin) return reply("⛔ Only group admins or the bot owner can use kickall.");
     const nonAdmins = groupMetadata.participants
       .filter((p: any) => !p.admin && p.id !== sender)
       .map((p: any) => p.id);
