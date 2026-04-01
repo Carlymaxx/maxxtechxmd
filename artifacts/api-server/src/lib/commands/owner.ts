@@ -323,6 +323,81 @@ registerCommand({
 });
 
 registerCommand({
+  name: "diskclean",
+  aliases: ["cleandisk", "cleantemp", "tmpclean", "freespace"],
+  category: "Owner",
+  ownerOnly: true,
+  description: "Manually clean /tmp downloads and trim old activity data to free disk space",
+  handler: async ({ reply }) => {
+    await reply(`🧹 Cleaning disk... ⏳`);
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+      const tmpDir = "/tmp";
+      const patterns = /^(maxx_|ytaudio_|ytvideo_|sticker_|thumb_)/;
+      let tmpCleaned = 0;
+      let tmpBytes = 0;
+
+      const files = fs.default.readdirSync(tmpDir);
+      for (const file of files) {
+        if (!patterns.test(file)) continue;
+        const fp = path.default.join(tmpDir, file);
+        try {
+          const stat = fs.default.statSync(fp);
+          tmpBytes += stat.size;
+          fs.default.rmSync(fp, { recursive: true, force: true });
+          tmpCleaned++;
+        } catch {}
+      }
+
+      // Trim activity.json entries older than 30 days
+      let actTrimmed = 0;
+      const { WORKSPACE_ROOT } = await import("../botState.js");
+      const actFile = path.default.join(WORKSPACE_ROOT, "activity.json");
+      if (fs.default.existsSync(actFile)) {
+        const activity = JSON.parse(fs.default.readFileSync(actFile, "utf8"));
+        const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        for (const gid of Object.keys(activity)) {
+          for (const uid of Object.keys(activity[gid])) {
+            if (activity[gid][uid].lastSeen < cutoff) {
+              delete activity[gid][uid];
+              actTrimmed++;
+            }
+          }
+          if (!Object.keys(activity[gid]).length) delete activity[gid];
+        }
+        fs.default.writeFileSync(actFile, JSON.stringify(activity));
+      }
+
+      // Get current disk stats
+      const { execFile } = await import("child_process");
+      const { promisify } = await import("util");
+      const exec = promisify(execFile);
+      const { stdout } = await exec("df", ["-h", "/"]);
+      const parts = stdout.trim().split("\n")[1]?.split(/\s+/) || [];
+      const [, total, used, avail, pct] = parts;
+
+      const mb = (tmpBytes / 1024 / 1024).toFixed(1);
+      await reply(
+        `╔══════════════════════════╗\n` +
+        `║  🧹 *DISK CLEAN DONE* 🧹\n` +
+        `╚══════════════════════════╝\n\n` +
+        `🗑️ Temp files deleted: *${tmpCleaned}* (${mb} MB freed)\n` +
+        `🗂️ Activity entries trimmed: *${actTrimmed}*\n\n` +
+        `📀 *Disk after clean:*\n` +
+        `├ Total: *${total}*\n` +
+        `├ Used:  *${used}*\n` +
+        `├ Free:  *${avail}*\n` +
+        `└ Usage: *${pct}*\n\n` +
+        `> _MAXX-XMD_ ⚡`
+      );
+    } catch (e: any) {
+      await reply(`❌ Clean failed: ${e.message}`);
+    }
+  },
+});
+
+registerCommand({
   name: "hostip",
   aliases: [],
   category: "Owner",
