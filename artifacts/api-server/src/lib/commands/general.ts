@@ -1,5 +1,6 @@
 import os from "os";
 import { registerCommand, commandRegistry } from "./types";
+import { generateWAMessageFromContent, proto } from "@whiskeysockets/baileys";
 
 function ramBar(pct: number): string {
   const filled = Math.round(pct / 10);
@@ -357,23 +358,54 @@ Please wait up to 30 seconds...`);
 
       await reply(`✅ *PAIRING CODE READY!*
 
-╔══════════════════════╗
-║  🔑  ${pairingCode}  🔑
-╚══════════════════════╝
-
 📱 *Steps on WhatsApp:*
 1️⃣ Open WhatsApp Settings
 2️⃣ Tap *Linked Devices*
 3️⃣ Tap *Link a Device*
 4️⃣ Choose *Link with phone number*
-5️⃣ Type the code below 👇
+5️⃣ Tap the button below to copy & paste the code 👇
 
 ⏱️ _Code expires in ~60 seconds!_
 
 > _MAXX-XMD_ ⚡`);
 
-      // Send code as a plain standalone message for easy one-tap copy
-      await sock.sendMessage(from, { text: `${pairingCode}\n\n> _MAXX-XMD_ ⚡` }, { quoted: msg });
+      // Send as native WhatsApp "Copy Pairing Code" interactive button
+      const rawCode = pairingCode.replace(/-/g, "");
+      try {
+        const interactive = generateWAMessageFromContent(
+          from,
+          proto.Message.fromObject({
+            interactiveMessage: proto.Message.InteractiveMessage.fromObject({
+              body: proto.Message.InteractiveMessage.Body.fromObject({
+                text: `🔑 *Your Pairing Code*\n\n*${pairingCode}*\n\n_Tap the button to copy it, then paste in WhatsApp._`,
+              }),
+              footer: proto.Message.InteractiveMessage.Footer.fromObject({
+                text: "> _MAXX-XMD_ ⚡",
+              }),
+              header: proto.Message.InteractiveMessage.Header.fromObject({
+                hasMediaAttachment: false,
+              }),
+              nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
+                messageVersion: 1,
+                buttons: [
+                  {
+                    name: "cta_copy",
+                    buttonParamsJson: JSON.stringify({
+                      display_text: "📋 Copy Pairing Code",
+                      copy_code: rawCode,
+                    }),
+                  },
+                ],
+              }),
+            }),
+          }),
+          { userJid: from }
+        );
+        await sock.relayMessage(from, interactive.message!, { messageId: interactive.key.id! });
+      } catch {
+        // Fallback: send as plain text if interactive message fails
+        await sock.sendMessage(from, { text: `*${pairingCode}*\n\n> _MAXX-XMD_ ⚡` }, { quoted: msg });
+      }
 
     } catch (e: any) {
       await reply(`❌ Failed to generate pairing code.
