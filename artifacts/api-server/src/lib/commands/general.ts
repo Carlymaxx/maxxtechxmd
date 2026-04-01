@@ -157,10 +157,12 @@ registerCommand({
       `╚══════════════════════════╝\n\n` +
       `📢 *WhatsApp Channel:*\n` +
       `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
-      `💻 *GitHub (Source Code):*\n` +
-      `https://github.com/Carlymaxx/maxxtechxmd\n\n` +
+      `🔗 *Bot Pairing Site:*\n` +
+      `https://pair.maxxtech.co.ke\n\n` +
       `🌍 *Website:*\n` +
       `https://www.maxxtech.co.ke\n\n` +
+      `💻 *GitHub (Source Code):*\n` +
+      `https://github.com/Carlymaxx/maxxtechxmd\n\n` +
       `> _⭐ Star us on GitHub — it helps a lot!_ ⚡`;
     await sock.sendMessage(from, { text }, { quoted: msg });
     await sock.sendMessage(from, {
