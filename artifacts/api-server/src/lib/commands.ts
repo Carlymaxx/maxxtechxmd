@@ -342,7 +342,7 @@ registerCommand({
   aliases: ["play", "music", "yt", "ytaudio", "spotify"],
   category: "Download",
   description: "Download a song (Spotify/YouTube/search)",
-  handler: async ({ sock, from, args, reply }) => {
+  handler: async ({ sock, from, msg, args, reply }) => {
     const query = args.join(" ");
     if (!query) return reply(
       `❓ *Usage:* .song <title or URL>\n\n` +
@@ -394,24 +394,40 @@ registerCommand({
         duration = `${Math.floor(secs / 60)}:${(secs % 60).toString().padStart(2, "0")}`;
       }
 
-      // ── Fetch & send ──────────────────────────────
-      const audioRes = await fetch(downloadUrl);
+      // ── Fetch audio buffer ────────────────────────
+      const audioRes = await fetch(downloadUrl, { signal: AbortSignal.timeout(60000) });
       if (!audioRes.ok) throw new Error(`Download server returned ${audioRes.status}`);
       const buffer = Buffer.from(await audioRes.arrayBuffer());
 
+      // ── Fetch thumbnail as buffer (for embedded preview) ──────────────────
+      let thumbBuf: Buffer | undefined;
       if (thumbnail) {
-        await sock.sendMessage(from, {
-          image: { url: thumbnail },
-          caption: `🎵 *${title}*${artist ? `\n👤 ${artist}` : ""}${duration ? `\n⏱️ ${duration}` : ""}\n\n> _MAXX-XMD_ ⚡`,
-        });
+        try {
+          const tr = await fetch(thumbnail, { signal: AbortSignal.timeout(8000) });
+          if (tr.ok) thumbBuf = Buffer.from(await tr.arrayBuffer());
+        } catch {}
       }
 
+      // ── Send in ONE box: audio with rich preview card ─────────────────────
+      const caption = `🎵 *${title}*${artist ? `\n👤 ${artist}` : ""}${duration ? `\n⏱️ ${duration}` : ""}\n\n> _MAXX-XMD_ ⚡`;
       await sock.sendMessage(from, {
         audio: buffer,
         mimetype: "audio/mpeg",
-        fileName: `${title}.mp3`,
+        fileName: `${title}${artist ? ` - ${artist}` : ""}.mp3`,
         ptt: false,
-      } as any);
+        contextInfo: {
+          externalAdReply: {
+            title: title,
+            body: `${artist ? artist + " • " : ""}${duration || ""}`.trim(),
+            thumbnailUrl: thumbnail || "",
+            thumbnail: thumbBuf,
+            mediaType: 1,
+            renderLargerThumbnail: false,
+            showAdAttribution: false,
+            sourceUrl: "",
+          },
+        },
+      } as any, { quoted: msg });
 
     } catch (e: any) {
       await reply(`❌ *Download Failed*\n\n${e.message || "Unknown error"}\n\nTry with a direct YouTube or Spotify link.`);
@@ -437,22 +453,35 @@ registerCommand({
 
       const { title, artist, duration, images } = data.data.metadata;
 
-      if (images) {
-        await sock.sendMessage(from, {
-          image: { url: images },
-          caption: `🎧 *${title}*\n👤 ${artist}\n⏱️ ${duration}\n\n> _MAXX-XMD_ ⚡`,
-        });
-      }
+      const audioRes2 = await fetch(data.data.download, { signal: AbortSignal.timeout(60000) });
+      if (!audioRes2.ok) throw new Error("Download CDN unavailable");
+      const buffer = Buffer.from(await audioRes2.arrayBuffer());
 
-      const audioRes = await fetch(data.data.download);
-      if (!audioRes.ok) throw new Error("Download CDN unavailable");
-      const buffer = Buffer.from(await audioRes.arrayBuffer());
+      let spThumbBuf: Buffer | undefined;
+      if (images) {
+        try {
+          const tr = await fetch(images, { signal: AbortSignal.timeout(8000) });
+          if (tr.ok) spThumbBuf = Buffer.from(await tr.arrayBuffer());
+        } catch {}
+      }
 
       await sock.sendMessage(from, {
         audio: buffer,
         mimetype: "audio/mpeg",
         fileName: `${title} - ${artist}.mp3`,
         ptt: false,
+        contextInfo: {
+          externalAdReply: {
+            title: title || "Unknown",
+            body: `${artist ? artist + " • " : ""}${duration || ""}`.trim(),
+            thumbnailUrl: images || "",
+            thumbnail: spThumbBuf,
+            mediaType: 1,
+            renderLargerThumbnail: false,
+            showAdAttribution: false,
+            sourceUrl: "",
+          },
+        },
       } as any);
 
     } catch (e: any) {
@@ -1251,6 +1280,33 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
       } catch {}
       return;
     }
+  }
+
+  // ── Anti-badword: delete messages with bad words in groups ────────────────
+  if (isGroup && !msg.key.fromMe && body) {
+    try {
+      const grpSettingsFile = path.join(WORKSPACE_ROOT, "group_settings.json");
+      const bwFile = path.join(WORKSPACE_ROOT, "badwords.json");
+      if (fs.existsSync(grpSettingsFile) && fs.existsSync(bwFile)) {
+        const grpSettings: Record<string, any> = JSON.parse(fs.readFileSync(grpSettingsFile, "utf8") || "{}");
+        if (grpSettings[from]?.antibadword) {
+          const badwords: string[] = JSON.parse(fs.readFileSync(bwFile, "utf8") || "[]");
+          const lower = body.toLowerCase();
+          const matched = badwords.find((w) => lower.includes(w.toLowerCase()));
+          if (matched) {
+            try {
+              await sock.sendMessage(from, { delete: msg.key });
+              const senderTag = `@${sender.replace("@s.whatsapp.net", "")}`;
+              await sock.sendMessage(from, {
+                text: `🚫 *Anti-Badword*\n\n${senderTag} your message was removed for using inappropriate language!`,
+                mentions: [sender],
+              });
+            } catch {}
+            return;
+          }
+        }
+      }
+    } catch { /* ignore read errors */ }
   }
 
   // ── Auto-antiviewonce — intercept incoming view-once before it expires ───────

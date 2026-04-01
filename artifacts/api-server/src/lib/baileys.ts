@@ -3,6 +3,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   DisconnectReason,
   makeCacheableSignalKeyStore,
+  downloadMediaMessage,
 } from "@whiskeysockets/baileys";
 import { handleMessage } from "./commands.js";
 import fs from "fs";
@@ -121,9 +122,10 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         continue;
       }
 
-      // ── Auto-view status / Auto-like status ───────────────────────────────
+      // ── Auto-view status / Auto-like status / Auto-record status ─────────
       if (from === "status@broadcast") {
         const settings = loadSettings();
+
         if (settings.autoviewstatus) {
           try {
             await sock.readMessages([msg.key]);
@@ -132,6 +134,7 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
             logger.warn({ err }, "Auto-view status failed");
           }
         }
+
         if (settings.autolikestatus && !msg.key.fromMe) {
           try {
             const emoji = (settings.autolikestatus_emoji as string) || "🔥";
@@ -141,6 +144,60 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
             logger.warn({ err }, "Auto-like status failed");
           }
         }
+
+        // ── Auto-record status: download media and forward to owner ─────────
+        if ((settings as any).autorecordstatus && !msg.key.fromMe) {
+          try {
+            const m = msg.message as any;
+            const mediaMsg =
+              m?.imageMessage || m?.videoMessage || m?.audioMessage ||
+              m?.documentMessage || m?.stickerMessage;
+
+            if (mediaMsg) {
+              const mediaType = m?.imageMessage ? "image"
+                : m?.videoMessage ? "video"
+                : m?.audioMessage ? "audio"
+                : m?.documentMessage ? "document"
+                : "sticker";
+
+              const mediaBuf = await downloadMediaMessage(msg, "buffer", {}) as Buffer;
+              const mimetypeMap: Record<string, string> = {
+                image: mediaMsg.mimetype || "image/jpeg",
+                video: mediaMsg.mimetype || "video/mp4",
+                audio: mediaMsg.mimetype || "audio/ogg; codecs=opus",
+                document: mediaMsg.mimetype || "application/octet-stream",
+                sticker: "image/webp",
+              };
+
+              const poster = (msg.key.participant || "").replace("@s.whatsapp.net", "");
+              const caption = mediaMsg.caption
+                ? `📸 *Status from @${poster}*\n\n${mediaMsg.caption}\n\n> _MAXX-XMD_ ⚡`
+                : `📸 *Status from @${poster}*\n\n> _MAXX-XMD_ ⚡`;
+
+              const envOwner = (process.env.OWNER_NUMBER || settings.ownerNumber || "").replace(/[^0-9]/g, "");
+              const botNumber = sock.user?.id?.split(":")[0]?.split("@")[0];
+              const ownerJid = envOwner
+                ? `${envOwner}@s.whatsapp.net`
+                : botNumber
+                  ? `${botNumber}@s.whatsapp.net`
+                  : null;
+
+              if (ownerJid) {
+                const sendPayload: any = {
+                  mimetype: mimetypeMap[mediaType],
+                  caption,
+                };
+                sendPayload[mediaType] = mediaBuf;
+
+                await sock.sendMessage(ownerJid, sendPayload);
+                logger.info({ sessionId, poster, mediaType }, "📼 Auto-recorded status forwarded to owner");
+              }
+            }
+          } catch (err) {
+            logger.warn({ err }, "Auto-record status failed");
+          }
+        }
+
         continue;
       }
 

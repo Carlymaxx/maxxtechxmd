@@ -189,6 +189,15 @@ registerCommand({
 });
 
 registerCommand({
+  name: "autorecordstatus",
+  aliases: ["recordstatus", "statussave"],
+  category: "Settings",
+  sudoOnly: true,
+  description: "Toggle auto-record status (forwards status media to owner)",
+  handler: async ({ args, settings, reply }) => toggle(settings, "autorecordstatus", args[0]?.toLowerCase(), "Auto-record status", reply),
+});
+
+registerCommand({
   name: "chatbot",
   aliases: [],
   category: "Settings",
@@ -347,6 +356,7 @@ registerCommand({
 • Always online: *${settings.alwaysonline ? "✅" : "❌"}*
 • Auto-view status: *${settings.autoviewstatus ? "✅" : "❌"}*
 • Auto-like status: *${settings.autolikestatus ? "✅" : "❌"}*
+• Auto-record status: *${(settings as any).autorecordstatus ? "✅" : "❌"}*
 • Anti-link: *${settings.antilink ? "✅" : "❌"}*
 • Chatbot: *${settings.chatbot ? "✅" : "❌"}`);
   },

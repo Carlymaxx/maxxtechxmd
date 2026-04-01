@@ -36,6 +36,7 @@ export interface BotSettings {
   autoviewstatus: boolean;
   autolikestatus: boolean;
   autolikestatus_emoji: string;
+  autorecordstatus: boolean;
   antilink: boolean;
   alwaysonline: boolean;
   autotyping: boolean;
@@ -69,6 +70,7 @@ const defaultSettings: BotSettings = {
   autoviewstatus: true,
   autolikestatus: true,
   autolikestatus_emoji: "🔥",
+  autorecordstatus: false,
   antilink: false,
   alwaysonline: true,
   autotyping: true,
