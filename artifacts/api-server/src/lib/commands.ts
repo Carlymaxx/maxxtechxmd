@@ -1302,8 +1302,8 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
 
   // ── Command routing ─────────────────────────────────────────────────────────
   if (!body.startsWith(prefix)) {
-    // ── Chatbot — multi-layer AI with smart fallback ───────────────────────
-    if (settings.chatbot) {
+    // ── Chatbot — only in private DMs (never in groups), owner-controllable ──
+    if (settings.chatbot && !isGroup) {
       const q = body.trim();
       if (q) {
         sock.sendPresenceUpdate("composing", from).catch(() => {});
