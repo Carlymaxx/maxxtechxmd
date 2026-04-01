@@ -170,6 +170,26 @@ registerCommand({
 });
 
 registerCommand({
+  name: "restart",
+  aliases: ["reboot", "relaunch", "botrestart"],
+  category: "Owner",
+  ownerOnly: true,
+  description: "Restart the bot process",
+  handler: async ({ reply }) => {
+    await reply(`╔═══════════════════════╗
+║  🔄 *RESTARTING BOT* 🔄
+╚═══════════════════════╝
+
+⏳ Bot is going offline to restart...
+♻️ Will be back online in ~20 seconds!
+📩 You'll get a notification when it's back.
+
+> _MAXX-XMD_ ⚡`);
+    setTimeout(() => process.exit(0), 2500);
+  },
+});
+
+registerCommand({
   name: "update",
   aliases: ["updates", "changelog", "whatsnew"],
   category: "General",

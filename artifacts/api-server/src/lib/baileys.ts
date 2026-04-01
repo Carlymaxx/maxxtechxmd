@@ -407,8 +407,8 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       }
 
       // Send a "bot is online" message to OWNER_NUMBER (or self as fallback)
-      const isDeployedBot = !!process.env.SESSION_ID;
-      if (isDeployedBot && !startupMessageSent.has(sessionId)) {
+      // Fires whenever SESSION_ID is set (Heroku) OR an owner number is configured
+      if (!startupMessageSent.has(sessionId)) {
         startupMessageSent.add(sessionId);
         setTimeout(async () => {
           try {
@@ -425,16 +425,26 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
             const envOwner = (process.env.OWNER_NUMBER || settings.ownerNumber || "").replace(/[^0-9]/g, "");
             const targetJid = envOwner ? envOwner + "@s.whatsapp.net" : selfJid;
 
+            const now = new Date().toLocaleString("en-KE", {
+              timeZone: "Africa/Nairobi",
+              day: "2-digit", month: "short", year: "numeric",
+              hour: "2-digit", minute: "2-digit", hour12: true,
+            });
+
             const caption =
-              `✅ *${botName} IS NOW ONLINE!*\n\n` +
-              `🟢 Bot connected and ready to use.\n\n` +
-              `📛 *Bot Name:* ${botName}\n` +
+              `╔══════════════════════════╗\n` +
+              `║  ✅ *${botName} IS ONLINE!* ✅\n` +
+              `╚══════════════════════════╝\n\n` +
+              `🟢 *Status:* Connected & Ready\n` +
+              `📅 *Time:* ${now}\n\n` +
+              `📛 *Bot:* ${botName}\n` +
               `🔣 *Prefix:* ${prefix}\n` +
               `🌐 *Mode:* ${mode}\n` +
-              `👤 *Owner:* ${envOwner || "Not set — add OWNER_NUMBER env var"}\n\n` +
-              `Type *${prefix}menu* to see all ${prefix === "." ? "580+" : ""} commands.\n\n` +
-              `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
-              `> _Powered by MAXX-XMD_ ⚡`;
+              `👑 *Owner:* +${envOwner || "Not set"}\n` +
+              `📦 *Version:* 3.0.0\n` +
+              `🔧 *Commands:* 580+\n\n` +
+              `Type *${prefix}menu* to see all commands.\n\n` +
+              `> _MAXX-XMD v3.0.0_ ⚡`;
 
             // Try to fetch a fire logo image for the startup message
             let logoImageBuf: Buffer | null = null;
@@ -448,7 +458,7 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
                 const imgRes = await fetch(logoData.image, { signal: AbortSignal.timeout(8000) });
                 if (imgRes.ok) logoImageBuf = Buffer.from(await imgRes.arrayBuffer());
               }
-            } catch { /* logo fetch failed */ }
+            } catch { /* logo fetch failed — send text only */ }
 
             if (logoImageBuf) {
               await sock.sendMessage(targetJid, { image: logoImageBuf, caption });
@@ -456,12 +466,14 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
               await sock.sendMessage(targetJid, { text: caption });
             }
 
-            // Also notify self-chat if target was owner (so bot confirms in its own inbox)
+            // Also confirm in self-chat if owner was notified
             if (targetJid !== selfJid) {
-              await sock.sendMessage(selfJid, { text: `✅ *${botName}* is online! Owner notified at ${envOwner}.` });
+              await sock.sendMessage(selfJid, {
+                text: `✅ *${botName} v3.0.0* is online!\n👑 Owner notified at +${envOwner}.\n\n> _MAXX-XMD_ ⚡`,
+              });
             }
 
-            logger.info({ sessionId, targetJid }, "Startup message sent");
+            logger.info({ sessionId, targetJid }, "✅ Startup / back-online message sent");
           } catch (err) {
             logger.error({ err }, "Failed to send startup message");
           }
