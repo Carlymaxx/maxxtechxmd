@@ -58,7 +58,7 @@ import "./commands/education.js";
 import "./commands/morefun.js";
 import "./commands/sticker.js";
 import "./commands/protection.js";
-import "./commands/economy.js";
+// economy removed — was writing disk on every command call
 import "./commands/games2.js";
 import "./commands/media2.js";
 import "./commands/country.js";
