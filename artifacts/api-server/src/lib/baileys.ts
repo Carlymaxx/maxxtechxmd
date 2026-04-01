@@ -573,16 +573,35 @@ export async function generatePairingCode(phoneNumber: string): Promise<string> 
   activeSessions[sessionId] = sock;
 
   try {
-    // Give the WS handshake ~4 s to complete before requesting the code
-    await new Promise((r) => setTimeout(r, 4000));
+    // Wait for WS handshake — use connection.update event instead of fixed delay
+    await Promise.race([
+      new Promise<void>((resolve) => {
+        sock.ev.on("connection.update", (update) => {
+          // The socket is ready to accept requestPairingCode once it receives
+          // the hello from WhatsApp — indicated by 'connecting' state or any update
+          if (update.connection === "connecting" || update.connection === "open" || update.qr !== undefined || update.isNewLogin !== undefined) {
+            resolve();
+          }
+        });
+      }),
+      // Fallback: proceed after 5 s even if no event fires
+      new Promise<void>((resolve) => setTimeout(resolve, 5000)),
+    ]);
 
     if ((sock.authState.creds as any).registered) {
-      throw new Error("Temporary session already registered — please retry.");
+      throw new Error("Session already registered — please retry.");
     }
 
-    const code = await sock.requestPairingCode(phoneNumber);
-    const formatted = code.match(/.{1,4}/g)?.join("-") ?? code;
-    return formatted;
+    // Race requestPairingCode against a 25-second timeout
+    const code = await Promise.race([
+      sock.requestPairingCode(phoneNumber),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("WhatsApp did not respond with a pairing code. Try again or use https://pair.maxxtech.co.ke")), 25000)
+      ),
+    ]);
+
+    const formatted = (code as string).match(/.{1,4}/g)?.join("-") ?? code;
+    return formatted as string;
   } finally {
     // Always clean up the temp socket
     setTimeout(cleanup, 500);
