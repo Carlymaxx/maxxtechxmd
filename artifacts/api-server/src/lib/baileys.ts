@@ -6,7 +6,7 @@ import makeWASocket, {
   downloadMediaMessage,
 } from "@whiskeysockets/baileys";
 import { handleMessage } from "./commands.js";
-import { WORKSPACE_ROOT } from "./botState.js";
+import { WORKSPACE_ROOT, registerLiveSession, unregisterLiveSession } from "./botState.js";
 import fs from "fs";
 import path from "path";
 import zlib from "zlib";
@@ -330,24 +330,81 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       const settings = loadSettings();
       const meta = await sock.groupMetadata(id).catch(() => null);
       const groupName = meta?.subject || "the group";
+      const memberCount = meta?.participants?.length || 0;
+      const groupDesc = meta?.desc ? `\n📋 _${meta.desc.slice(0, 80)}_` : "";
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("en-KE", { day: "2-digit", month: "short", year: "numeric" });
+      const timeStr = now.toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Africa/Nairobi" });
+      const botName = settings.botName || "MAXX-XMD";
+
       for (const participant of participants) {
         const tag = `@${participant.replace("@s.whatsapp.net", "")}`;
+
+        // ── WELCOME ────────────────────────────────────────────────────────
         if (action === "add" && settings.welcomeMessage) {
-          const text = (settings as any).welcomeText
-            ? (settings as any).welcomeText
+          const customText = (settings as any).welcomeText;
+          const text = customText
+            ? customText
                 .replace(/@user/g, tag)
                 .replace(/@group/g, `*${groupName}*`)
                 .replace(/@desc/g, meta?.desc || "")
-            : `👋 Welcome *${tag}* to *${groupName}*!\n\nWe're happy to have you here 🎉\nType .menu to see what the bot can do!`;
-          await sock.sendMessage(id, { text, mentions: [participant] });
+                .replace(/@count/g, String(memberCount))
+            :
+              `╔══════════════════════════╗\n` +
+              `║  🎉 *WELCOME TO THE GROUP!* 🎉\n` +
+              `╚══════════════════════════╝\n\n` +
+              `👋 Hey ${tag}!\n\n` +
+              `You're now member *#${memberCount}* of *${groupName}* 🏆\n` +
+              groupDesc + `\n\n` +
+              `📅 Joined: *${dateStr}* at *${timeStr}*\n\n` +
+              `✅ *Quick tips:*\n` +
+              `• Type *.menu* to explore ${memberCount > 1 ? "580+" : ""} commands\n` +
+              `• Be respectful to all members\n` +
+              `• Have fun! 🔥\n\n` +
+              `> _${botName}_ ⚡`;
+
+          // Try to fetch profile picture and send as image
+          try {
+            const ppUrl = await sock.profilePictureUrl(participant, "image");
+            await sock.sendMessage(id, {
+              image: { url: ppUrl },
+              caption: text,
+              mentions: [participant],
+            });
+          } catch {
+            // No profile pic — send text only
+            await sock.sendMessage(id, { text, mentions: [participant] });
+          }
         }
+
+        // ── GOODBYE ────────────────────────────────────────────────────────
         if (action === "remove" && settings.goodbyeMessage) {
-          const text = (settings as any).goodbyeText
-            ? (settings as any).goodbyeText
+          const customText = (settings as any).goodbyeText;
+          const text = customText
+            ? customText
                 .replace(/@user/g, tag)
                 .replace(/@group/g, `*${groupName}*`)
-            : `👋 *${tag}* has left *${groupName}*. Goodbye! 😢`;
-          await sock.sendMessage(id, { text, mentions: [participant] });
+                .replace(/@count/g, String(memberCount))
+            :
+              `╔══════════════════════════╗\n` +
+              `║  👋 *FAREWELL MESSAGE* 👋\n` +
+              `╚══════════════════════════╝\n\n` +
+              `😢 ${tag} has left *${groupName}*\n\n` +
+              `👥 Members remaining: *${memberCount}*\n` +
+              `📅 Left on: *${dateStr}* at *${timeStr}*\n\n` +
+              `_We'll miss you! Come back anytime_ 💙\n\n` +
+              `> _${botName}_ ⚡`;
+
+          try {
+            const ppUrl = await sock.profilePictureUrl(participant, "image");
+            await sock.sendMessage(id, {
+              image: { url: ppUrl },
+              caption: text,
+              mentions: [participant],
+            });
+          } catch {
+            await sock.sendMessage(id, { text, mentions: [participant] });
+          }
         }
       }
     } catch (err) {
@@ -386,7 +443,9 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
     if (connection === "open") {
       delete latestQR[sessionId];
       sessionConnected[sessionId] = true;
-      logger.info({ sessionId }, "Session connected");
+      const botJid = sock.user?.id || sessionId;
+      registerLiveSession(sessionId, botJid);
+      logger.info({ sessionId, botJid }, "Session connected");
       saveSessionMeta(sessionId, { autoRestart: true, lastConnected: Date.now() });
 
       // Mark session ready after 15s so WhatsApp finishes key sync before we process commands.
