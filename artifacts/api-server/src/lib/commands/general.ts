@@ -144,6 +144,31 @@ registerCommand({
 });
 
 registerCommand({
+  name: "social",
+  aliases: ["links", "socials", "follow"],
+  category: "General",
+  description: "Show all MAXX XMD social media and contact links",
+  handler: async ({ sock, from, msg, settings }) => {
+    const botName = settings.botName || "MAXX-XMD";
+    const text =
+      `╔══════════════════════════╗\n` +
+      `║  🌐 *${botName} SOCIAL LINKS* 🌐\n` +
+      `╚══════════════════════════╝\n\n` +
+      `📢 *WhatsApp Channel:*\n` +
+      `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
+      `💻 *GitHub (Source Code):*\n` +
+      `https://github.com/Carlymaxx/maxxtechxmd\n\n` +
+      `🌍 *Pairing Website:*\n` +
+      `https://pair.maxxtech.co.ke\n\n` +
+      `> _⭐ Star us on GitHub — it helps a lot!_ ⚡`;
+    await sock.sendMessage(from, { text }, { quoted: msg });
+    await sock.sendMessage(from, {
+      text: `📢 *Follow ${botName} on WhatsApp Channel* — tap below 👇\n\nhttps://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J`,
+    });
+  },
+});
+
+registerCommand({
   name: "update",
   aliases: ["updates", "changelog", "whatsnew"],
   category: "General",
