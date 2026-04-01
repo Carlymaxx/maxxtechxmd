@@ -174,18 +174,72 @@ registerCommand({
   aliases: ["reboot", "relaunch", "botrestart"],
   category: "Owner",
   ownerOnly: true,
-  description: "Restart the bot process",
+  description: "Pull latest code from GitHub and redeploy the bot",
   handler: async ({ reply }) => {
-    await reply(`╔═══════════════════════╗
-║  🔄 *RESTARTING BOT* 🔄
-╚═══════════════════════╝
+    const herokuApiKey = process.env.HEROKU_API_KEY;
+    const herokuAppName = process.env.HEROKU_APP_NAME || "maxx-xmd-bot";
+    const githubRepo = process.env.GITHUB_REPO || "Carlymaxx/maxxtechxmd";
 
-⏳ Bot is going offline to restart...
-♻️ Will be back online in ~20 seconds!
-📩 You'll get a notification when it's back.
+    // ── Step 1: Check for new commits on GitHub ───────────────────────────────
+    let latestCommit = "";
+    let commitMsg = "";
+    try {
+      const ghRes = await fetch(
+        `https://api.github.com/repos/${githubRepo}/commits/main`,
+        { headers: { "Accept": "application/vnd.github.v3+json" }, signal: AbortSignal.timeout(8000) }
+      );
+      if (ghRes.ok) {
+        const data = await ghRes.json() as any;
+        latestCommit = data.sha?.slice(0, 7) || "";
+        commitMsg = data.commit?.message?.split("\n")[0]?.slice(0, 60) || "";
+      }
+    } catch { /* no problem — still restart */ }
 
-> _MAXX-XMD_ ⚡`);
-    setTimeout(() => process.exit(0), 2500);
+    await reply(
+      `╔══════════════════════════╗\n` +
+      `║  🔄 *RESTARTING BOT* 🔄\n` +
+      `╚══════════════════════════╝\n\n` +
+      `📦 *Pulling latest code from GitHub...*\n` +
+      (latestCommit ? `🆕 *Latest commit:* \`${latestCommit}\`\n📝 ${commitMsg}\n` : "") +
+      `\n♻️ Redeploying now — will be back in ~2 mins!\n` +
+      `📩 You'll get a notification when it's online.\n\n` +
+      `> _MAXX-XMD_ ⚡`
+    );
+
+    // ── Step 2: Trigger Heroku rebuild (pulls latest GitHub code + rebuilds) ──
+    if (herokuApiKey) {
+      setTimeout(async () => {
+        try {
+          const buildRes = await fetch(
+            `https://api.heroku.com/apps/${herokuAppName}/builds`,
+            {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${herokuApiKey}`,
+                "Accept": "application/vnd.heroku+json; version=3",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                source_blob: {
+                  url: `https://github.com/${githubRepo}/archive/refs/heads/main.tar.gz`,
+                  version: latestCommit || "main",
+                },
+              }),
+            }
+          );
+          if (!buildRes.ok) {
+            const err = await buildRes.text();
+            throw new Error(`Heroku build failed: ${err.slice(0, 100)}`);
+          }
+        } catch (e: any) {
+          // If Heroku rebuild fails, fall back to simple process restart
+          setTimeout(() => process.exit(0), 1000);
+        }
+      }, 3000);
+    } else {
+      // No Heroku key — just restart the process (uses same built code)
+      setTimeout(() => process.exit(0), 3000);
+    }
   },
 });
 
