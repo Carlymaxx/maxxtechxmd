@@ -291,10 +291,12 @@ Please wait up to 30 seconds...`);
 4️⃣ Choose *Link with phone number*
 5️⃣ Type the code below 👇
 
-⏱️ _Code expires in ~60 seconds!_`);
+⏱️ _Code expires in ~60 seconds!_
+
+> _MAXX-XMD_ ⚡`);
 
       // Send code as a plain standalone message for easy one-tap copy
-      await sock.sendMessage(from, { text: pairingCode }, { quoted: msg });
+      await sock.sendMessage(from, { text: `${pairingCode}\n\n> _MAXX-XMD_ ⚡` }, { quoted: msg });
 
     } catch (e: any) {
       await reply(`❌ Failed to generate pairing code.

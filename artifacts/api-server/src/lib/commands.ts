@@ -424,6 +424,7 @@ registerCommand({
         audio: buffer,
         mimetype: "audio/mpeg",
         fileName: `${title}${artist ? ` - ${artist}` : ""}.mp3`,
+        caption,
         ptt: false,
         contextInfo: {
           externalAdReply: {
@@ -475,10 +476,12 @@ registerCommand({
         } catch {}
       }
 
+      const spCaption = `🎧 *${title || "Unknown"}*${artist ? `\n👤 ${artist}` : ""}${duration ? `\n⏱️ ${duration}` : ""}\n\n> _MAXX-XMD_ ⚡`;
       await sock.sendMessage(from, {
         audio: buffer,
         mimetype: "audio/mpeg",
         fileName: `${title} - ${artist}.mp3`,
+        caption: spCaption,
         ptt: false,
         contextInfo: {
           externalAdReply: {

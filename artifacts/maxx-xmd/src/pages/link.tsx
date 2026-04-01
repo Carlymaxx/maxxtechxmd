@@ -191,6 +191,15 @@ export default function LinkPage() {
     return () => clearTimeout(t);
   }, [code, status?.connected, countdown]);
 
+  // Auto-copy the code the moment it arrives
+  useEffect(() => {
+    if (!code) return;
+    navigator.clipboard.writeText(code.replace(/-/g, "")).catch(() => {});
+    setCopiedCode(true);
+    const t = setTimeout(() => setCopiedCode(false), 3000);
+    return () => clearTimeout(t);
+  }, [code]);
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     const cleaned = number.replace(/[^0-9]/g, "");
@@ -960,30 +969,48 @@ export default function LinkPage() {
               <p style={{ fontSize:10, color:"rgba(0,212,255,.5)", letterSpacing:4,
                 textTransform:"uppercase", marginBottom:18 }}>Your Pairing Code</p>
 
-              <div style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:22 }}>
+              {/* Tap any digit or the row to copy */}
+              <div
+                onClick={copyCode}
+                title="Tap to copy code"
+                style={{ display:"flex", gap:6, justifyContent:"center", flexWrap:"wrap", marginBottom:22, cursor:"pointer" }}
+              >
                 {codeDigits.map((d, i) => (
                   <div key={i} className="digit-box" style={{
                     animationDelay:`${i * 0.06}s`,
                     width:46, height:60,
-                    background:"rgba(0,0,0,.8)",
-                    border:`2px solid rgba(0,212,255,.4)`,
+                    background: copiedCode ? "rgba(0,212,255,.15)" : "rgba(0,0,0,.8)",
+                    border:`2px solid ${copiedCode ? G : "rgba(0,212,255,.4)"}`,
                     borderRadius:11,
                     display:"flex", alignItems:"center", justifyContent:"center",
                     fontSize:28, fontWeight:900, color:"#fff",
-                    boxShadow:"0 0 14px rgba(0,212,255,.1)",
+                    boxShadow: copiedCode ? `0 0 20px rgba(0,212,255,.3)` : "0 0 14px rgba(0,212,255,.1)",
+                    transition:"all .2s",
                   }}>{d}</div>
                 ))}
               </div>
 
               <button onClick={copyCode} className="copy-btn" style={{
                 display:"inline-flex", alignItems:"center", gap:8,
-                padding:"12px 28px", border:`1px solid rgba(0,212,255,.4)`, borderRadius:10,
-                background: copiedCode ? "rgba(0,212,255,.12)" : "transparent",
-                color:G, fontFamily:MONO, fontSize:14, fontWeight:700, cursor:"pointer",
+                padding:"12px 28px", border:`1px solid ${copiedCode ? G : "rgba(0,212,255,.4)"}`, borderRadius:10,
+                background: copiedCode ? "rgba(0,212,255,.15)" : "transparent",
+                color: copiedCode ? "#fff" : G, fontFamily:MONO, fontSize:14, fontWeight:700, cursor:"pointer",
                 letterSpacing:1, transition:"all .2s",
+                boxShadow: copiedCode ? `0 0 18px rgba(0,212,255,.25)` : "none",
               }}>
                 {copiedCode ? <><CheckCircle2 size={16} /> COPIED!</> : <><Copy size={16} /> COPY CODE</>}
               </button>
+
+              {/* MAXX-XMD footer branding */}
+              <div style={{
+                marginTop:16, paddingTop:12,
+                borderTop:"1px solid rgba(0,212,255,.1)",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                color:"rgba(0,212,255,.4)", fontSize:11, letterSpacing:2, fontStyle:"italic",
+              }}>
+                <Bot size={12} color="rgba(0,212,255,.4)" />
+                MAXX-XMD ⚡
+              </div>
             </div>
 
             <div style={{
