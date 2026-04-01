@@ -1,6 +1,6 @@
 import os from "os";
 import { registerCommand, commandRegistry } from "./types";
-import { getLiveSessions } from "../botState";
+import { getLiveSessions, getCmdUsageCount } from "../botState";
 
 function ramBar(pct: number): string {
   const filled = Math.round(pct / 10);
@@ -495,8 +495,10 @@ registerCommand({
         `🕒 *Time:* ${timeStr}  📅 ${dateStr}\n` +
         `⏱️ *Uptime:* ${hours}h ${mins}m\n` +
         `💾 *RAM:* ${usedMem}MB / ${totalMem}MB\n` +
-        `📦 *Commands:* ${totalCmds} total\n\n` +
-        liveBlock;
+        `📦 *Commands:* ${totalCmds} total\n` +
+        `🔢 *Uses:* ${getCmdUsageCount().toLocaleString()}\n` +
+        liveBlock +
+        `\n`;
 
       // Build each category section in order
       const orderedCats = [
@@ -835,26 +837,34 @@ registerCommand({
 
 registerCommand({
   name: "clearchat",
-  aliases: ["clear"],
+  aliases: ["clear", "clr", "chatclear"],
   category: "General",
-  description: "Clear the current chat — wipes history on the bot side and pushes messages out of view",
+  description: "Nuke the chat — wipes all history and starts completely fresh",
   handler: async ({ sock, from, msg }) => {
     try {
-      // 1. Delete the command message itself
+      // 1. Delete the triggering command message
       try { await sock.sendMessage(from, { delete: msg.key }); } catch {}
 
-      // 2. Clear chat history on the bot's device via WhatsApp sync
-      try {
-        await (sock as any).chatModify(
-          { clear: { messages: [{ id: msg.key.id!, fromMe: false, timestamp: Number(msg.messageTimestamp ?? 0) }] } },
-          from
-        );
-      } catch {}
+      // 2. Full chat clear on bot's device (removes all messages from memory)
+      try { await (sock as any).chatModify({ clear: true }, from); } catch {}
 
-      // 3. Push everything out of view with blank padding (visible clear for the user)
-      const padding = "\u200b\n".repeat(100);
+      // 3. Also mark chat as unread then read to reset notification state
+      try { await (sock as any).chatModify({ markRead: false }, from); } catch {}
+      try { await (sock as any).chatModify({ markRead: true }, from); } catch {}
+
+      // 4. Massive zero-width padding — visually pushes ALL old messages far off-screen
+      const ZWSP = "\u200b";
+      const padding = `${ZWSP}\n`.repeat(500);
+
       await sock.sendMessage(from, {
-        text: `${padding}╔════════════════════╗\n║  🧹 *CHAT CLEARED*  ║\n╚════════════════════╝\n\n✅ Chat history has been cleared.\n\n> _MAXX-XMD_ ⚡`,
+        text:
+          `${padding}` +
+          `╔══════════════════════════╗\n` +
+          `║  🧹 *FRESH START* 🧹\n` +
+          `╚══════════════════════════╝\n\n` +
+          `✅ *Chat has been cleared!*\n\n` +
+          `Everything above this message\nhas been wiped. You're starting\nfresh right here 🚀\n\n` +
+          `> _MAXX-XMD_ ⚡`,
       });
     } catch {
       await sock.sendMessage(from, { text: "❌ Could not clear chat.\n\n> _MAXX-XMD_ ⚡" });
