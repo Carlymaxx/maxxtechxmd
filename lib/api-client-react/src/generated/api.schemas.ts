@@ -96,10 +96,11 @@ export const PairingStatusResponseStatus = {
 } as const;
 
 export interface PairingStatusResponse {
-  status: PairingStatusResponseStatus;
+  status: string;
   connected: boolean;
   sessionId?: string | null;
   pairingCode?: string | null;
+  deploySessionId?: string | null;
 }
 
 export interface ErrorResponse {

@@ -178,10 +178,11 @@ export const GetPairingStatusParams = zod.object({
 });
 
 export const GetPairingStatusResponse = zod.object({
-  status: zod.enum(["pending", "connected", "failed", "expired"]),
+  status: zod.string(),
   connected: zod.boolean(),
   sessionId: zod.string().nullish(),
   pairingCode: zod.string().nullish(),
+  deploySessionId: zod.string().nullish(),
 });
 
 /**

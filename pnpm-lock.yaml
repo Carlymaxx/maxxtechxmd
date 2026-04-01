@@ -277,6 +277,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: 'catalog:'
         version: 4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.31.1)(yaml@2.8.2))
+      '@workspace/api-client-react':
+        specifier: workspace:*
+        version: link:../../lib/api-client-react
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1

@@ -480,13 +480,16 @@ components:
       type: object
       properties:
         status:
-          $ref: "#/components/schemas/PairingStatusResponseStatus"
+          type: string
         connected:
           type: boolean
         sessionId:
           type: string
           nullable: true
         pairingCode:
+          type: string
+          nullable: true
+        deploySessionId:
           type: string
           nullable: true
       required:

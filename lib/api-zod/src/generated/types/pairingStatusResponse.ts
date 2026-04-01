@@ -5,11 +5,11 @@
  * MAXX-XMD WhatsApp Bot API
  * OpenAPI spec version: 0.1.0
  */
-import type { PairingStatusResponseStatus } from "./pairingStatusResponseStatus";
 
 export interface PairingStatusResponse {
-  status: PairingStatusResponseStatus;
+  status: string;
   connected: boolean;
   sessionId?: string | null;
   pairingCode?: string | null;
+  deploySessionId?: string | null;
 }
