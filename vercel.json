@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm --filter @workspace/maxx-xmd build",
+  "outputDirectory": "artifacts/maxx-xmd/dist/public",
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "framework": null
+}
