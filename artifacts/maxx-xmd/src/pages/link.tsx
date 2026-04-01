@@ -3,7 +3,7 @@ import { useRequestPairing, useGetPairingStatus } from "@workspace/api-client-re
 import {
   Smartphone, Copy, CheckCircle2, ShieldCheck,
   AlertCircle, Zap, Loader2, ExternalLink, Terminal,
-  Users, Command, Clock, Github, MessageCircle,
+  Users, Command, Clock, Github, GitFork, MessageCircle,
   Globe, ArrowRight, Bot, Activity, QrCode, RefreshCw,
 } from "lucide-react";
 
@@ -37,9 +37,10 @@ interface LiveStats {
 }
 
 const SOCIALS = [
-  { icon: Github, label: "GitHub", url: "https://github.com/Carlymaxx/maxxtechxmd", color: "#e2e8f0" },
-  { icon: MessageCircle, label: "WhatsApp Group", url: "https://chat.whatsapp.com/", color: "#25d366" },
-  { icon: Globe, label: "Channel", url: "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J", color: "#00d4ff" },
+  { icon: Github,      label: "GitHub Repo", url: "https://github.com/Carlymaxx/maxxtechxmd",       color: "#e2e8f0" },
+  { icon: GitFork,     label: "Fork Repo",   url: "https://github.com/Carlymaxx/maxxtechxmd/fork",  color: "#a78bfa" },
+  { icon: MessageCircle, label: "WhatsApp Group", url: "https://chat.whatsapp.com/",                color: "#25d366" },
+  { icon: Globe,       label: "Channel",     url: "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J", color: "#00d4ff" },
 ];
 
 const G   = "#00d4ff";
