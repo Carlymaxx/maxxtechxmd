@@ -828,15 +828,24 @@ registerCommand({
   name: "clearchat",
   aliases: ["clear"],
   category: "General",
-  description: "Clear the current chat by pushing messages out of view",
+  description: "Clear the current chat — wipes history on the bot side and pushes messages out of view",
   handler: async ({ sock, from, msg }) => {
     try {
-      // Delete the .clear command message itself
+      // 1. Delete the command message itself
       try { await sock.sendMessage(from, { delete: msg.key }); } catch {}
-      // Push old messages out of view with zero-width space padding
-      const padding = "\u200b\n".repeat(40);
+
+      // 2. Clear chat history on the bot's device via WhatsApp sync
+      try {
+        await (sock as any).chatModify(
+          { clear: { messages: [{ id: msg.key.id!, fromMe: false, timestamp: Number(msg.messageTimestamp ?? 0) }] } },
+          from
+        );
+      } catch {}
+
+      // 3. Push everything out of view with blank padding (visible clear for the user)
+      const padding = "\u200b\n".repeat(100);
       await sock.sendMessage(from, {
-        text: `${padding}╔═══════════════════╗\n║  🧹 *CHAT CLEARED*  ║\n╚═══════════════════╝\n\n> _MAXX-XMD_ ⚡`,
+        text: `${padding}╔════════════════════╗\n║  🧹 *CHAT CLEARED*  ║\n╚════════════════════╝\n\n✅ Chat history has been cleared.\n\n> _MAXX-XMD_ ⚡`,
       });
     } catch {
       await sock.sendMessage(from, { text: "❌ Could not clear chat.\n\n> _MAXX-XMD_ ⚡" });
