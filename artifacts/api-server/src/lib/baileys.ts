@@ -208,6 +208,20 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         || (msg.message as any)?.extendedTextMessage?.text
         || "";
       logger.info({ sessionId, from, body: body.slice(0, 80), fromMe: msg.key?.fromMe }, "📩 Processing message");
+
+      // ── Auto-react to every incoming message ─────────────────────────────
+      if (!msg.key.fromMe) {
+        try {
+          const settings = loadSettings();
+          if (settings.autoreaction) {
+            const REACT_EMOJIS = ["❤️","🔥","😍","🤩","💯","👀","🎉","⚡","🙏","😂","👏","🥳","💪","🎵","✨"];
+            const emoji = REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
+            await sock.sendMessage(from, { react: { text: emoji, key: msg.key } });
+            logger.info({ sessionId, from, emoji }, "✅ Auto-reacted to message");
+          }
+        } catch { /* silently skip react errors */ }
+      }
+
       try {
         await handleMessage(sock, msg);
       } catch (err) {
