@@ -4,24 +4,19 @@ import fs from "fs";
 import path from "path";
 
 const GRP_SETTINGS_FILE = path.join(WORKSPACE_ROOT, "group_settings.json");
-function loadGroupSettings(): Record<string, any> {
-  try {
-    if (fs.existsSync(GRP_SETTINGS_FILE)) return JSON.parse(fs.readFileSync(GRP_SETTINGS_FILE, "utf8"));
-  } catch {}
-  return {};
-}
-function saveGroupSettings(data: Record<string, any>) {
-  fs.writeFileSync(GRP_SETTINGS_FILE, JSON.stringify(data, null, 2));
-}
+
+// ── Load ONCE at startup — no repeated disk reads ─────────────────────────────
+let _grpStore: Record<string, any> = {};
+try { _grpStore = JSON.parse(fs.readFileSync(GRP_SETTINGS_FILE, "utf8")); } catch {}
+function _saveGrp() { try { fs.writeFileSync(GRP_SETTINGS_FILE, JSON.stringify(_grpStore)); } catch {} }
+
 export function getGroupSetting(jid: string, key: string, def: any = false) {
-  const store = loadGroupSettings();
-  return store[jid]?.[key] ?? def;
+  return _grpStore[jid]?.[key] ?? def;
 }
 export function setGroupSetting(jid: string, key: string, val: any) {
-  const store = loadGroupSettings();
-  if (!store[jid]) store[jid] = {};
-  store[jid][key] = val;
-  saveGroupSettings(store);
+  if (!_grpStore[jid]) _grpStore[jid] = {};
+  _grpStore[jid][key] = val;
+  _saveGrp();
 }
 
 registerCommand({
