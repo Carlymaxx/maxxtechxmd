@@ -748,11 +748,7 @@ registerCommand({
         text += `╚${"═".repeat(22)}╝\n\n`;
       }
 
-      text +=
-        `━━━━━━━━━━━━━━━━━━━━━\n` +
-        `📢 *Join Our Channel* 👇\n` +
-        `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
-        `> _Powered by ${botName}_ ⚡`;
+      text += `> _Powered by ${botName}_ ⚡`;
 
       const MENU_IMAGES = [
         "https://files.catbox.moe/jlz9dq.png",
@@ -771,6 +767,7 @@ registerCommand({
       } catch {
         await sock.sendMessage(from, { text }, { quoted: msg });
       }
+      await sock.sendMessage(from, { text: `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J` });
       return;
     }
 
@@ -789,11 +786,9 @@ registerCommand({
       }
       out += `┗▣\n\n`;
       out += `💡 _${cmds.length} command${cmds.length !== 1 ? "s" : ""} in ${matchedCat}_\n\n`;
-      out += `━━━━━━━━━━━━━━━━━━━━━\n`;
-      out += `📢 *Join Our Channel* 👇\n`;
-      out += `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n`;
       out += `> _MAXX-XMD_ ⚡`;
       await reply(out);
+      await sock.sendMessage(from, { text: `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J` });
     } else {
       const cats = [...grouped.keys()].map(k => `${CAT_EMOJI[k] || "📌"} ${p}menu ${k.toLowerCase()}`).join("\n");
       await reply(`❌ Category *${cat}* not found.\n\n📋 *Available categories:*\n${cats}`);
