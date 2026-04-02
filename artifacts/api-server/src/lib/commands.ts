@@ -364,8 +364,6 @@ registerCommand({
       `• .song https://open.spotify.com/track/...`
     );
 
-    await reply(`╔═══════════════════╗\n║ 🎵 *MAXX MUSIC* 🎵\n╚═══════════════════╝\n\n🔍 Searching *${query}*...\n⏳ Please wait...`);
-
     try {
       let downloadUrl = "";
       let title = "Unknown";
@@ -516,7 +514,6 @@ registerCommand({
     if (!url?.includes("open.spotify.com")) {
       return reply(`❓ *Usage:* .spotifydl <Spotify URL>\n\n*Example:*\n.spotifydl https://open.spotify.com/track/...`);
     }
-    await reply(`╔═══════════════════╗\n║ 🎧 *SPOTIFY DL* 🎧\n╚═══════════════════╝\n\n⏳ Fetching track...`);
     try {
       const res = await fetch(`https://eliteprotech-apis.zone.id/spotify?url=${encodeURIComponent(url)}`);
       const data = await res.json() as any;
@@ -579,7 +576,6 @@ registerCommand({
       `• .video https://youtu.be/...\n\n` +
       `_Max 5 minutes. For audio only use .song_`
     );
-    await reply(`╔═══════════════════╗\n║ 🎬 *VIDEO DL* 🎬\n╚═══════════════════╝\n\n🔍 Searching *${query}*...\n⏳ Please wait...`);
     try {
       // Step 1: Get YouTube URL (scrape search if text query)
       let ytUrl = query;
@@ -599,7 +595,6 @@ registerCommand({
       }
 
       const videoTitle = apiData.title || "Video";
-      await reply(`✅ Found *${videoTitle}*\n⬇️ Downloading...`);
 
       // Step 3: Download the MP4 buffer
       const dlRes = await fetch(apiData.downloadURL, { signal: AbortSignal.timeout(90000) });
@@ -634,7 +629,6 @@ registerCommand({
   handler: async ({ sock, from, args, reply }) => {
     const url = args[0];
     if (!url?.includes("tiktok")) return reply("❓ Usage: .tiktok <TikTok URL>");
-    await reply("⏳ Fetching TikTok video...");
     try {
       const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
       const res = await fetch(apiUrl);
@@ -694,7 +688,6 @@ registerCommand({
   handler: async ({ sock, from, args, reply }) => {
     const url = args[0];
     if (!url) return reply("❓ Usage: .twitter <tweet URL>");
-    await reply("⏳ Fetching Twitter media...");
     try {
       const apiUrl = `https://twitsave.com/info?url=${encodeURIComponent(url)}`;
       const res = await fetch(apiUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
@@ -936,7 +929,6 @@ for (const cmd of aiCommands) {
     handler: async ({ args, reply }) => {
       const q = args.join(" ");
       if (!q) return reply(`❓ Usage: .${cmd.name} <input>`);
-      await reply(`🤖 Processing...`);
       try {
         const { answer, citations } = await askGemini(cmd.prompt(q));
         await reply(`🤖 *${cmd.name.toUpperCase()}*\n\n${answer}${citations}`);
@@ -1075,7 +1067,6 @@ registerCommand({
     const docMsg = msg.message?.documentMessage || ctx?.quotedMessage?.documentMessage;
     const media = imgMsg || vidMsg || audMsg || docMsg;
     if (!media) return reply("❌ Reply to or send a media message with .tourl");
-    await reply("⏳ Uploading to cloud...");
     try {
       let rawMsg: any;
       let mime = "application/octet-stream";
@@ -1205,7 +1196,6 @@ registerCommand({
   handler: async ({ sock, from, args, reply }) => {
     const text = args.join(" ");
     if (!text) return reply("❓ Usage: .texttopdf <your text here>\nExample: .texttopdf Hello World, this is my document.");
-    await reply("⏳ Generating PDF...");
     try {
       const html = `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;font-size:14px;padding:50px;line-height:1.8;color:#222">${text.replace(/\n/g, "<br>")}</body></html>`;
       const res = await fetch("https://api.html2pdf.app/v1/generate", {
@@ -1683,76 +1673,6 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     quoted: msg.message?.extendedTextMessage?.contextInfo?.quotedMessage as any,
     groupMetadata, reply, react: reactFn,
   };
-
-  // ── "Please wait" indicator (only for genuinely slow API/download commands) ──
-  const SLOW_CMDS: Record<string, string> = {
-    // Music & video downloads
-    play:        "🎵 *Searching for your song…* please wait ⏳",
-    song:        "🎵 *Fetching audio…* please wait ⏳",
-    music:       "🎵 *Fetching music…* please wait ⏳",
-    ytmp3:       "🎵 *Converting to MP3…* please wait ⏳",
-    ytmp4:       "🎬 *Converting to MP4…* please wait ⏳",
-    yta:         "🎵 *Downloading audio…* please wait ⏳",
-    ytv:         "🎬 *Downloading video…* please wait ⏳",
-    lyrics:      "🎤 *Fetching lyrics…* please wait ⏳",
-    lyric:       "🎤 *Fetching lyrics…* please wait ⏳",
-    // Social media downloads
-    tiktok:      "📱 *Downloading TikTok…* please wait ⏳",
-    tt:          "📱 *Downloading TikTok…* please wait ⏳",
-    facebook:    "📘 *Downloading from Facebook…* please wait ⏳",
-    fb:          "📘 *Downloading from Facebook…* please wait ⏳",
-    instagram:   "📸 *Downloading from Instagram…* please wait ⏳",
-    ig:          "📸 *Downloading from Instagram…* please wait ⏳",
-    twitter:     "🐦 *Downloading from Twitter…* please wait ⏳",
-    tw:          "🐦 *Downloading from Twitter…* please wait ⏳",
-    pinterest:   "📌 *Downloading from Pinterest…* please wait ⏳",
-    mediafire:   "☁️ *Downloading from MediaFire…* please wait ⏳",
-    mega:        "☁️ *Downloading from MEGA…* please wait ⏳",
-    // Sticker / image processing
-    sticker:     "🖼️ *Creating sticker…* please wait ⏳",
-    steal:       "🖼️ *Stealing sticker…* please wait ⏳",
-    toimg:       "🖼️ *Converting to image…* please wait ⏳",
-    toimage:     "🖼️ *Converting to image…* please wait ⏳",
-    bwsticker:   "🖼️ *Making B&W sticker…* please wait ⏳",
-    circleimg:   "🖼️ *Making circle sticker…* please wait ⏳",
-    flipsticker: "🖼️ *Flipping sticker…* please wait ⏳",
-    // AI commands
-    ai:          "🤖 *AI is thinking…* please wait ⏳",
-    gpt:         "🤖 *ChatGPT thinking…* please wait ⏳",
-    chatgpt:     "🤖 *ChatGPT thinking…* please wait ⏳",
-    gemini:      "🤖 *Gemini thinking…* please wait ⏳",
-    llama:       "🤖 *Llama thinking…* please wait ⏳",
-    ask:         "🤖 *AI is thinking…* please wait ⏳",
-    imagine:     "🎨 *Generating image…* please wait ⏳",
-    dalle:       "🎨 *Generating image…* please wait ⏳",
-    // Search / lookup commands
-    wiki:        "📖 *Searching Wikipedia…* please wait ⏳",
-    wikipedia:   "📖 *Searching Wikipedia…* please wait ⏳",
-    google:      "🔍 *Searching Google…* please wait ⏳",
-    news:        "📰 *Fetching news…* please wait ⏳",
-    weather:     "🌤️ *Fetching weather…* please wait ⏳",
-    forecast:    "🌤️ *Fetching forecast…* please wait ⏳",
-    weather3day: "🌤️ *Fetching 3-day forecast…* please wait ⏳",
-    translate:   "🌐 *Translating…* please wait ⏳",
-    tr:          "🌐 *Translating…* please wait ⏳",
-    anime:       "🎌 *Searching anime…* please wait ⏳",
-    manga:       "🎌 *Searching manga…* please wait ⏳",
-    movie:       "🎬 *Searching movies…* please wait ⏳",
-    film:        "🎬 *Searching movies…* please wait ⏳",
-    imdb:        "🎬 *Fetching movie info…* please wait ⏳",
-    crypto:      "💰 *Fetching crypto price…* please wait ⏳",
-    coin:        "💰 *Fetching price…* please wait ⏳",
-    currency:    "💱 *Fetching exchange rate…* please wait ⏳",
-    forex:       "💱 *Fetching forex rate…* please wait ⏳",
-    // URL tools
-    tinyurl:     "🔗 *Shortening URL…* please wait ⏳",
-    bitly:       "🔗 *Shortening URL…* please wait ⏳",
-    screenshot:  "📸 *Taking screenshot…* please wait ⏳",
-  };
-  const waitMsg = SLOW_CMDS[commandName];
-  if (waitMsg) {
-    sock.sendMessage(from, { text: waitMsg }, { quoted: msg }).catch(() => {});
-  }
 
   try {
     await command.handler(ctx as any);
