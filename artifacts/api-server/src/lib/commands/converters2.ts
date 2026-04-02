@@ -175,7 +175,6 @@ registerCommand({
     const m = msg.message as any;
     const vidMsg = m?.videoMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage;
     if (!vidMsg) return reply(`❌ Reply to a video with *.toptv*${FOOTER}`);
-    await reply("📺 Processing... ⏳");
     try {
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const fakeMsg = m?.videoMessage ? msg : { ...msg, message: { videoMessage: vidMsg } } as any;
@@ -203,7 +202,6 @@ registerCommand({
     const m = msg.message as any;
     const audMsg = m?.audioMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.audioMessage;
     if (!audMsg) return reply(`❌ Reply to an audio message with *.toaudiodoc*${FOOTER}`);
-    await reply("🎵 Processing... ⏳");
     try {
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const fakeMsg = m?.audioMessage ? msg : { ...msg, message: { audioMessage: audMsg } } as any;
