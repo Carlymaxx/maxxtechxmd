@@ -52,8 +52,20 @@
 
   <div align="center">
     <a href="">
-      <img src="https://files.catbox.moe/8jx0q3.jpg" alt="MAXX~XMD" height="300">
+      <img src="https://files.catbox.moe/9r47nb.jpg" alt="MAXX~XMD" height="300">
     </a>
+  </div>
+
+  <div align="center">
+    <br>
+    <a href="https://pair.maxxtech.co.ke">
+      <img src="https://img.shields.io/badge/🔗%20GET%20SESSION-00CC44?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Get Session" height="45">
+    </a>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="https://github.com/Carlymaxx/maxxtechxmd/fork">
+      <img src="https://img.shields.io/badge/🍴%20FORK%20REPO-0077FF?style=for-the-badge&logo=github&logoColor=white" alt="Fork Repo" height="45">
+    </a>
+    <br><br>
   </div>
 
   ---
