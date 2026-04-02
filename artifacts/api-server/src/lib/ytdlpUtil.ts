@@ -30,21 +30,62 @@ export function ffmpegDir(): string {
 }
 
 async function downloadBinary(dest: string): Promise<void> {
+  // Remove any pre-existing corrupt file before writing
+  try { fs.unlinkSync(dest); } catch {}
+
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
+    let redirectCount = 0;
+
     const follow = (url: string) => {
-      https.get(url, (res) => {
-        if (res.statusCode === 301 || res.statusCode === 302) {
-          follow(res.headers.location!);
+      if (redirectCount++ > 10) {
+        file.destroy();
+        reject(new Error("Too many redirects downloading yt-dlp"));
+        return;
+      }
+      const mod = url.startsWith("https") ? https : require("http");
+      mod.get(url, { headers: { "User-Agent": "yt-dlp-downloader/1.0" } }, (res: any) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          res.resume(); // drain
+          follow(res.headers.location);
+          return;
+        }
+        if (res.statusCode !== 200) {
+          file.destroy();
+          reject(new Error(`HTTP ${res.statusCode} downloading yt-dlp binary`));
           return;
         }
         res.pipe(file);
         file.on("finish", () => {
-          file.close();
-          fs.chmodSync(dest, 0o755);
-          resolve();
+          file.close(() => {
+            // Verify the file is a real ELF binary (first 4 bytes: \x7fELF)
+            try {
+              const header = Buffer.alloc(4);
+              const fd = fs.openSync(dest, "r");
+              fs.readSync(fd, header, 0, 4, 0);
+              fs.closeSync(fd);
+              if (header[0] !== 0x7f || header[1] !== 0x45 || header[2] !== 0x4c || header[3] !== 0x46) {
+                fs.unlinkSync(dest);
+                reject(new Error("Downloaded file is not a valid ELF binary (likely HTML error page)"));
+                return;
+              }
+            } catch (e) {
+              reject(e);
+              return;
+            }
+            fs.chmodSync(dest, 0o755);
+            resolve();
+          });
         });
-      }).on("error", reject);
+        file.on("error", (e) => {
+          try { fs.unlinkSync(dest); } catch {}
+          reject(e);
+        });
+      }).on("error", (e: Error) => {
+        file.destroy();
+        try { fs.unlinkSync(dest); } catch {}
+        reject(e);
+      });
     };
     follow(YTDLP_DOWNLOAD_URL);
   });
@@ -59,10 +100,23 @@ export async function getYtdlpBin(): Promise<string> {
   for (const p of YTDLP_CANDIDATE_PATHS) {
     if (fs.existsSync(p)) {
       try {
+        // Verify ELF header first — avoids running corrupt/HTML files
+        const header = Buffer.alloc(4);
+        const fd = fs.openSync(p, "r");
+        fs.readSync(fd, header, 0, 4, 0);
+        fs.closeSync(fd);
+        if (header[0] !== 0x7f || header[1] !== 0x45 || header[2] !== 0x4c || header[3] !== 0x46) {
+          console.log(`[ytdlp] Removing corrupt binary at ${p}`);
+          fs.unlinkSync(p);
+          continue;
+        }
         await execFileAsync(p, ["--version"], { timeout: 5000 });
         cachedBin = p;
         return p;
-      } catch {}
+      } catch {
+        // Bad binary — remove it so download can overwrite
+        try { fs.unlinkSync(p); } catch {}
+      }
     }
   }
 
