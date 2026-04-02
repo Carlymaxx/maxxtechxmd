@@ -151,12 +151,18 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
           if (node?.attrs?.type !== "newsletter") return;
           const children: any[] = Array.isArray(node?.content) ? node.content : [];
           for (const child of children) {
-            if (child?.tag === "message" && child?.attrs?.server_id && child?.attrs?.message_id) {
-              newsletterServerIdMap.set(child.attrs.message_id, child.attrs.server_id);
+            if (child?.tag === "message") {
+              const msgId = child?.attrs?.message_id;
+              const serverId = child?.attrs?.server_id;
+              const childAttrs = { ...child?.attrs };
               logger.info(
-                { msgId: child.attrs.message_id, serverId: child.attrs.server_id },
-                "📢 Intercepted newsletter server_id ✅"
+                { tag: child.tag, childAttrs, hasMsgId: !!msgId, hasServerId: !!serverId },
+                "📢 Newsletter raw notification child"
               );
+              if (serverId && msgId) {
+                newsletterServerIdMap.set(msgId, serverId);
+                logger.info({ msgId, serverId }, "📢 Intercepted newsletter server_id ✅");
+              }
             }
           }
         } catch { /* ignore */ }
@@ -707,6 +713,14 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       setTimeout(async () => {
         // Follow first (needed for reactions to be accepted)
         await followChannel();
+
+        // Verify our follow state via metadata (viewer_metadata.mute_state etc.)
+        try {
+          const meta = await sock.newsletterMetadata("invite", OWNER_CHANNEL_JID.split("@")[0]);
+          logger.info({ sessionId, followState: (meta as any)?.viewerMetadata ?? (meta as any)?.viewer_metadata ?? "n/a" }, "📢 Channel follow state");
+        } catch (metaErr: any) {
+          logger.warn({ sessionId, err: metaErr?.message }, "📢 newsletterMetadata check failed");
+        }
 
         // Subscribe so live posts arrive in messages.upsert
         const duration = await subscribeToChannel();
