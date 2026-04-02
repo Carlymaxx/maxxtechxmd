@@ -23,14 +23,48 @@ registerCommand({
   name: "tagall",
   aliases: ["everyone", "all"],
   category: "Group",
-  description: "Mention all group members",
+  description: "Mention all group members in a numbered list",
   groupOnly: true,
   handler: async ({ sock, from, msg, args, groupMetadata, reply }) => {
     if (!groupMetadata) return reply("❌ Could not fetch group info.");
-    const text = args.join(" ") || "👋 Hey everyone!";
-    const mentions = groupMetadata.participants.map((p: any) => p.id);
-    const mention = mentions.map((m: string) => `@${m.split("@")[0]}`).join(" ");
-    await sock.sendMessage(from, { text: `${text}\n\n${mention}`, mentions });
+    const caption = args.join(" ") || "👋 Hey everyone!";
+    const participants = groupMetadata.participants;
+    const mentions = participants.map((p: any) => p.id);
+    const total = participants.length;
+    const admins = participants.filter((p: any) => p.admin).length;
+
+    const listLines = participants.map((p: any, i: number) => {
+      const num = p.id.split("@")[0];
+      const role = p.admin === "superadmin" ? " 👑" : p.admin ? " ⭐" : "";
+      return `${i + 1}. @${num}${role}`;
+    });
+
+    const header =
+      `╔══════════════════════════╗\n` +
+      `║  👥 *TAG ALL MEMBERS*\n` +
+      `╚══════════════════════════╝\n\n` +
+      `📢 ${caption}\n\n` +
+      `👤 *Total:* ${total}  👑 *Admins:* ${admins}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    const chunkSize = 80;
+    if (participants.length <= chunkSize) {
+      const body = listLines.join("\n");
+      await sock.sendMessage(from, { text: header + body + `\n\n> _MAXX-XMD_ ⚡`, mentions }, { quoted: msg });
+    } else {
+      await sock.sendMessage(from, { text: header + listLines.slice(0, chunkSize).join("\n") + `\n\n> _MAXX-XMD_ ⚡`, mentions }, { quoted: msg });
+      for (let i = chunkSize; i < participants.length; i += chunkSize) {
+        const chunk = participants.slice(i, i + chunkSize);
+        const chunkMentions = chunk.map((p: any) => p.id);
+        const chunkLines = chunk.map((p: any, j: number) => {
+          const num = p.id.split("@")[0];
+          const role = p.admin === "superadmin" ? " 👑" : p.admin ? " ⭐" : "";
+          return `${i + j + 1}. @${num}${role}`;
+        });
+        await sock.sendMessage(from, { text: chunkLines.join("\n"), mentions: chunkMentions });
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
   },
 });
 
@@ -38,7 +72,7 @@ registerCommand({
   name: "tag",
   aliases: ["htag"],
   category: "Group",
-  description: "Tag all members with a message",
+  description: "Tag all members with a message (hidden mention)",
   groupOnly: true,
   handler: async ({ sock, from, args, groupMetadata, reply }) => {
     if (!groupMetadata) return reply("❌ Could not fetch group info.");
@@ -64,17 +98,29 @@ registerCommand({
 
 registerCommand({
   name: "tagadmin",
-  aliases: ["admins"],
+  aliases: ["admins", "tagadmins"],
   category: "Group",
-  description: "Mention all group admins",
+  description: "Mention all group admins in a numbered list",
   groupOnly: true,
-  handler: async ({ sock, from, groupMetadata, reply }) => {
+  handler: async ({ sock, from, msg, groupMetadata, reply }) => {
     if (!groupMetadata) return reply("❌ Could not fetch group info.");
     const adminList = groupMetadata.participants.filter((p: any) => p.admin);
-    if (!adminList.length) return reply("❌ No admins found.");
+    if (!adminList.length) return reply("❌ No admins found in this group.");
     const mentions = adminList.map((p: any) => p.id);
-    const mention = mentions.map((m: string) => `@${m.split("@")[0]}`).join(" ");
-    await sock.sendMessage(from, { text: `👑 *Group Admins*\n\n${mention}`, mentions });
+    const listLines = adminList.map((p: any, i: number) => {
+      const num = p.id.split("@")[0];
+      const crown = p.admin === "superadmin" ? " 👑" : " ⭐";
+      return `${i + 1}. @${num}${crown}`;
+    });
+    const text =
+      `╔══════════════════════════╗\n` +
+      `║  👑 *GROUP ADMINS*\n` +
+      `╚══════════════════════════╝\n\n` +
+      `👑 *Total Admins:* ${adminList.length}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      listLines.join("\n") +
+      `\n\n> _MAXX-XMD_ ⚡`;
+    await sock.sendMessage(from, { text, mentions }, { quoted: msg });
   },
 });
 
@@ -84,6 +130,7 @@ registerCommand({
   category: "Group",
   description: "Remove a member from the group (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, msg, sender, groupMetadata, isSudo, reply }) => {
     if (!groupMetadata) return reply("❌ Not in a group.");
     const isAdmin = groupMetadata.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
@@ -103,8 +150,9 @@ registerCommand({
   name: "add",
   aliases: [],
   category: "Group",
-  description: "Add a member to the group",
+  description: "Add a member to the group (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, args, reply }) => {
     let num = args[0]?.replace(/[^0-9]/g, "");
     if (!num) return reply("❌ Provide a phone number.\nExample: .add 254712345678");
@@ -124,6 +172,7 @@ registerCommand({
   category: "Group",
   description: "Promote a member to admin (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, msg, sender, groupMetadata, isSudo, reply }) => {
     const isAdmin = groupMetadata?.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
     if (!isAdmin) return reply("⛔ Only group admins can promote members.");
@@ -144,6 +193,7 @@ registerCommand({
   category: "Group",
   description: "Demote an admin to member (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, msg, sender, groupMetadata, isSudo, reply }) => {
     const isAdmin = groupMetadata?.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
     if (!isAdmin) return reply("⛔ Only group admins can demote members.");
@@ -164,6 +214,7 @@ registerCommand({
   category: "Group",
   description: "Close group (only admins can send)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, reply }) => {
     try {
       await sock.groupSettingUpdate(from, "announcement");
@@ -180,6 +231,7 @@ registerCommand({
   category: "Group",
   description: "Open group (everyone can send)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, reply }) => {
     try {
       await sock.groupSettingUpdate(from, "not_announcement");
@@ -210,8 +262,9 @@ registerCommand({
   name: "resetlink",
   aliases: ["revoke", "newlink"],
   category: "Group",
-  description: "Reset group invite link",
+  description: "Reset group invite link (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, reply }) => {
     try {
       const code = await sock.groupRevokeInvite(from);
@@ -226,8 +279,9 @@ registerCommand({
   name: "setdesc",
   aliases: ["description", "setgroupdesc"],
   category: "Group",
-  description: "Set group description",
+  description: "Set group description (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, args, reply }) => {
     const desc = args.join(" ");
     if (!desc) return reply("❌ Provide a description.\nExample: .setdesc This is our group!");
@@ -244,8 +298,9 @@ registerCommand({
   name: "setgroupname",
   aliases: ["groupname", "setname"],
   category: "Group",
-  description: "Set group name",
+  description: "Set group name (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, args, reply }) => {
     const name = args.join(" ");
     if (!name) return reply("❌ Provide a name.\nExample: .setgroupname My Group");
@@ -276,10 +331,11 @@ registerCommand({
 
 registerCommand({
   name: "setppgroup",
-  aliases: [],
+  aliases: ["setgrouppp", "groupicon"],
   category: "Group",
-  description: "Set group profile picture (reply to image)",
+  description: "Set group profile picture (reply to image, admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, msg, reply }) => {
     const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
     const imgMsg = quoted?.imageMessage;
@@ -301,6 +357,7 @@ registerCommand({
   category: "Group",
   description: "Kick all non-admin members (admins/owner only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, groupMetadata, sender, isSudo, reply }) => {
     if (!groupMetadata) return reply("❌ Could not fetch group info.");
     const isAdmin = groupMetadata.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
@@ -367,10 +424,11 @@ registerCommand({
 
 registerCommand({
   name: "welcome",
-  aliases: ["setwelcome", "welcomemessage"],
+  aliases: ["setwelcome", "welcomemessage", "welcomeon", "welcomeoff"],
   category: "Group",
-  description: "Toggle or set welcome message",
+  description: "Toggle or set welcome message (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ from, args, reply }) => {
     const arg = args[0]?.toLowerCase();
     if (arg === "on") {
@@ -428,10 +486,11 @@ registerCommand({
 
 registerCommand({
   name: "antibadword",
-  aliases: [],
+  aliases: ["badword", "badwords"],
   category: "Group",
-  description: "Toggle anti-bad-word filter",
+  description: "Toggle anti-bad-word filter (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ from, args, reply }) => {
     const arg = args[0]?.toLowerCase();
     if (arg === "on") { setGroupSetting(from, "antibadword", true); return reply("✅ Anti-badword *enabled*!"); }
@@ -442,10 +501,11 @@ registerCommand({
 
 registerCommand({
   name: "announce",
-  aliases: ["announcements"],
+  aliases: ["announcements", "broadcast"],
   category: "Group",
-  description: "Send an announcement to the group",
+  description: "Send an announcement tagging everyone (admins only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ sock, from, args, groupMetadata, reply }) => {
     if (!groupMetadata) return reply("❌ Not in a group.");
     const text = args.join(" ");
