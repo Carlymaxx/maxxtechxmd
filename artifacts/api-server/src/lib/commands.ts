@@ -43,7 +43,7 @@ import { commandRegistry } from "./commands/types.js";
 import "./commands/general.js";
 import "./commands/fun.js";
 import "./commands/games.js";
-import "./commands/group.js";
+import { getGroupSetting } from "./commands/group.js";
 import "./commands/settings.js";
 import "./commands/owner.js";
 import "./commands/search.js";
@@ -1354,13 +1354,24 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
   }
 
   // ── Anti-link: delete messages with URLs in groups ────────────────────────
-  if (settings.antilink && isGroup && !msg.key.fromMe && body) {
-    const hasLink = /https?:\/\/\S+|wa\.me\/\S+|chat\.whatsapp\.com\/\S+|bit\.ly\/\S+|t\.me\/\S+/i.test(body);
-    if (hasLink) {
+  if (isGroup && !msg.key.fromMe && body && getGroupSetting(from, "antilink")) {
+    const LINK_RE = /https?:\/\/\S+|www\.\S+\.\S+|wa\.me\/\S+|chat\.whatsapp\.com\/\S+|bit\.ly\/\S+|t\.me\/\S+|youtu\.be\/\S+|discord\.gg\/\S+|tiktok\.com\/\S+|instagram\.com\/\S+/i;
+    if (LINK_RE.test(body)) {
       try {
-        await sock.sendMessage(from, { delete: msg.key });
-        const senderTag = `@${sender.replace("@s.whatsapp.net", "")}`;
-        await sock.sendMessage(from, { text: `⛔ *Anti-Link Protection*\n\n${senderTag} links are not allowed in this group!`, mentions: [sender] });
+        // Fetch metadata to exempt group admins & bot admins
+        const meta = await sock.groupMetadata(from).catch(() => null);
+        const adminJids = (meta?.participants ?? [])
+          .filter((p: any) => p.admin === "admin" || p.admin === "superadmin")
+          .map((p: any) => p.id);
+        const senderIsAdmin = adminJids.includes(sender);
+        if (!senderIsAdmin) {
+          await sock.sendMessage(from, { delete: msg.key });
+          const senderTag = `@${sender.replace("@s.whatsapp.net", "")}`;
+          await sock.sendMessage(from, {
+            text: `⛔ *Anti-Link Protection*\n\n${senderTag} links are not allowed in this group!\n\n_Only admins can share links._\n\n> _MAXX-XMD_ ⚡`,
+            mentions: [sender],
+          });
+        }
       } catch {}
       return;
     }
