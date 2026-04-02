@@ -53,7 +53,7 @@ ${bar}
 🟢 *Status:* Active & Running
 
 `;
-    const botpic: string = (settings as any).botpic || "https://i.postimg.cc/YSXgK0Wb/Whats-App-Image-2025-11-22-at-08-20-26.jpg";
+    const botpic: string = (settings as any).botpic || "https://files.catbox.moe/8jx0q3.jpg";
     try {
       await sock.sendMessage(from, { image: { url: botpic }, caption: text }, { quoted: msg });
     } catch {
