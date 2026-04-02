@@ -164,20 +164,25 @@ router.get("/", (_req, res) => {
       <div class="card-title">Pair Your Bot</div>
       <div class="card-sub">pair.maxxtech.co.ke</div>
     </a>
+    <a class="card" href="https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ" target="_blank">
+      <span class="card-icon">👥</span>
+      <div class="card-title">WhatsApp Group</div>
+      <div class="card-sub">Join the community</div>
+    </a>
+    <a class="card" href="https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J" target="_blank">
+      <span class="card-icon">📢</span>
+      <div class="card-title">Channel</div>
+      <div class="card-sub">Follow for updates</div>
+    </a>
     <a class="card" href="https://www.maxxtech.co.ke" target="_blank">
       <span class="card-icon">🌍</span>
-      <div class="card-title">Visit Website</div>
+      <div class="card-title">Website</div>
       <div class="card-sub">www.maxxtech.co.ke</div>
     </a>
     <a class="card" href="https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
       <span class="card-icon">💻</span>
       <div class="card-title">GitHub</div>
       <div class="card-sub">Source Code</div>
-    </a>
-    <a class="card" href="https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J" target="_blank">
-      <span class="card-icon">📢</span>
-      <div class="card-title">Channel</div>
-      <div class="card-sub">Follow for updates</div>
     </a>
   </div>
 
@@ -189,8 +194,9 @@ router.get("/", (_req, res) => {
     <div>
       <a href="https://pair.maxxtech.co.ke">Pair</a> ·
       <a href="https://www.maxxtech.co.ke">Website</a> ·
-      <a href="/healthz">Health</a> ·
-      <a href="/diagnose">Diagnose</a>
+      <a href="https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ" target="_blank">Group</a> ·
+      <a href="/api/healthz">Health</a> ·
+      <a href="/api/diagnose">Diagnose</a>
     </div>
   </div>
 
