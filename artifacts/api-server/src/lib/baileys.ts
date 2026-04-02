@@ -765,6 +765,8 @@ export async function generatePairingCode(phoneNumber: string): Promise<string> 
     browser: ["Mac OS", "Chrome", "14.4.1"] as [string, string, string],
     connectTimeoutMs: 30000,
     defaultQueryTimeoutMs: undefined,
+    syncFullHistory: false,
+    shouldSyncHistoryMessage: () => false,
   });
 
   sock.ev.on("creds.update", saveCreds);
@@ -847,6 +849,8 @@ export async function startPairingSession(
     defaultQueryTimeoutMs: undefined,
     connectTimeoutMs: 120000,
     browser: ["Mac OS", "Chrome", "14.4.1"],
+    syncFullHistory: false,
+    shouldSyncHistoryMessage: () => false,
   });
 
   sock.ev.on("creds.update", saveCreds);
@@ -971,6 +975,8 @@ export async function startPairingSession(
               auth: st2,
               printQRInTerminal: false,
               browser: ["Mac OS", "Chrome", "14.4.1"] as [string, string, string],
+              syncFullHistory: false,
+              shouldSyncHistoryMessage: () => false,
             });
             sock2.ev.on("creds.update", sc2);
             sock2.ev.on("connection.update", async (upd) => {
@@ -1063,6 +1069,8 @@ export async function startQrSession(sessionId: string): Promise<void> {
     defaultQueryTimeoutMs: undefined,
     connectTimeoutMs: 120000,
     browser: ["Mac OS", "Chrome", "14.4.1"],
+    syncFullHistory: false,
+    shouldSyncHistoryMessage: () => false,
   });
 
   activeSessions[sessionId] = sock;
