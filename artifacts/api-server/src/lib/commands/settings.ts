@@ -187,11 +187,43 @@ registerCommand({
 
 registerCommand({
   name: "chatbot",
-  aliases: [],
+  aliases: ["aichat", "botchat"],
   category: "Settings",
   sudoOnly: true,
-  description: "Toggle AI chatbot mode",
-  handler: async ({ args, settings, reply }) => toggle(settings, "chatbot", args[0]?.toLowerCase(), "Chatbot", reply),
+  description: "Toggle global AI chatbot mode (DMs + ALL groups)",
+  handler: async ({ args, settings, reply }) => {
+    const arg = args[0]?.toLowerCase();
+    if (arg === "on") {
+      settings.chatbot = true;
+      saveSettings(settings);
+      return reply(
+        `🤖 *Global Chatbot ENABLED* ✅\n\n` +
+        `I will now reply to every non-command message in:\n` +
+        `• 💬 All private DMs\n` +
+        `• 👥 All groups\n\n` +
+        `_To enable per-group only, use .gchatbot on (in a group)_\n\n` +
+        `Use *.chatbot off* to disable globally.\n\n> _MAXX-XMD_ ⚡`
+      );
+    }
+    if (arg === "off") {
+      settings.chatbot = false;
+      saveSettings(settings);
+      return reply(
+        `🤖 *Global Chatbot DISABLED* ❌\n\n` +
+        `I will no longer auto-reply to plain messages.\n` +
+        `_(Groups with .gchatbot on are not affected)_\n\n> _MAXX-XMD_ ⚡`
+      );
+    }
+    const status = settings.chatbot ? "🟢 *ON*" : "🔴 *OFF*";
+    await reply(
+      `🤖 *Global Chatbot Status:* ${status}\n\n` +
+      `📌 *Usage:*\n` +
+      `.chatbot on  — enable globally (all DMs + groups)\n` +
+      `.chatbot off — disable globally\n` +
+      `.gchatbot on — enable for ONE specific group only\n\n` +
+      `_Only owner can use this command._\n\n> _MAXX-XMD_ ⚡`
+    );
+  },
 });
 
 registerCommand({
