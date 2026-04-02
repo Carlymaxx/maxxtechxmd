@@ -24,7 +24,6 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const url = args[0];
     if (!url || !url.includes("tiktok")) return reply(`❓ Usage: .tiktok <tiktok url>\nExample: .tiktok https://vm.tiktok.com/xxx${FOOTER}`);
-    await reply("⏳ Fetching TikTok video...");
     try {
       let videoUrl = "";
       let caption = "TikTok";
@@ -62,7 +61,6 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const url = args[0];
     if (!url || !url.includes("instagram")) return reply(`❓ Usage: .instagram <instagram url>${FOOTER}`);
-    await reply("⏳ Fetching Instagram media...");
     try {
       let mediaUrl = "";
       let isVideo = false;
@@ -107,7 +105,6 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const url = args[0];
     if (!url || (!url.includes("twitter") && !url.includes("x.com"))) return reply(`❓ Usage: .twitter <twitter/x url>${FOOTER}`);
-    await reply("⏳ Fetching Twitter/X video...");
     try {
       let videoUrl = "";
 
@@ -149,7 +146,6 @@ registerCommand({
     const url = args[0];
     if (!url || (!url.includes("facebook") && !url.includes("fb.watch")))
       return reply(`❓ Usage: .facebook <facebook url>\nExample: .facebook https://fb.watch/xxx${FOOTER}`);
-    await reply("⏳ Fetching Facebook video...");
     try {
       let videoUrl = "";
 
