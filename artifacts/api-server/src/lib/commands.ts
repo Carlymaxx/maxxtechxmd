@@ -1681,6 +1681,61 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     groupMetadata, reply, react: reactFn,
   };
 
+  // ── "Please wait" indicator ────────────────────────────────────────────────
+  // Instantly-completing commands are skipped so they don't get a double reply.
+  const INSTANT_CMDS = new Set([
+    "menu", "help", "ping", "alive", "uptime", "info", "botinfo",
+    "mode", "modestatus", "allcmds", "cmdlist", "owner", "runtime",
+    "react", "say", "echo", "flip", "fliptext", "reverse",
+    "fancy", "fancytext", "qrcode", "speed",
+  ]);
+  if (!INSTANT_CMDS.has(commandName)) {
+    // Pick a message that matches the command category / name
+    const cat = (command.category || "").toLowerCase();
+    const n = commandName;
+    let waitMsg: string;
+    if (["play", "song", "music", "ytmp3", "ytmp4", "audio", "yta", "ytv"].includes(n)) {
+      waitMsg = "🎵 *Searching for your song…* please wait ⏳";
+    } else if (["video", "tiktok", "tt", "facebook", "fb", "instagram", "ig", "twitter", "tw", "pinterest", "mediafire", "mega"].includes(n)) {
+      waitMsg = "⬇️ *Downloading…* please wait ⏳";
+    } else if (["sticker", "steal", "toimg", "toimage", "bwsticker", "circleimg", "flipsticker", "meme"].includes(n)) {
+      waitMsg = "🖼️ *Generating sticker…* please wait ⏳";
+    } else if (["ai", "gpt", "chatgpt", "gemini", "llama", "ask", "chat", "imagine", "dalle", "generate", "art"].includes(n)) {
+      waitMsg = "🤖 *AI is thinking…* please wait ⏳";
+    } else if (["weather", "forecast", "weather3day"].includes(n)) {
+      waitMsg = "🌤️ *Fetching weather…* please wait ⏳";
+    } else if (["translate", "tr", "lang"].includes(n)) {
+      waitMsg = "🌐 *Translating…* please wait ⏳";
+    } else if (["wiki", "wikipedia", "google", "search", "news", "bing"].includes(n)) {
+      waitMsg = "🔍 *Searching…* please wait ⏳";
+    } else if (["lyrics", "lyric", "genius"].includes(n)) {
+      waitMsg = "🎤 *Fetching lyrics…* please wait ⏳";
+    } else if (["anime", "manga", "topanime", "topmangas"].includes(n)) {
+      waitMsg = "🎌 *Fetching anime info…* please wait ⏳";
+    } else if (["movie", "film", "imdb", "series"].includes(n)) {
+      waitMsg = "🎬 *Searching movies…* please wait ⏳";
+    } else if (["crypto", "coin", "price", "currency", "forex"].includes(n)) {
+      waitMsg = "💰 *Fetching prices…* please wait ⏳";
+    } else if (["calc", "calculate", "math", "binary", "base64", "encode", "decode"].includes(n)) {
+      waitMsg = "🧮 *Calculating…* please wait ⏳";
+    } else if (cat === "downloader" || cat === "uploader" || cat === "media" || cat === "converter") {
+      waitMsg = "⬇️ *Processing media…* please wait ⏳";
+    } else if (cat === "search") {
+      waitMsg = "🔍 *Searching…* please wait ⏳";
+    } else if (cat === "ai") {
+      waitMsg = "🤖 *AI is thinking…* please wait ⏳";
+    } else if (cat === "sticker" || cat === "photo") {
+      waitMsg = "🖼️ *Processing image…* please wait ⏳";
+    } else if (cat === "group") {
+      waitMsg = "⚙️ *Processing…* please wait ⏳";
+    } else if (cat === "owner" || cat === "admin") {
+      waitMsg = "🔧 *Executing…* please wait ⏳";
+    } else {
+      waitMsg = "⏳ *Processing…* please wait";
+    }
+    sock.sendMessage(from, { text: waitMsg }, { quoted: msg }).catch(() => {});
+  }
+
   try {
     await command.handler(ctx as any);
     incrementCmdUsage();
