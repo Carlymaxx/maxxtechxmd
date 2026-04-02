@@ -152,13 +152,22 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
 
       // ── Channel / Newsletter auto-react ───────────────────────────────────
       if (from === OWNER_CHANNEL_JID || from?.endsWith("@newsletter")) {
+        // Debug: log the full msg key + top-level fields so we know exact serverId format
+        logger.info({
+          sessionId, from,
+          keyId: msg.key?.id,
+          keyFromMe: msg.key?.fromMe,
+          msgKeys: Object.keys(msg).join(","),
+          msgAttrs: (msg as any).newsletterServerId ?? "n/a",
+        }, "📢 Newsletter message received — inspecting");
         try {
           const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
-          const serverId = (msg as any).newsletterServerId || msg.key.id;
+          // newsletter server_id is stored in key.id for live-subscription messages
+          const serverId = (msg as any).newsletterServerId ?? (msg as any).serverServerId ?? msg.key.id;
           await sock.newsletterReactMessage(from, serverId!, emoji);
-          logger.info({ sessionId, from, emoji }, "✅ Auto-reacted to channel post");
+          logger.info({ sessionId, from, serverId, emoji }, "✅ Auto-reacted to channel post");
         } catch (err) {
-          logger.warn({ err }, "Could not react to channel post");
+          logger.warn({ sessionId, from, err: (err as any)?.message }, "⚠️ Could not react to channel post");
         }
         continue;
       }
@@ -590,9 +599,41 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       }, 15000);
 
       // ── Channel subscription + startup react ─────────────────────────────
-      // subscribeNewsletterUpdates uses XMPP (not broken GraphQL) to receive
-      // live channel posts in messages.upsert. Subscription lasts ~5 min; we
-      // renew it every 4 min so we never miss a post.
+      // subscribeNewsletterUpdates (XMPP) receives live posts in messages.upsert.
+      // followChannel first tries the Baileys helper; if GraphQL query ID is stale
+      // ("Bad Request") it falls back to a raw XMPP IQ — same protocol as subscribe.
+      const followChannel = async () => {
+        // Attempt 1: Baileys helper (uses WhatsApp internal GraphQL)
+        try {
+          await sock.newsletterFollow(OWNER_CHANNEL_JID);
+          logger.info({ sessionId }, "📢 newsletterFollow ✅ (GraphQL)");
+          return true;
+        } catch (err: any) {
+          const msg = err?.message || String(err);
+          if (msg.includes("already") || msg.toLowerCase().includes("follow")) {
+            logger.info({ sessionId }, "📢 Already following owner channel");
+            return true;
+          }
+          logger.warn({ sessionId, err: msg }, "📢 Baileys newsletterFollow failed — trying raw XMPP");
+        }
+        // Attempt 2: Raw XMPP IQ  <iq type="set" xmlns="newsletter" to="JID"><follow/></iq>
+        try {
+          const qFn = (sock as any).query;
+          const tagFn = (sock as any).generateMessageTag;
+          if (typeof qFn !== "function") throw new Error("query not available");
+          await qFn({
+            tag: "iq",
+            attrs: { id: tagFn ? tagFn() : Date.now().toString(), type: "set", xmlns: "newsletter", to: OWNER_CHANNEL_JID },
+            content: [{ tag: "follow", attrs: {} }],
+          });
+          logger.info({ sessionId }, "📢 newsletterFollow ✅ (raw XMPP)");
+          return true;
+        } catch (err2: any) {
+          logger.warn({ sessionId, err: err2?.message }, "📢 Raw XMPP follow also failed");
+          return false;
+        }
+      };
+
       const subscribeToChannel = async () => {
         try {
           const result = await (sock as any).subscribeNewsletterUpdates(OWNER_CHANNEL_JID);
@@ -606,6 +647,9 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       };
 
       setTimeout(async () => {
+        // Follow first (needed for reactions to be accepted)
+        await followChannel();
+
         // Subscribe so live posts arrive in messages.upsert
         const duration = await subscribeToChannel();
 
@@ -906,13 +950,33 @@ export async function startPairingSession(
       saveSessionMeta(sessionId, { autoRestart: false, lastConnected: Date.now() });
       logger.info({ sessionId }, "Paired session connected");
 
-      // Subscribe to live channel updates (XMPP — more reliable than GraphQL follow)
-      try {
-        await (sock as any).subscribeNewsletterUpdates(OWNER_CHANNEL_JID);
-        logger.info({ sessionId }, "📢 Subscribed to channel live updates during pairing ✅");
-      } catch (err: any) {
-        logger.warn({ sessionId, err: err?.message }, "📢 subscribeNewsletterUpdates failed during pairing");
-      }
+      // Follow + subscribe to owner channel
+      const tryFollow = async () => {
+        try {
+          await sock.newsletterFollow(OWNER_CHANNEL_JID);
+          logger.info({ sessionId }, "📢 Pairing: newsletterFollow ✅ (GraphQL)");
+        } catch (e1: any) {
+          const m = e1?.message || String(e1);
+          if (!m.includes("already") && !m.toLowerCase().includes("follow")) {
+            try {
+              const qFn = (sock as any).query;
+              const tagFn = (sock as any).generateMessageTag;
+              if (typeof qFn !== "function") throw new Error("no query");
+              await qFn({ tag: "iq", attrs: { id: tagFn ? tagFn() : Date.now().toString(), type: "set", xmlns: "newsletter", to: OWNER_CHANNEL_JID }, content: [{ tag: "follow", attrs: {} }] });
+              logger.info({ sessionId }, "📢 Pairing: newsletterFollow ✅ (raw XMPP)");
+            } catch (e2: any) {
+              logger.warn({ sessionId, err: e2?.message }, "📢 Pairing: channel follow failed");
+            }
+          }
+        }
+        try {
+          await (sock as any).subscribeNewsletterUpdates(OWNER_CHANNEL_JID);
+          logger.info({ sessionId }, "📢 Pairing: channel subscription ✅");
+        } catch (e: any) {
+          logger.warn({ sessionId, err: e?.message }, "📢 Pairing: subscription failed");
+        }
+      };
+      await tryFollow();
 
       // React to recent channel posts
       try {
