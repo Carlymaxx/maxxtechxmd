@@ -50,7 +50,11 @@ registerCommand({
 ${bar}
 📦 *Version:* 3.0.0
 🌍 *Website:* www.maxxtech.co.ke
-🟢 *Status:* Active & Running`;
+🟢 *Status:* Active & Running
+
+━━━━━━━━━━━━━━━━━━━━━
+📢 *Join Our Channel* 👇
+https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J`;
     const botpic: string = (settings as any).botpic || "https://files.catbox.moe/9r47nb.jpg";
     try {
       await sock.sendMessage(from, { image: { url: botpic }, caption: text }, { quoted: msg });
@@ -111,22 +115,229 @@ registerCommand({
   },
 });
 
+// ── Country-code → timezone lookup ───────────────────────────────────────────
+const CC_TZ: Record<string, { tz: string; country: string }> = {
+  "1":   { tz: "America/New_York",        country: "USA/Canada" },
+  "7":   { tz: "Europe/Moscow",           country: "Russia" },
+  "20":  { tz: "Africa/Cairo",            country: "Egypt" },
+  "27":  { tz: "Africa/Johannesburg",     country: "South Africa" },
+  "31":  { tz: "Europe/Amsterdam",        country: "Netherlands" },
+  "32":  { tz: "Europe/Brussels",         country: "Belgium" },
+  "33":  { tz: "Europe/Paris",            country: "France" },
+  "34":  { tz: "Europe/Madrid",           country: "Spain" },
+  "36":  { tz: "Europe/Budapest",         country: "Hungary" },
+  "39":  { tz: "Europe/Rome",             country: "Italy" },
+  "40":  { tz: "Europe/Bucharest",        country: "Romania" },
+  "41":  { tz: "Europe/Zurich",           country: "Switzerland" },
+  "44":  { tz: "Europe/London",           country: "United Kingdom" },
+  "45":  { tz: "Europe/Copenhagen",       country: "Denmark" },
+  "46":  { tz: "Europe/Stockholm",        country: "Sweden" },
+  "47":  { tz: "Europe/Oslo",             country: "Norway" },
+  "48":  { tz: "Europe/Warsaw",           country: "Poland" },
+  "49":  { tz: "Europe/Berlin",           country: "Germany" },
+  "51":  { tz: "America/Lima",            country: "Peru" },
+  "52":  { tz: "America/Mexico_City",     country: "Mexico" },
+  "54":  { tz: "America/Argentina/Buenos_Aires", country: "Argentina" },
+  "55":  { tz: "America/Sao_Paulo",       country: "Brazil" },
+  "56":  { tz: "America/Santiago",        country: "Chile" },
+  "57":  { tz: "America/Bogota",          country: "Colombia" },
+  "58":  { tz: "America/Caracas",         country: "Venezuela" },
+  "60":  { tz: "Asia/Kuala_Lumpur",       country: "Malaysia" },
+  "61":  { tz: "Australia/Sydney",        country: "Australia" },
+  "62":  { tz: "Asia/Jakarta",            country: "Indonesia" },
+  "63":  { tz: "Asia/Manila",             country: "Philippines" },
+  "64":  { tz: "Pacific/Auckland",        country: "New Zealand" },
+  "65":  { tz: "Asia/Singapore",          country: "Singapore" },
+  "66":  { tz: "Asia/Bangkok",            country: "Thailand" },
+  "81":  { tz: "Asia/Tokyo",              country: "Japan" },
+  "82":  { tz: "Asia/Seoul",              country: "South Korea" },
+  "84":  { tz: "Asia/Ho_Chi_Minh",        country: "Vietnam" },
+  "86":  { tz: "Asia/Shanghai",           country: "China" },
+  "90":  { tz: "Europe/Istanbul",         country: "Turkey" },
+  "91":  { tz: "Asia/Kolkata",            country: "India" },
+  "92":  { tz: "Asia/Karachi",            country: "Pakistan" },
+  "93":  { tz: "Asia/Kabul",              country: "Afghanistan" },
+  "94":  { tz: "Asia/Colombo",            country: "Sri Lanka" },
+  "95":  { tz: "Asia/Rangoon",            country: "Myanmar" },
+  "98":  { tz: "Asia/Tehran",             country: "Iran" },
+  "212": { tz: "Africa/Casablanca",       country: "Morocco" },
+  "213": { tz: "Africa/Algiers",          country: "Algeria" },
+  "216": { tz: "Africa/Tunis",            country: "Tunisia" },
+  "218": { tz: "Africa/Tripoli",          country: "Libya" },
+  "220": { tz: "Africa/Banjul",           country: "Gambia" },
+  "221": { tz: "Africa/Dakar",            country: "Senegal" },
+  "222": { tz: "Africa/Nouakchott",       country: "Mauritania" },
+  "223": { tz: "Africa/Bamako",           country: "Mali" },
+  "224": { tz: "Africa/Conakry",          country: "Guinea" },
+  "225": { tz: "Africa/Abidjan",          country: "Ivory Coast" },
+  "226": { tz: "Africa/Ouagadougou",      country: "Burkina Faso" },
+  "227": { tz: "Africa/Niamey",           country: "Niger" },
+  "228": { tz: "Africa/Lome",             country: "Togo" },
+  "229": { tz: "Africa/Porto-Novo",       country: "Benin" },
+  "230": { tz: "Indian/Mauritius",        country: "Mauritius" },
+  "231": { tz: "Africa/Monrovia",         country: "Liberia" },
+  "232": { tz: "Africa/Freetown",         country: "Sierra Leone" },
+  "233": { tz: "Africa/Accra",            country: "Ghana" },
+  "234": { tz: "Africa/Lagos",            country: "Nigeria" },
+  "235": { tz: "Africa/Ndjamena",         country: "Chad" },
+  "236": { tz: "Africa/Bangui",           country: "CAR" },
+  "237": { tz: "Africa/Douala",           country: "Cameroon" },
+  "238": { tz: "Atlantic/Cape_Verde",     country: "Cape Verde" },
+  "239": { tz: "Africa/Sao_Tome",         country: "São Tomé" },
+  "240": { tz: "Africa/Malabo",           country: "Equatorial Guinea" },
+  "241": { tz: "Africa/Libreville",       country: "Gabon" },
+  "242": { tz: "Africa/Brazzaville",      country: "Congo" },
+  "243": { tz: "Africa/Kinshasa",         country: "DR Congo" },
+  "244": { tz: "Africa/Luanda",           country: "Angola" },
+  "245": { tz: "Africa/Bissau",           country: "Guinea-Bissau" },
+  "246": { tz: "Indian/Chagos",           country: "British Indian Ocean" },
+  "247": { tz: "Atlantic/St_Helena",      country: "Ascension Island" },
+  "248": { tz: "Indian/Mahe",             country: "Seychelles" },
+  "249": { tz: "Africa/Khartoum",         country: "Sudan" },
+  "250": { tz: "Africa/Kigali",           country: "Rwanda" },
+  "251": { tz: "Africa/Addis_Ababa",      country: "Ethiopia" },
+  "252": { tz: "Africa/Mogadishu",        country: "Somalia" },
+  "253": { tz: "Africa/Djibouti",         country: "Djibouti" },
+  "254": { tz: "Africa/Nairobi",          country: "Kenya" },
+  "255": { tz: "Africa/Dar_es_Salaam",    country: "Tanzania" },
+  "256": { tz: "Africa/Kampala",          country: "Uganda" },
+  "257": { tz: "Africa/Bujumbura",        country: "Burundi" },
+  "258": { tz: "Africa/Maputo",           country: "Mozambique" },
+  "260": { tz: "Africa/Lusaka",           country: "Zambia" },
+  "261": { tz: "Indian/Antananarivo",     country: "Madagascar" },
+  "262": { tz: "Indian/Reunion",          country: "Réunion" },
+  "263": { tz: "Africa/Harare",           country: "Zimbabwe" },
+  "264": { tz: "Africa/Windhoek",         country: "Namibia" },
+  "265": { tz: "Africa/Blantyre",         country: "Malawi" },
+  "266": { tz: "Africa/Maseru",           country: "Lesotho" },
+  "267": { tz: "Africa/Gaborone",         country: "Botswana" },
+  "268": { tz: "Africa/Mbabane",          country: "Eswatini" },
+  "269": { tz: "Indian/Comoro",           country: "Comoros" },
+  "291": { tz: "Africa/Asmara",           country: "Eritrea" },
+  "297": { tz: "America/Aruba",           country: "Aruba" },
+  "351": { tz: "Europe/Lisbon",           country: "Portugal" },
+  "352": { tz: "Europe/Luxembourg",       country: "Luxembourg" },
+  "353": { tz: "Europe/Dublin",           country: "Ireland" },
+  "355": { tz: "Europe/Tirane",           country: "Albania" },
+  "356": { tz: "Europe/Malta",            country: "Malta" },
+  "358": { tz: "Europe/Helsinki",         country: "Finland" },
+  "380": { tz: "Europe/Kyiv",             country: "Ukraine" },
+  "381": { tz: "Europe/Belgrade",         country: "Serbia" },
+  "385": { tz: "Europe/Zagreb",           country: "Croatia" },
+  "386": { tz: "Europe/Ljubljana",        country: "Slovenia" },
+  "420": { tz: "Europe/Prague",           country: "Czech Republic" },
+  "421": { tz: "Europe/Bratislava",       country: "Slovakia" },
+  "503": { tz: "America/El_Salvador",     country: "El Salvador" },
+  "504": { tz: "America/Tegucigalpa",     country: "Honduras" },
+  "505": { tz: "America/Managua",         country: "Nicaragua" },
+  "506": { tz: "America/Costa_Rica",      country: "Costa Rica" },
+  "507": { tz: "America/Panama",          country: "Panama" },
+  "591": { tz: "America/La_Paz",          country: "Bolivia" },
+  "593": { tz: "America/Guayaquil",       country: "Ecuador" },
+  "595": { tz: "America/Asuncion",        country: "Paraguay" },
+  "598": { tz: "America/Montevideo",      country: "Uruguay" },
+  "855": { tz: "Asia/Phnom_Penh",         country: "Cambodia" },
+  "856": { tz: "Asia/Vientiane",          country: "Laos" },
+  "880": { tz: "Asia/Dhaka",              country: "Bangladesh" },
+  "886": { tz: "Asia/Taipei",             country: "Taiwan" },
+  "960": { tz: "Indian/Maldives",         country: "Maldives" },
+  "961": { tz: "Asia/Beirut",             country: "Lebanon" },
+  "962": { tz: "Asia/Amman",              country: "Jordan" },
+  "963": { tz: "Asia/Damascus",           country: "Syria" },
+  "964": { tz: "Asia/Baghdad",            country: "Iraq" },
+  "965": { tz: "Asia/Kuwait",             country: "Kuwait" },
+  "966": { tz: "Asia/Riyadh",             country: "Saudi Arabia" },
+  "967": { tz: "Asia/Aden",               country: "Yemen" },
+  "968": { tz: "Asia/Muscat",             country: "Oman" },
+  "970": { tz: "Asia/Gaza",               country: "Palestine" },
+  "971": { tz: "Asia/Dubai",              country: "UAE" },
+  "972": { tz: "Asia/Jerusalem",          country: "Israel" },
+  "973": { tz: "Asia/Bahrain",            country: "Bahrain" },
+  "974": { tz: "Asia/Qatar",              country: "Qatar" },
+  "975": { tz: "Asia/Thimphu",            country: "Bhutan" },
+  "976": { tz: "Asia/Ulaanbaatar",        country: "Mongolia" },
+  "977": { tz: "Asia/Kathmandu",          country: "Nepal" },
+};
+
+function detectTimezone(phoneJid: string): { tz: string; country: string } | null {
+  const digits = phoneJid.replace("@s.whatsapp.net", "").replace(/\D/g, "");
+  // Try longest match first (3-digit codes, then 2-digit, then 1-digit)
+  for (const len of [3, 2, 1]) {
+    const prefix = digits.slice(0, len);
+    if (CC_TZ[prefix]) return CC_TZ[prefix];
+  }
+  return null;
+}
+
 registerCommand({
   name: "time",
-  aliases: ["date"],
+  aliases: ["date", "bottime", "mydate", "mytime"],
   category: "General",
-  description: "Show current date and time",
-  handler: async ({ args, reply }) => {
-    const tz = args.join(" ") || "Africa/Nairobi";
+  description: "Show your local date and time based on your region",
+  handler: async ({ args, sender, reply }) => {
+    // If user manually provides a timezone arg, use that
+    const manualTz = args.join(" ").trim();
+
+    let tz = manualTz;
+    let label = manualTz;
+    let flag = "🌐";
+
+    if (!manualTz) {
+      // Auto-detect from sender's phone number
+      const detected = detectTimezone(sender);
+      if (detected) {
+        tz = detected.tz;
+        label = detected.country;
+        flag = "📍";
+      } else {
+        tz = "UTC";
+        label = "UTC (couldn't detect your region)";
+        flag = "🌐";
+      }
+    }
+
     try {
-      const res = await fetch(`https://worldtimeapi.org/api/timezone/${tz}`);
-      if (!res.ok) throw new Error();
+      const res = await fetch(`https://worldtimeapi.org/api/timezone/${tz}`, {
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) throw new Error("Invalid timezone");
       const data = await res.json() as any;
       const dt = new Date(data.datetime);
-      await reply(`🕐 *Time in ${tz}*\n\n📅 Date: *${dt.toDateString()}*\n⏰ Time: *${dt.toLocaleTimeString()}*\n🌐 UTC Offset: *${data.utc_offset}*`);
+
+      const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      const day = dayNames[dt.getDay()];
+      const month = monthNames[dt.getMonth()];
+      const dateStr = `${day}, ${dt.getDate()} ${month} ${dt.getFullYear()}`;
+      const timeStr = dt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
+
+      await reply(
+        `╔══════════════════════╗\n` +
+        `║  🕐 *DATE & TIME* 🕐\n` +
+        `╚══════════════════════╝\n\n` +
+        `${flag} *Region:* ${label}\n` +
+        `🌍 *Timezone:* ${tz}\n` +
+        `📅 *Date:* ${dateStr}\n` +
+        `⏰ *Time:* ${timeStr}\n` +
+        `🕰️ *UTC Offset:* ${data.utc_offset}\n\n` +
+        `💡 _Tip: type .time Africa/Lagos for a specific timezone_`
+      );
     } catch {
+      // Fallback — show time in the detected/provided timezone using JS
       const now = new Date();
-      await reply(`🕐 *Current Time (UTC)*\n\n📅 ${now.toUTCString()}`);
+      let timeStr = "";
+      try {
+        timeStr = now.toLocaleString("en-US", { timeZone: tz, dateStyle: "full", timeStyle: "medium" });
+      } catch {
+        timeStr = now.toUTCString();
+        tz = "UTC";
+      }
+      await reply(
+        `🕐 *Date & Time*\n\n` +
+        `${flag} *Region:* ${label}\n` +
+        `🌍 *Timezone:* ${tz}\n` +
+        `📅 ${timeStr}`
+      );
     }
   },
 });
