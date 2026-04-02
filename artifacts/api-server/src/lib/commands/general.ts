@@ -61,8 +61,6 @@ https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J`;
     } catch {
       await sock.sendMessage(from, { text }, { quoted: msg });
     }
-    // Sending the channel URL alone makes WhatsApp render a "View Channel" card with a button
-    await sock.sendMessage(from, { text: "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J" });
   },
 });
 
