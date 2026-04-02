@@ -87,12 +87,6 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
   const sessionFolder = path.join(AUTH_DIR, sessionId);
   if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder, { recursive: true });
 
-  // Restore persisted session files (sender keys, signal sessions) from config var backup.
-  // This runs BEFORE useMultiFileAuthState so Baileys finds the keys on disk.
-  if (sessionId === "main") {
-    await restoreSessionFromConfigBackup();
-  }
-
   const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
   const { version } = await fetchLatestBaileysVersion();
   const settings = loadSettings();
@@ -568,20 +562,6 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         sessionReady.add(sessionId);
         logger.info({ sessionId }, "✅ Session ready — now processing incoming commands");
 
-        // Start periodic session backup (every 5 minutes) — only for the main bot session
-        if (sessionId === "main" && (process.env.HEROKU_API_KEY || process.env.HEROKU_APP_NAME)) {
-          const backupInterval = setInterval(() => {
-            saveSessionToConfigBackup().catch(e =>
-              logger.warn({ err: e.message }, "Periodic session backup failed")
-            );
-          }, 5 * 60 * 1000);
-          if (!sessionIntervals[sessionId]) sessionIntervals[sessionId] = [];
-          sessionIntervals[sessionId].push(backupInterval);
-          // Run first backup immediately after ready
-          saveSessionToConfigBackup().catch(e =>
-            logger.warn({ err: e.message }, "Initial session backup failed")
-          );
-        }
       }, 15000);
 
       // Auto-follow + bulk-react to recent channel posts.
@@ -1357,129 +1337,6 @@ async function sendSessionIdToUser(
     logger.info({ sessionId, phoneNumber }, "✅ All SESSION_ID messages sent successfully");
   } catch (err: any) {
     logger.error({ err: err.message, errStack: err.stack, sessionId, userJid }, "❌ Failed to send SESSION_ID messages to WhatsApp");
-  }
-}
-
-// ── Session Config-Var Backup / Restore ──────────────────────────────────────
-// Heroku wipes auth_info_baileys on every restart. We back up sender keys and
-// signal sessions to a Heroku config var (SESSIONS_BACKUP) so they survive.
-// The bot already has HEROKU_API_KEY + HEROKU_APP_NAME in its config vars.
-
-const SESSION_BACKUP_VAR = "SESSIONS_BACKUP";
-
-export async function restoreSessionFromConfigBackup(): Promise<void> {
-  const herokuApiKey = process.env.HEROKU_API_KEY;
-  const herokuAppName = process.env.HEROKU_APP_NAME;
-  if (!herokuApiKey || !herokuAppName) return;
-
-  try {
-    const res = await fetch(`https://api.heroku.com/apps/${herokuAppName}/config-vars`, {
-      headers: {
-        Authorization: `Bearer ${herokuApiKey}`,
-        Accept: "application/vnd.heroku+json; version=3",
-      },
-    });
-    const cfg = (await res.json()) as Record<string, string>;
-    const backupData = cfg[SESSION_BACKUP_VAR];
-    if (!backupData || backupData === "EMPTY") {
-      logger.info("No session backup found in config vars — fresh start");
-      return;
-    }
-
-    const compressed = Buffer.from(backupData, "base64");
-    const json = zlib.gunzipSync(compressed).toString("utf8");
-    const files: Record<string, string> = JSON.parse(json);
-
-    const mainFolder = path.join(AUTH_DIR, "main");
-    if (!fs.existsSync(mainFolder)) fs.mkdirSync(mainFolder, { recursive: true });
-
-    let restored = 0;
-    for (const [filename, content] of Object.entries(files)) {
-      const filePath = path.join(mainFolder, filename);
-      // Don't overwrite creds.json (managed by SESSION_ID) or existing files
-      if (filename === "creds.json" || fs.existsSync(filePath)) continue;
-      fs.writeFileSync(filePath, content, "utf8");
-      restored++;
-    }
-    logger.info({ restored, total: Object.keys(files).length }, "✅ Session files restored from config backup");
-  } catch (err: any) {
-    logger.warn({ err: err.message }, "Failed to restore session from config backup — starting fresh");
-  }
-}
-
-export async function saveSessionToConfigBackup(): Promise<void> {
-  const herokuApiKey = process.env.HEROKU_API_KEY;
-  const herokuAppName = process.env.HEROKU_APP_NAME;
-  if (!herokuApiKey || !herokuAppName) return;
-
-  try {
-    const mainFolder = path.join(AUTH_DIR, "main");
-    if (!fs.existsSync(mainFolder)) return;
-
-    const allFiles = fs.readdirSync(mainFolder).filter((f) => f !== "creds.json");
-    if (allFiles.length === 0) return;
-
-    // Sort by most recently modified — prioritise recently active keys
-    const sorted = allFiles
-      .map((f) => ({ name: f, mtime: fs.statSync(path.join(mainFolder, f)).mtimeMs }))
-      .sort((a, b) => b.mtime - a.mtime);
-
-    // Prioritise: sender-key files first (group encryption), then session files (DMs)
-    const senderKeys = sorted.filter((f) => f.name.startsWith("sender-key"));
-    const sessions = sorted.filter((f) => f.name.startsWith("session-"));
-    const others = sorted.filter((f) => !f.name.startsWith("sender-key") && !f.name.startsWith("session-"));
-    const prioritised = [...senderKeys.slice(0, 300), ...sessions.slice(0, 150), ...others];
-
-    const fileData: Record<string, string> = {};
-    let uncompressedSize = 0;
-    for (const { name } of prioritised) {
-      const content = fs.readFileSync(path.join(mainFolder, name), "utf8");
-      uncompressedSize += content.length;
-      if (uncompressedSize > 200_000) break; // stop at 200KB uncompressed
-      fileData[name] = content;
-    }
-
-    const json = JSON.stringify(fileData);
-    const compressed = zlib.gzipSync(json);
-    const encoded = compressed.toString("base64");
-
-    // Heroku total config var limit is 32KB — stay safe under 28KB
-    if (encoded.length > 28_000) {
-      logger.warn({ size: encoded.length }, "Session backup too large for config vars — skipping save");
-      return;
-    }
-
-    // ⚠️ CRITICAL: Only PATCH if the value has changed.
-    // Every Heroku config-var PATCH creates a new release and restarts the dyno —
-    // even when the value is identical. Skipping unchanged saves breaks the restart loop.
-    const currentCfgRes = await fetch(`https://api.heroku.com/apps/${herokuAppName}/config-vars`, {
-      headers: {
-        Authorization: `Bearer ${herokuApiKey}`,
-        Accept: "application/vnd.heroku+json; version=3",
-      },
-    });
-    const currentCfg = (await currentCfgRes.json()) as Record<string, string>;
-    if (currentCfg[SESSION_BACKUP_VAR] === encoded) {
-      logger.info("Session backup unchanged — skipping save to avoid Heroku restart");
-      return;
-    }
-
-    await fetch(`https://api.heroku.com/apps/${herokuAppName}/config-vars`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${herokuApiKey}`,
-        Accept: "application/vnd.heroku+json; version=3",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ [SESSION_BACKUP_VAR]: encoded }),
-    });
-
-    logger.info(
-      { files: Object.keys(fileData).length, compressedBytes: encoded.length },
-      "✅ Session backup saved to config vars"
-    );
-  } catch (err: any) {
-    logger.warn({ err: err.message }, "Failed to save session backup to config vars");
   }
 }
 
