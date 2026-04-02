@@ -397,28 +397,31 @@ registerCommand({
         // Try multiple APIs in order until one works
         let apiData: any = null;
 
-        // API 1: eliteprotech
+        // API 1: eliteprotech /yt (confirmed working)
         try {
-          const res1 = await fetch(`https://eliteprotech-apis.zone.id/yt?url=${encodeURIComponent(ytUrl)}`, { signal: AbortSignal.timeout(15000) });
+          const res1 = await fetch(`https://eliteprotech-apis.zone.id/yt?url=${encodeURIComponent(ytUrl)}`);
           const d1 = await res1.json() as any;
           if (d1.status && d1.downloadUrl) apiData = { url: d1.downloadUrl, title: d1.title, channel: d1.channel, thumbnail: d1.thumbnail, duration: d1.duration };
         } catch {}
 
-        // API 2: siputzx
+        // API 2: eliteprotech /ytmp3 (alternate endpoint, confirmed working)
         if (!apiData) {
           try {
-            const res2 = await fetch(`https://api.siputzx.my.id/api/d/ytmp3?url=${encodeURIComponent(ytUrl)}`, { signal: AbortSignal.timeout(15000) });
+            const res2 = await fetch(`https://eliteprotech-apis.zone.id/ytmp3?url=${encodeURIComponent(ytUrl)}`);
             const d2 = await res2.json() as any;
-            if (d2.status && d2.data?.dl) apiData = { url: d2.data.dl, title: d2.data.title || "Unknown", channel: "", thumbnail: d2.data.thumb || "", duration: 0 };
+            if (d2.status && d2.result?.download) apiData = { url: d2.result.download, title: d2.result.title || "Unknown", channel: "", thumbnail: "", duration: d2.result.duration || 0 };
           } catch {}
         }
 
-        // API 3: giftedtech
+        // API 3: eliteprotech /ytdl (third endpoint)
         if (!apiData) {
           try {
-            const res3 = await fetch(`https://api.giftedtech.web.id/api/download/ytmp3?url=${encodeURIComponent(ytUrl)}&apikey=gifted`, { signal: AbortSignal.timeout(15000) });
+            const res3 = await fetch(`https://eliteprotech-apis.zone.id/ytdl?url=${encodeURIComponent(ytUrl)}&type=mp3`);
             const d3 = await res3.json() as any;
-            if (d3.success && d3.result?.download_url) apiData = { url: d3.result.download_url, title: d3.result.title || "Unknown", channel: d3.result.channel || "", thumbnail: d3.result.thumbnail || "", duration: 0 };
+            if (d3.status && (d3.downloadUrl || d3.result?.download)) {
+              const url3 = d3.downloadUrl || d3.result?.download;
+              apiData = { url: url3, title: d3.title || d3.result?.title || "Unknown", channel: d3.channel || "", thumbnail: d3.thumbnail || "", duration: d3.duration || 0 };
+            }
           } catch {}
         }
 
