@@ -282,12 +282,39 @@ registerCommand({
 });
 
 registerCommand({
-  name: "antidelete2",
-  aliases: ["antidel2", "nodeletemsgs"],
+  name: "antidelete",
+  aliases: ["antidel", "antidelete2", "nodeletemsgs", "antidel2"],
   category: "Protection",
-  description: "Re-send deleted messages in the group (.antidelete2 on/off)",
+  description: "Re-send deleted messages with their content (.antidelete on/off)",
   groupOnly: true,
-  handler: async ({ from, args, reply }) => toggle(args, from, "antidelete", "Anti-Delete", reply),
+  adminOnly: true,
+  handler: async ({ from, args, reply }) => {
+    const arg = args[0]?.toLowerCase();
+    const current = getGroupSettings(from).antidelete;
+    if (arg === "on") {
+      setGroupSetting(from, "antidelete", true);
+      return reply(
+        `✅ *Anti-Delete ENABLED* 🔍\n\n` +
+        `When anyone deletes a message I will:\n` +
+        `• *Alert* the group who deleted it\n` +
+        `• *Re-send* the deleted content\n\n` +
+        `_Works for text, images, videos, audio, stickers & docs._\n\n` +
+        `> _MAXX-XMD_ ⚡`
+      );
+    }
+    if (arg === "off") {
+      setGroupSetting(from, "antidelete", false);
+      return reply(`✅ *Anti-Delete DISABLED* 🔓\n\nDeleted messages will no longer be recovered.\n\n> _MAXX-XMD_ ⚡`);
+    }
+    const status = current ? "🟢 *ON*" : "🔴 *OFF*";
+    await reply(
+      `🔍 *Anti-Delete Status:* ${status}\n\n` +
+      `📌 *Usage:*\n` +
+      `.antidelete on  — enable recovery\n` +
+      `.antidelete off — disable\n\n` +
+      `> _MAXX-XMD_ ⚡`
+    );
+  },
 });
 
 registerCommand({
