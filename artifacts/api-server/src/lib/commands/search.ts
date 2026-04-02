@@ -190,11 +190,6 @@ registerCommand({
       const title = rest;
       if (!title) return reply(`❌ Please provide a movie name.\n\n📝 Example: ${p}movie dl Avengers`);
 
-      await reply(
-        `╔══════════════════════╗\n║  🎬 *MOVIE TRAILER*  ║\n╚══════════════════════╝\n\n` +
-        `🔍 Searching trailer for *${title}*...\n⏳ Please wait...`
-      );
-
       try {
         // Step 1: Fetch OMDB for movie info (runs in parallel with YouTube search start)
         const omdbPromise = fetch(
@@ -205,8 +200,6 @@ registerCommand({
         // Step 2: Search YouTube for official trailer
         const { searchYouTube } = await import("../ytdlpUtil.js");
         const ytUrl = await searchYouTube(`${title} official trailer HD`);
-
-        await reply(`🎬 Found trailer! ⬇️ Downloading...`);
 
         // Step 3: Get MP4 download link via eliteprotech ytdown API
         const apiRes = await fetch(
@@ -255,8 +248,6 @@ registerCommand({
 
     // ── .movie <query> — full movie search ────────────────────────────────────
     const query = args.join(" ");
-
-    await reply(`🔍 Searching *${query}*... 🍿`);
 
     try {
       // Search OMDB for multiple results
