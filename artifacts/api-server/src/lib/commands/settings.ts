@@ -542,3 +542,45 @@ registerCommand({
     await reply(`✅ Max warnings set to *${max}*`);
   },
 });
+
+registerCommand({
+  name: "setgrouplink",
+  aliases: ["setgroup", "grouplink"],
+  category: "Settings",
+  sudoOnly: true,
+  description: "Set the official WhatsApp group invite link (.setgrouplink <url>)",
+  handler: async ({ args, settings, reply }) => {
+    const url = args[0];
+    if (!url || !url.startsWith("https://chat.whatsapp.com/")) {
+      return reply(
+        `❓ *Usage:* .setgrouplink <invite url>\n\n` +
+        `*Example:*\n.setgrouplink https://chat.whatsapp.com/AbCdEfGhIjK\n\n` +
+        `_Current:_ ${(settings.groupLink as string) || "Not set"}\n\n> _MAXX-XMD_ ⚡`
+      );
+    }
+    settings.groupLink = url;
+    saveSettings(settings);
+    await reply(`✅ *WhatsApp group link updated!*\n\n🔗 ${url}\n\n_Members can now get it with .link_\n\n> _MAXX-XMD_ ⚡`);
+  },
+});
+
+registerCommand({
+  name: "setchannellink",
+  aliases: ["setchannel", "channellink"],
+  category: "Settings",
+  sudoOnly: true,
+  description: "Set the official WhatsApp channel link (.setchannellink <url>)",
+  handler: async ({ args, settings, reply }) => {
+    const url = args[0];
+    if (!url || !url.startsWith("https://whatsapp.com/channel/")) {
+      return reply(
+        `❓ *Usage:* .setchannellink <channel url>\n\n` +
+        `*Example:*\n.setchannellink https://whatsapp.com/channel/0029Vb6XNTjAIn...\n\n` +
+        `_Current:_ ${(settings.channelLink as string) || "Not set"}\n\n> _MAXX-XMD_ ⚡`
+      );
+    }
+    settings.channelLink = url;
+    saveSettings(settings);
+    await reply(`✅ *WhatsApp channel link updated!*\n\n📢 ${url}\n\n> _MAXX-XMD_ ⚡`);
+  },
+});
