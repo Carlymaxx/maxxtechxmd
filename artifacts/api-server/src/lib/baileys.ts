@@ -103,10 +103,11 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
     getMessage: async () => undefined,
     syncFullHistory: false,
     markOnlineOnConnect: false,
-    // Fast-fail retries: status@broadcast decrypt errors lock the event buffer
-    // until retry exhaustion. 250ms * 1 retry = ~250ms lock instead of 30s.
-    retryRequestDelayMs: 250,
-    maxMsgRetryCount: 1,
+    // Fast retries: 5 retries * 300ms = 1.5s max buffer lock per failed decrypt
+    // (vs old: 3 retries * 2000ms = 6s lock, then 30s buffer timeout)
+    retryRequestDelayMs: 300,
+    maxMsgRetryCount: 5,
+    defaultQueryTimeoutMs: 15000,
     fireInitQueries: false,
   });
 
