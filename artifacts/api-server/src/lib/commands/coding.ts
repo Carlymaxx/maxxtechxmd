@@ -30,7 +30,6 @@ registerCommand({
   handler: async ({ args, reply }) => {
     const code = args.join(" ").replace(/```python|```py|```/gi, "").trim();
     if (!code) return reply(`❓ Usage: .runpy <python code>\n\nExample:\n.runpy print("Hello World")${FOOTER}`);
-    await reply("🐍 Running Python... ⏳");
     try {
       const out = await runCode("python", code);
       await reply(`🐍 *Python Output*\n\`\`\`\n${out}\n\`\`\`${FOOTER}`);
@@ -49,7 +48,6 @@ registerCommand({
   handler: async ({ args, reply }) => {
     const code = args.join(" ").replace(/```javascript|```js|```/gi, "").trim();
     if (!code) return reply(`❓ Usage: .runjs <javascript code>\n\nExample:\n.runjs console.log("Hello World")${FOOTER}`);
-    await reply("🟨 Running JavaScript... ⏳");
     try {
       const out = await runCode("javascript", code);
       await reply(`🟨 *JavaScript Output*\n\`\`\`\n${out}\n\`\`\`${FOOTER}`);
@@ -68,7 +66,6 @@ registerCommand({
   handler: async ({ args, reply }) => {
     const rawCode = args.join(" ").replace(/```c|```/gi, "").trim();
     if (!rawCode) return reply(`❓ Usage: .runc <C code>\n\nExample:\n.runc #include<stdio.h>\\nint main(){printf("Hello");return 0;}${FOOTER}`);
-    await reply("🔵 Running C... ⏳");
     const code = rawCode.includes("#include") ? rawCode : `#include <stdio.h>\n#include <stdlib.h>\nint main() {\n${rawCode}\nreturn 0;\n}`;
     try {
       const out = await runCode("c", code);
@@ -88,7 +85,6 @@ registerCommand({
   handler: async ({ args, reply }) => {
     const rawCode = args.join(" ").replace(/```cpp|```c\+\+|```/gi, "").trim();
     if (!rawCode) return reply(`❓ Usage: .runcpp <C++ code>${FOOTER}`);
-    await reply("🔷 Running C++... ⏳");
     const code = rawCode.includes("#include") ? rawCode : `#include <iostream>\nusing namespace std;\nint main() {\n${rawCode}\nreturn 0;\n}`;
     try {
       const out = await runCode("c++", code);
@@ -108,7 +104,6 @@ registerCommand({
   handler: async ({ args, reply }) => {
     const rawCode = args.join(" ").replace(/```java|```/gi, "").trim();
     if (!rawCode) return reply(`❓ Usage: .runjava <Java code>${FOOTER}`);
-    await reply("☕ Running Java... ⏳");
     const code = rawCode.includes("class") ? rawCode :
       `public class code {\n  public static void main(String[] args) {\n    ${rawCode}\n  }\n}`;
     try {
