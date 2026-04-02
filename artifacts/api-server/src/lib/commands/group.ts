@@ -191,17 +191,17 @@ registerCommand({
 });
 
 registerCommand({
-  name: "link",
-  aliases: ["invite", "grouplink"],
+  name: "invitelink",
+  aliases: ["invite", "groupinvite", "getinvite", "invitecode"],
   category: "Group",
-  description: "Get group invite link",
+  description: "Get this group's invite link",
   groupOnly: true,
   handler: async ({ sock, from, reply }) => {
     try {
       const code = await sock.groupInviteCode(from);
-      await reply(`🔗 *Group Invite Link*\n\nhttps://chat.whatsapp.com/${code}`);
+      await reply(`🔗 *Group Invite Link*\n\nhttps://chat.whatsapp.com/${code}\n\n_Share this link to invite people to the group._\n\n> _MAXX-XMD_ ⚡`);
     } catch (e: any) {
-      await reply(`❌ Failed: ${e.message}`);
+      await reply(`❌ Failed to get invite link: ${e.message}\n\n_Make sure I am a group admin._`);
     }
   },
 });
