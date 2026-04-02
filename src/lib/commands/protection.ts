@@ -40,8 +40,8 @@ async function toggle(args: string[], groupJid: string, key: string, label: stri
   await reply(`${val === "on" ? "✅" : "❌"} *${label}* turned *${val.toUpperCase()}* for this group${FOOTER}`);
 }
 
-// ── Anti-link ─────────────────────────────────────────────────────────────────
-
+// ── Spam Protection ──────────────────────────────────────────────────────────
+// Note: antilink is in group.ts (reads group_settings.json — what the middleware uses)
 
 registerCommand({
   name: "antispam",
