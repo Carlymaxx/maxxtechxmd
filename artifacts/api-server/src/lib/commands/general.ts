@@ -50,18 +50,15 @@ registerCommand({
 ${bar}
 📦 *Version:* 3.0.0
 🌍 *Website:* www.maxxtech.co.ke
-🟢 *Status:* Active & Running
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📢 *Join our WhatsApp Channel*
-https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J
-━━━━━━━━━━━━━━━━━━━━━━━━`;
+🟢 *Status:* Active & Running`;
     const botpic: string = (settings as any).botpic || "https://files.catbox.moe/9r47nb.jpg";
     try {
       await sock.sendMessage(from, { image: { url: botpic }, caption: text }, { quoted: msg });
     } catch {
       await sock.sendMessage(from, { text }, { quoted: msg });
     }
+    // Sending the channel URL alone makes WhatsApp render a "View Channel" card with a button
+    await sock.sendMessage(from, { text: "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J" });
   },
 });
 
