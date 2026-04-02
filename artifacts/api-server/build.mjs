@@ -4,11 +4,52 @@ import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
 import { rm } from "node:fs/promises";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
+
+// Patch Baileys messages-recv.js to preserve newsletter server_id in WAMessage.category.
+// This runs at build time so it's applied before esbuild bundles Baileys into dist/index.mjs.
+function patchBaileys() {
+  let targetPath;
+  try {
+    // Use Node.js module resolution — follows pnpm symlinks to the actual file
+    const req = createRequire(import.meta.url);
+    targetPath = req.resolve("@whiskeysockets/baileys/lib/Socket/messages-recv.js");
+  } catch {
+    // Fallback: check known candidate paths
+    const candidates = [
+      path.resolve(artifactDir, "node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js"),
+      path.resolve(artifactDir, "../node_modules/.pnpm/@whiskeysockets+baileys@7.0.0-rc.9_sharp@0.34.5/node_modules/@whiskeysockets/baileys/lib/Socket/messages-recv.js"),
+    ];
+    targetPath = candidates.find(c => existsSync(c));
+  }
+  if (!targetPath) {
+    console.warn("[baileys-patch] messages-recv.js not found — skipping");
+    return;
+  }
+  let content = readFileSync(targetPath, "utf8");
+  if (content.includes("MAXX-XMD: server_id patched")) {
+    console.log("[baileys-patch] Already patched");
+    return;
+  }
+  // Inject server_id → category after .toJSON() in the newsletter message handler
+  const patched = content.replace(
+    /(\.toJSON\(\);)\s*(await upsertMessage\(fullMessage, 'append'\);)/,
+    "$1\n                    // MAXX-XMD: server_id patched\n                    if (child.attrs.server_id) fullMessage.category = child.attrs.server_id;\n                    $2"
+  );
+  if (patched === content) {
+    console.warn("[baileys-patch] Regex did not match — patch NOT applied");
+    return;
+  }
+  writeFileSync(targetPath, patched, "utf8");
+  console.log("[baileys-patch] ✅ Patched — newsletter server_id now in WAMessage.category");
+}
+
+patchBaileys();
 
 async function buildAll() {
   const distDir = path.resolve(artifactDir, "dist");
