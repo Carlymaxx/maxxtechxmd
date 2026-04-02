@@ -210,7 +210,6 @@ registerCommand({
     const prompt = args.join(" ");
     if (!prompt) return reply(`❓ Usage: .imagine2 <description>${FOOTER}`);
     try {
-      await reply(`🖼️ Creating portrait: _"${prompt}"_\n\n⏳ This takes 10-20 seconds...`);
       const enhancedPrompt = `${prompt}, highly detailed, masterpiece, 4k, beautiful lighting`;
       const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=512&height=768&nologo=true&model=turbo`;
       await sock.sendMessage(from, { image: { url }, caption: `🖼️ *AI Portrait*\n\n✏️ _"${prompt}"_${FOOTER}` }, { quoted: msg });
