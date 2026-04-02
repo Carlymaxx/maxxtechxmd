@@ -42,6 +42,8 @@ export interface BotSettings {
   autotyping: boolean;
   autobio: boolean;
   autoreaction: boolean;
+  groupLink: string;
+  channelLink: string;
   [key: string]: unknown;
 }
 
@@ -76,6 +78,8 @@ const defaultSettings: BotSettings = {
   autotyping: true,
   autobio: false,
   autoreaction: false,
+  groupLink: "",
+  channelLink: "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J",
 };
 
 export function loadSettings(): BotSettings {
