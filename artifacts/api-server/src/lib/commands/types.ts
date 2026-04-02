@@ -28,6 +28,7 @@ export interface BotCommand {
   description: string;
   usage?: string;
   groupOnly?: boolean;
+  adminOnly?: boolean;
   ownerOnly?: boolean;
   sudoOnly?: boolean;
   handler: (ctx: CommandContext) => Promise<void>;
