@@ -35,7 +35,6 @@ registerCommand({
     const audMsg = m?.audioMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.audioMessage;
     const target = vidMsg || audMsg;
     if (!target) return reply(`❌ Reply to a video or audio with *.tomp3*${FOOTER}`);
-    await reply("🎵 Converting to MP3... ⏳");
     try {
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const isVid = !!vidMsg;
@@ -69,7 +68,6 @@ registerCommand({
     const vidMsg = m?.videoMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage;
     const audMsg = m?.audioMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.audioMessage;
     if (!vidMsg && !audMsg) return reply(`❌ Reply to audio or video with *.toptt*${FOOTER}`);
-    await reply("🎤 Converting to voice note... ⏳");
     try {
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const isVid = !!vidMsg;
@@ -96,7 +94,6 @@ registerCommand({
     const m = msg.message as any;
     const vidMsg = m?.videoMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage;
     if (!vidMsg) return reply(`❌ Reply to a video with *.toimg*${FOOTER}`);
-    await reply("📸 Extracting frame... ⏳");
     try {
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const fakeMsg = m?.videoMessage ? msg : { ...msg, message: { videoMessage: vidMsg } } as any;
@@ -120,7 +117,6 @@ registerCommand({
     const m = msg.message as any;
     const vidMsg = m?.videoMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage;
     if (!vidMsg) return reply(`❌ Reply to a video with *.togif* (keep video short, under 15 seconds)${FOOTER}`);
-    await reply("🎞️ Converting to GIF... ⏳ (may take a moment)");
     try {
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const fakeMsg = m?.videoMessage ? msg : { ...msg, message: { videoMessage: vidMsg } } as any;
@@ -145,7 +141,6 @@ registerCommand({
     const imgMsg = m?.imageMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
     const vidMsg = m?.videoMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.videoMessage;
     if (!imgMsg && !vidMsg) return reply(`❌ Reply to an image or video with *.toviewonce*${FOOTER}`);
-    await reply("🔒 Converting to view-once... ⏳");
     try {
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       if (imgMsg) {
@@ -249,7 +244,6 @@ registerCommand({
     const imgMsg = m?.imageMessage || m?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
     if (!imgMsg) return reply(`❌ Reply to an image with *.watermark [text]*${FOOTER}`);
     const text = args.join(" ") || settings.botName || "MAXX-XMD";
-    await reply(`💧 Adding watermark "${text}"... ⏳`);
     try {
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const fakeMsg = m?.imageMessage ? msg : { ...msg, message: { imageMessage: imgMsg } } as any;
@@ -288,7 +282,6 @@ registerCommand({
     const dim = args[0] || "800x600";
     const [w, h] = dim.toLowerCase().split("x").map(Number);
     if (!w || !h) return reply(`❓ Usage: .resize 800x600 (reply to image)${FOOTER}`);
-    await reply(`📐 Resizing to ${w}×${h}... ⏳`);
     try {
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const fakeMsg = m?.imageMessage ? msg : { ...msg, message: { imageMessage: imgMsg } } as any;
@@ -311,7 +304,6 @@ async function applyAudioEffect(
   const quoted = m?.extendedTextMessage?.contextInfo?.quotedMessage;
   const audMsg = m?.audioMessage || quoted?.audioMessage || m?.videoMessage || quoted?.videoMessage;
   if (!audMsg) return reply(`❌ Reply to an audio or voice note with *${label}*${FOOTER}`);
-  await reply(`${emoji} Applying *${label}* effect... ⏳`);
   try {
     const isVid = !!(m?.videoMessage || quoted?.videoMessage);
     const fakeMsg = (m?.audioMessage || m?.videoMessage) ? msg
