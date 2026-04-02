@@ -732,6 +732,12 @@ export async function startPairingSession(
   }
   fs.mkdirSync(sessionFolder, { recursive: true });
 
+  // Guard — owner number must never be linked as a bot session
+  const _ownerNum = (process.env.OWNER_NUMBER || "254725979273").replace(/[^0-9]/g, "");
+  if (phoneNumber.replace(/[^0-9]/g, "") === _ownerNum) {
+    throw new Error("Owner/developer number cannot be used as a bot session.");
+  }
+
   pendingPairings[sessionId] = phoneNumber;
   saveSessionMeta(sessionId, { phoneNumber, type: "paired", autoRestart: false });
 
