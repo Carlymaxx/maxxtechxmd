@@ -1681,58 +1681,73 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     groupMetadata, reply, react: reactFn,
   };
 
-  // ── "Please wait" indicator ────────────────────────────────────────────────
-  // Instantly-completing commands are skipped so they don't get a double reply.
-  const INSTANT_CMDS = new Set([
-    "menu", "help", "ping", "alive", "uptime", "info", "botinfo",
-    "mode", "modestatus", "allcmds", "cmdlist", "owner", "runtime",
-    "react", "say", "echo", "flip", "fliptext", "reverse",
-    "fancy", "fancytext", "qrcode", "speed",
-  ]);
-  if (!INSTANT_CMDS.has(commandName)) {
-    // Pick a message that matches the command category / name
-    const cat = (command.category || "").toLowerCase();
-    const n = commandName;
-    let waitMsg: string;
-    if (["play", "song", "music", "ytmp3", "ytmp4", "audio", "yta", "ytv"].includes(n)) {
-      waitMsg = "🎵 *Searching for your song…* please wait ⏳";
-    } else if (["video", "tiktok", "tt", "facebook", "fb", "instagram", "ig", "twitter", "tw", "pinterest", "mediafire", "mega"].includes(n)) {
-      waitMsg = "⬇️ *Downloading…* please wait ⏳";
-    } else if (["sticker", "steal", "toimg", "toimage", "bwsticker", "circleimg", "flipsticker", "meme"].includes(n)) {
-      waitMsg = "🖼️ *Generating sticker…* please wait ⏳";
-    } else if (["ai", "gpt", "chatgpt", "gemini", "llama", "ask", "chat", "imagine", "dalle", "generate", "art"].includes(n)) {
-      waitMsg = "🤖 *AI is thinking…* please wait ⏳";
-    } else if (["weather", "forecast", "weather3day"].includes(n)) {
-      waitMsg = "🌤️ *Fetching weather…* please wait ⏳";
-    } else if (["translate", "tr", "lang"].includes(n)) {
-      waitMsg = "🌐 *Translating…* please wait ⏳";
-    } else if (["wiki", "wikipedia", "google", "search", "news", "bing"].includes(n)) {
-      waitMsg = "🔍 *Searching…* please wait ⏳";
-    } else if (["lyrics", "lyric", "genius"].includes(n)) {
-      waitMsg = "🎤 *Fetching lyrics…* please wait ⏳";
-    } else if (["anime", "manga", "topanime", "topmangas"].includes(n)) {
-      waitMsg = "🎌 *Fetching anime info…* please wait ⏳";
-    } else if (["movie", "film", "imdb", "series"].includes(n)) {
-      waitMsg = "🎬 *Searching movies…* please wait ⏳";
-    } else if (["crypto", "coin", "price", "currency", "forex"].includes(n)) {
-      waitMsg = "💰 *Fetching prices…* please wait ⏳";
-    } else if (["calc", "calculate", "math", "binary", "base64", "encode", "decode"].includes(n)) {
-      waitMsg = "🧮 *Calculating…* please wait ⏳";
-    } else if (cat === "downloader" || cat === "uploader" || cat === "media" || cat === "converter") {
-      waitMsg = "⬇️ *Processing media…* please wait ⏳";
-    } else if (cat === "search") {
-      waitMsg = "🔍 *Searching…* please wait ⏳";
-    } else if (cat === "ai") {
-      waitMsg = "🤖 *AI is thinking…* please wait ⏳";
-    } else if (cat === "sticker" || cat === "photo") {
-      waitMsg = "🖼️ *Processing image…* please wait ⏳";
-    } else if (cat === "group") {
-      waitMsg = "⚙️ *Processing…* please wait ⏳";
-    } else if (cat === "owner" || cat === "admin") {
-      waitMsg = "🔧 *Executing…* please wait ⏳";
-    } else {
-      waitMsg = "⏳ *Processing…* please wait";
-    }
+  // ── "Please wait" indicator (only for genuinely slow API/download commands) ──
+  const SLOW_CMDS: Record<string, string> = {
+    // Music & video downloads
+    play:        "🎵 *Searching for your song…* please wait ⏳",
+    song:        "🎵 *Fetching audio…* please wait ⏳",
+    music:       "🎵 *Fetching music…* please wait ⏳",
+    ytmp3:       "🎵 *Converting to MP3…* please wait ⏳",
+    ytmp4:       "🎬 *Converting to MP4…* please wait ⏳",
+    yta:         "🎵 *Downloading audio…* please wait ⏳",
+    ytv:         "🎬 *Downloading video…* please wait ⏳",
+    lyrics:      "🎤 *Fetching lyrics…* please wait ⏳",
+    lyric:       "🎤 *Fetching lyrics…* please wait ⏳",
+    // Social media downloads
+    tiktok:      "📱 *Downloading TikTok…* please wait ⏳",
+    tt:          "📱 *Downloading TikTok…* please wait ⏳",
+    facebook:    "📘 *Downloading from Facebook…* please wait ⏳",
+    fb:          "📘 *Downloading from Facebook…* please wait ⏳",
+    instagram:   "📸 *Downloading from Instagram…* please wait ⏳",
+    ig:          "📸 *Downloading from Instagram…* please wait ⏳",
+    twitter:     "🐦 *Downloading from Twitter…* please wait ⏳",
+    tw:          "🐦 *Downloading from Twitter…* please wait ⏳",
+    pinterest:   "📌 *Downloading from Pinterest…* please wait ⏳",
+    mediafire:   "☁️ *Downloading from MediaFire…* please wait ⏳",
+    mega:        "☁️ *Downloading from MEGA…* please wait ⏳",
+    // Sticker / image processing
+    sticker:     "🖼️ *Creating sticker…* please wait ⏳",
+    steal:       "🖼️ *Stealing sticker…* please wait ⏳",
+    toimg:       "🖼️ *Converting to image…* please wait ⏳",
+    toimage:     "🖼️ *Converting to image…* please wait ⏳",
+    bwsticker:   "🖼️ *Making B&W sticker…* please wait ⏳",
+    circleimg:   "🖼️ *Making circle sticker…* please wait ⏳",
+    flipsticker: "🖼️ *Flipping sticker…* please wait ⏳",
+    // AI commands
+    ai:          "🤖 *AI is thinking…* please wait ⏳",
+    gpt:         "🤖 *ChatGPT thinking…* please wait ⏳",
+    chatgpt:     "🤖 *ChatGPT thinking…* please wait ⏳",
+    gemini:      "🤖 *Gemini thinking…* please wait ⏳",
+    llama:       "🤖 *Llama thinking…* please wait ⏳",
+    ask:         "🤖 *AI is thinking…* please wait ⏳",
+    imagine:     "🎨 *Generating image…* please wait ⏳",
+    dalle:       "🎨 *Generating image…* please wait ⏳",
+    // Search / lookup commands
+    wiki:        "📖 *Searching Wikipedia…* please wait ⏳",
+    wikipedia:   "📖 *Searching Wikipedia…* please wait ⏳",
+    google:      "🔍 *Searching Google…* please wait ⏳",
+    news:        "📰 *Fetching news…* please wait ⏳",
+    weather:     "🌤️ *Fetching weather…* please wait ⏳",
+    forecast:    "🌤️ *Fetching forecast…* please wait ⏳",
+    weather3day: "🌤️ *Fetching 3-day forecast…* please wait ⏳",
+    translate:   "🌐 *Translating…* please wait ⏳",
+    tr:          "🌐 *Translating…* please wait ⏳",
+    anime:       "🎌 *Searching anime…* please wait ⏳",
+    manga:       "🎌 *Searching manga…* please wait ⏳",
+    movie:       "🎬 *Searching movies…* please wait ⏳",
+    film:        "🎬 *Searching movies…* please wait ⏳",
+    imdb:        "🎬 *Fetching movie info…* please wait ⏳",
+    crypto:      "💰 *Fetching crypto price…* please wait ⏳",
+    coin:        "💰 *Fetching price…* please wait ⏳",
+    currency:    "💱 *Fetching exchange rate…* please wait ⏳",
+    forex:       "💱 *Fetching forex rate…* please wait ⏳",
+    // URL tools
+    tinyurl:     "🔗 *Shortening URL…* please wait ⏳",
+    bitly:       "🔗 *Shortening URL…* please wait ⏳",
+    screenshot:  "📸 *Taking screenshot…* please wait ⏳",
+  };
+  const waitMsg = SLOW_CMDS[commandName];
+  if (waitMsg) {
     sock.sendMessage(from, { text: waitMsg }, { quoted: msg }).catch(() => {});
   }
 
