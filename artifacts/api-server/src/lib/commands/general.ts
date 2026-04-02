@@ -323,6 +323,34 @@ registerCommand({
 });
 
 registerCommand({
+  name: "link",
+  aliases: ["links", "getlinks", "botlinks"],
+  category: "General",
+  description: "Show all official MAXX-XMD links — pairing site, WhatsApp group & channel",
+  handler: async ({ sock, from, msg, settings, reply }) => {
+    const botName  = (settings.botName  as string) || "MAXX-XMD";
+    const pairLink    = "https://pair.maxxtech.co.ke";
+    const channelLink = (settings.channelLink as string) || "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J";
+    const groupLink   = (settings.groupLink  as string) || "";
+
+    const groupLine = groupLink
+      ? `👥 *WhatsApp Group:*\n${groupLink}`
+      : `👥 *WhatsApp Group:*\n_Not set — owner use .setgrouplink <url>_`;
+
+    const text =
+      `╔══════════════════════════╗\n` +
+      `║  🔗 *${botName} LINKS* 🔗\n` +
+      `╚══════════════════════════╝\n\n` +
+      `🌐 *Pairing Site:*\n${pairLink}\n\n` +
+      `${groupLine}\n\n` +
+      `📢 *WhatsApp Channel:*\n${channelLink}\n\n` +
+      `> _Tap a link to open • MAXX-XMD_ ⚡`;
+
+    await sock.sendMessage(from, { text }, { quoted: msg });
+  },
+});
+
+registerCommand({
   name: "pair",
   aliases: ["getid", "session", "pairdevice"],
   category: "General",
