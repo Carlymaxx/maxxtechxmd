@@ -327,24 +327,24 @@ registerCommand({
   aliases: ["links", "getlinks", "botlinks"],
   category: "General",
   description: "Show all official MAXX-XMD links — pairing site, WhatsApp group & channel",
-  handler: async ({ sock, from, msg, settings, reply }) => {
-    const botName  = (settings.botName  as string) || "MAXX-XMD";
+  handler: async ({ sock, from, msg, settings }) => {
+    const botName     = (settings.botName     as string) || "MAXX-XMD";
     const pairLink    = "https://pair.maxxtech.co.ke";
+    const website     = "https://www.maxxtech.co.ke";
+    const github      = "https://github.com/Carlymaxx/maxxtechxmd";
     const channelLink = (settings.channelLink as string) || "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J";
-    const groupLink   = (settings.groupLink  as string) || "";
-
-    const groupLine = groupLink
-      ? `👥 *WhatsApp Group:*\n${groupLink}`
-      : `👥 *WhatsApp Group:*\n_Not set — owner use .setgrouplink <url>_`;
+    const groupLink   = (settings.groupLink   as string) || "https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ";
 
     const text =
       `╔══════════════════════════╗\n` +
       `║  🔗 *${botName} LINKS* 🔗\n` +
       `╚══════════════════════════╝\n\n` +
       `🌐 *Pairing Site:*\n${pairLink}\n\n` +
-      `${groupLine}\n\n` +
+      `👥 *WhatsApp Group:*\n${groupLink}\n\n` +
       `📢 *WhatsApp Channel:*\n${channelLink}\n\n` +
-      `> _Tap a link to open • MAXX-XMD_ ⚡`;
+      `🖥️ *Website:*\n${website}\n\n` +
+      `💻 *GitHub (Source):*\n${github}\n\n` +
+      `> _Tap any link to open • ${botName}_ ⚡`;
 
     await sock.sendMessage(from, { text }, { quoted: msg });
   },
