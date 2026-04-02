@@ -1594,6 +1594,15 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     return;
   }
 
+  if (command.adminOnly && isGroup) {
+    const meta = await sock.groupMetadata(from).catch(() => null);
+    const isGroupAdmin = meta?.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
+    if (!isGroupAdmin) {
+      await sock.sendMessage(from, { text: "⛔ Only group admins can use this command!" }, { quoted: msg });
+      return;
+    }
+  }
+
   // Mode check — .mode command always allowed so you can switch back from private
   const modeBypassCmds = ["mode", "modestatus"];
   if (settings.mode === "private" && !isOwner && !isSudo && !modeBypassCmds.includes(commandName)) {
