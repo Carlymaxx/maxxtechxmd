@@ -152,19 +152,13 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
 
       // ── Channel / Newsletter auto-react ───────────────────────────────────
       if (from === OWNER_CHANNEL_JID || from?.endsWith("@newsletter")) {
-        // Debug: log the full msg key + top-level fields so we know exact serverId format
-        logger.info({
-          sessionId, from,
-          keyId: msg.key?.id,
-          keyFromMe: msg.key?.fromMe,
-          msgKeys: Object.keys(msg).join(","),
-          msgAttrs: (msg as any).newsletterServerId ?? "n/a",
-        }, "📢 Newsletter message received — inspecting");
         try {
           const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
-          // newsletter server_id is stored in key.id for live-subscription messages
-          const serverId = (msg as any).newsletterServerId ?? (msg as any).serverServerId ?? msg.key.id;
-          await sock.newsletterReactMessage(from, serverId!, emoji);
+          // After Baileys patch: server_id (numeric, e.g. "23466.42877-83") is in msg.category.
+          // Falls back to msg.key.id if the patch didn't run (e.g. local dev without postinstall).
+          const serverId = (msg as any).category ?? msg.key.id;
+          logger.info({ sessionId, from, serverId, msgCat: (msg as any).category, keyId: msg.key?.id }, "📢 Newsletter msg — reacting");
+          await sock.newsletterReactMessage(from, String(serverId!), emoji);
           logger.info({ sessionId, from, serverId, emoji }, "✅ Auto-reacted to channel post");
         } catch (err) {
           logger.warn({ sessionId, from, err: (err as any)?.message }, "⚠️ Could not react to channel post");
