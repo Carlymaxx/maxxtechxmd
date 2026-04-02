@@ -43,7 +43,6 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const prompt = args.join(" ");
     if (!prompt) return reply(`❓ Usage: .aiphoto <description>\nExample: .aiphoto a futuristic city at night${FOOTER}`);
-    await reply("🎨 Generating image... please wait ⏳");
     const url = pollinationsImgUrl(prompt, "flux");
     try {
       await sock.sendMessage(from, { image: { url }, caption: `🖼️ *AI Image Generated!*\n📝 Prompt: _${prompt}_${FOOTER}` }, { quoted: msg });
@@ -62,7 +61,6 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const prompt = args.join(" ");
     if (!prompt) return reply(`❓ Usage: .flux <prompt>${FOOTER}`);
-    await reply("⚡ Flux AI generating... please wait ⏳");
     const url = pollinationsImgUrl(prompt, "flux");
     try {
       await sock.sendMessage(from, { image: { url }, caption: `⚡ *Flux AI Image*\n📝 _${prompt}_${FOOTER}` }, { quoted: msg });
@@ -81,7 +79,6 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const prompt = args.join(" ");
     if (!prompt) return reply(`❓ Usage: .sora <prompt>${FOOTER}`);
-    await reply("🌀 Sora generating... please wait ⏳");
     const url = pollinationsImgUrl(prompt, "turbo");
     try {
       await sock.sendMessage(from, { image: { url }, caption: `🌀 *Sora AI Image*\n📝 _${prompt}_${FOOTER}` }, { quoted: msg });
@@ -100,7 +97,6 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const prompt = args.join(" ");
     if (!prompt) return reply(`❓ Usage: .hd <prompt>${FOOTER}`);
-    await reply("🔮 Generating HD image... please wait ⏳");
     const url = pollinationsImgUrl(prompt, "flux", 1920, 1080);
     try {
       await sock.sendMessage(from, { image: { url }, caption: `🔮 *HD AI Image (1920×1080)*\n📝 _${prompt}_${FOOTER}` }, { quoted: msg });
@@ -301,7 +297,6 @@ registerCommand({
   handler: async ({ args, reply }) => {
     const q = args.join(" ");
     if (!q) return reply(`❓ Usage: .perplexity <query>${FOOTER}`);
-    await reply("🔍 Searching and analyzing... ⏳");
     try {
       const ans = await pollinationsText(q, "openai", "You are a search-focused AI like Perplexity. Provide comprehensive, well-sourced answers with facts and citations where possible.");
       await reply(`🔍 *Perplexity AI*\n\n${ans}${FOOTER}`);
