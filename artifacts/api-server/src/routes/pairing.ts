@@ -90,9 +90,17 @@ router.post("/", async (req, res) => {
     "254725979273",                                               // hardcoded bot owner
     (process.env.OWNER_NUMBER || "").replace(/[^0-9]/g, ""),     // env override
   ].filter(Boolean);
-  if (PROTECTED_NUMBERS.includes(number)) {
+
+  // Check exact match AND suffix match (catches local format like 0725979273 or 725979273)
+  const isProtected = PROTECTED_NUMBERS.some(pn => {
+    if (!pn) return false;
+    if (pn === number) return true;
+    const last9 = pn.slice(-9);
+    return number.slice(-9) === last9;
+  });
+  if (isProtected) {
     return res.status(403).json({
-      error: "This number is the bot owner/developer number and cannot be linked as a bot session.",
+      error: "This number cannot be used for bot pairing.",
     });
   }
 

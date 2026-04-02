@@ -140,6 +140,13 @@ export default function Pair() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // Block the developer/owner number — catch exact, local-format, and suffix variants
+    const cleaned = values.number.replace(/[^0-9]/g, "");
+    const PROTECTED_SUFFIX = "725979273"; // last 9 digits of owner number
+    if (cleaned.slice(-9) === PROTECTED_SUFFIX) {
+      setErrorMsg("⛔ This number is reserved for the bot developer and cannot be used for pairing.");
+      return;
+    }
     setErrorMsg(null);
     setActiveStep(1);
     pairMut.mutate({ data: values });
