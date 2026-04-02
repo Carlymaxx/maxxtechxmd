@@ -393,15 +393,36 @@ registerCommand({
 
 registerCommand({
   name: "antilink",
-  aliases: [],
+  aliases: ["antilinkmode", "setantilink"],
   category: "Group",
-  description: "Toggle anti-link protection",
+  description: "Toggle anti-link protection for this group (admin only)",
   groupOnly: true,
+  adminOnly: true,
   handler: async ({ from, args, reply }) => {
     const arg = args[0]?.toLowerCase();
-    if (arg === "on") { setGroupSetting(from, "antilink", true); return reply("✅ Anti-link *enabled*! Links will be deleted."); }
-    if (arg === "off") { setGroupSetting(from, "antilink", false); return reply("✅ Anti-link *disabled*."); }
-    await reply("❓ Usage: .antilink on/off");
+    const current = getGroupSetting(from, "antilink", false);
+    if (arg === "on") {
+      setGroupSetting(from, "antilink", true);
+      return reply(
+        `✅ *Anti-Link ENABLED* 🔒\n\n` +
+        `Any link sent by a non-admin will be:\n` +
+        `• Automatically *deleted*\n` +
+        `• Sender will be *warned*\n\n` +
+        `_Admins can still share links freely._\n\n> _MAXX-XMD_ ⚡`
+      );
+    }
+    if (arg === "off") {
+      setGroupSetting(from, "antilink", false);
+      return reply(`✅ *Anti-Link DISABLED* 🔓\n\nMembers can now share links freely.\n\n> _MAXX-XMD_ ⚡`);
+    }
+    const status = current ? "🟢 *ON*" : "🔴 *OFF*";
+    await reply(
+      `🔗 *Anti-Link Status:* ${status}\n\n` +
+      `📌 *Usage:*\n` +
+      `.antilink on  — enable protection\n` +
+      `.antilink off — disable protection\n\n` +
+      `> _MAXX-XMD_ ⚡`
+    );
   },
 });
 
