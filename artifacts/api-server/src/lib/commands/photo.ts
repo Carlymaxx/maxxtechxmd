@@ -68,7 +68,6 @@ registerCommand({
     if (!prompt) return reply(
       `❓ Usage: .imagine <description>\n\nExamples:\n  .imagine a lion in space wearing armor\n  .imagine beautiful sunset over ocean\n  .imagine futuristic city at night\n  .imagine cute anime girl with blue hair${FOOTER}`
     );
-    await reply(`🎨 Generating your image...\n\n📝 _${prompt}_`);
     try {
       const imgBuf = await aiImg(prompt);
       await sock.sendMessage(from, { image: imgBuf, caption: `🎨 *AI Image*\n\n📝 ${prompt}${FOOTER}` }, { quoted: msg });
@@ -88,7 +87,6 @@ registerCommand({
     const desc = args.join(" ");
     if (!desc) return reply(`❓ Usage: .logo <description>\nExample: .logo MAXX gaming tech neon\n         .logo lion king sports team${FOOTER}`);
     const prompt = `professional logo design ${desc}, clean, minimal, vector style, white background, high quality`;
-    await reply(`🎨 Generating logo...\n\n_${desc}_`);
     try {
       await sendPhoto(sock, from, msg, aiImgUrl(prompt, 700, 700), `🏷️ *AI Logo*\n\n_${desc}_${FOOTER}`);
     } catch {
@@ -107,7 +105,6 @@ registerCommand({
     const desc = args.join(" ");
     if (!desc) return reply(`❓ Usage: .poster <description>\nExample: .poster epic fantasy dragon kingdom${FOOTER}`);
     const prompt = `cinematic movie poster ${desc}, dramatic lighting, professional design, text-free, ultra HD`;
-    await reply(`🎨 Generating poster...\n\n_${desc}_`);
     try {
       await sendPhoto(sock, from, msg, aiImgUrl(prompt, 700, 1000), `🎬 *AI Poster*\n\n_${desc}_${FOOTER}`);
     } catch {
@@ -125,7 +122,6 @@ registerCommand({
   handler: async ({ sock, from, msg, args, reply }) => {
     const desc = args.join(" ") || "cool digital avatar portrait";
     const prompt = `stunning portrait avatar ${desc}, professional, highly detailed, 4K, centered face`;
-    await reply(`🎨 Generating avatar...\n\n_${desc}_`);
     try {
       await sendPhoto(sock, from, msg, aiImgUrl(prompt, 600, 600), `👤 *AI Avatar*\n\n_${desc}_${FOOTER}`);
     } catch {
