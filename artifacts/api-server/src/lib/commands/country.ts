@@ -222,50 +222,6 @@ registerCommand({
   },
 });
 
-// ── Weather (using wttr.in — free, no key) ─────────────────────────────────────
-
-registerCommand({
-  name: "weather",
-  aliases: ["wthr", "forecast"],
-  category: "Search",
-  description: "Get weather for any city (.weather Nairobi)",
-  handler: async ({ args, reply }) => {
-    const city = args.join(" ");
-    if (!city) return reply(`❓ Usage: .weather <city>\nExample: .weather Nairobi`);
-    try {
-      const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
-      if (!res.ok) throw new Error();
-      const data = await res.json() as any;
-      const cur = data.current_condition?.[0];
-      const area = data.nearest_area?.[0];
-      const name = area?.areaName?.[0]?.value || city;
-      const country = area?.country?.[0]?.value || "";
-      const temp = cur?.temp_C || "?";
-      const feels = cur?.FeelsLikeC || "?";
-      const desc = cur?.weatherDesc?.[0]?.value || "N/A";
-      const humidity = cur?.humidity || "?";
-      const wind = cur?.windspeedKmph || "?";
-      const windDir = cur?.winddir16Point || "?";
-      const visibility = cur?.visibility || "?";
-      const uv = cur?.uvIndex || "?";
-      const today = data.weather?.[0];
-      const maxT = today?.maxtempC || "?";
-      const minT = today?.mintempC || "?";
-      await reply(
-        `🌤️ *Weather: ${name}, ${country}*\n\n` +
-        `🌡️ *Temp:* ${temp}°C (feels like ${feels}°C)\n` +
-        `☁️ *Condition:* ${desc}\n` +
-        `💧 *Humidity:* ${humidity}%\n` +
-        `💨 *Wind:* ${wind} km/h ${windDir}\n` +
-        `👁️ *Visibility:* ${visibility} km\n` +
-        `☀️ *UV Index:* ${uv}\n` +
-        `📈 *High:* ${maxT}°C  📉 *Low:* ${minT}°C${FOOTER}`
-      );
-    } catch {
-      await reply(`❌ Weather for *${city}* not found.${FOOTER}`);
-    }
-  },
-});
 
 registerCommand({
   name: "weather3day",

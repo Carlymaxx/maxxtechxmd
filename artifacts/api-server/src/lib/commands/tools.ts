@@ -64,61 +64,7 @@ registerCommand({
   },
 });
 
-registerCommand({
-  name: "base64",
-  aliases: ["b64"],
-  category: "Tools",
-  description: "Encode or decode Base64 (.base64 encode/decode <text>)",
-  handler: async ({ args, reply }) => {
-    const mode = args[0]?.toLowerCase();
-    const text = args.slice(1).join(" ");
-    if (!mode || !text || !["encode", "decode", "enc", "dec", "e", "d"].includes(mode)) {
-      return reply("❓ Usage:\n  .base64 encode <text>\n  .base64 decode <encoded>\nExample: .base64 encode Hello World");
-    }
-    try {
-      const isEncode = ["encode", "enc", "e"].includes(mode);
-      const result = isEncode
-        ? Buffer.from(text, "utf8").toString("base64")
-        : Buffer.from(text, "base64").toString("utf8");
-      await reply(`🔐 *Base64 ${isEncode ? "Encode" : "Decode"}*\n\n*Input:* ${text}\n*Result:* ${result}${FOOTER}`);
-    } catch {
-      await reply("❌ Invalid Base64 input.");
-    }
-  },
-});
 
-registerCommand({
-  name: "calc",
-  aliases: ["math", "calculate", "eval"],
-  category: "Tools",
-  description: "Calculate a math expression (.calc 2+2*3)",
-  handler: async ({ args, reply }) => {
-    const expr = args.join(" ").replace(/[^0-9+\-*/().\s%^]/g, "");
-    if (!expr) return reply("❓ Usage: .calc <expression>\nExamples:\n  .calc 2+2\n  .calc 100*1.16\n  .calc (5+3)*2");
-    try {
-      const safeExpr = expr.replace(/\^/g, "**");
-      const result = Function(`"use strict"; return (${safeExpr})`)();
-      if (typeof result !== "number" || !isFinite(result)) throw new Error();
-      await reply(`🧮 *Calculator*\n\n📝 *Expression:* ${expr}\n✅ *Result:* ${result}${FOOTER}`);
-    } catch {
-      await reply("❌ Invalid expression. Example: .calc 2+2*3");
-    }
-  },
-});
-
-registerCommand({
-  name: "password",
-  aliases: ["genpass", "passgen"],
-  category: "Tools",
-  description: "Generate a secure random password (.password 16)",
-  handler: async ({ args, reply }) => {
-    const len = Math.min(Math.max(parseInt(args[0] || "12"), 6), 64);
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}";
-    let pass = "";
-    for (let i = 0; i < len; i++) pass += chars[Math.floor(Math.random() * chars.length)];
-    await reply(`🔐 *Password Generator*\n\n🔑 \`${pass}\`\n📏 Length: *${len}*\n\n⚠️ _Save it somewhere safe!_${FOOTER}`);
-  },
-});
 
 registerCommand({
   name: "forward",
@@ -365,29 +311,6 @@ function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
   return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
 }
 
-registerCommand({
-  name: "binary",
-  aliases: ["bin", "bin2text", "text2bin"],
-  category: "Tools",
-  description: "Convert text to binary or binary to text",
-  handler: async ({ args, reply }) => {
-    const mode = args[0]?.toLowerCase();
-    const text = args.slice(1).join(" ");
-    if (!mode || !text) return reply("❓ Usage:\n  .binary encode <text>\n  .binary decode <binary>\nExample: .binary encode Hello");
-    const isEncode = ["encode", "enc", "e"].includes(mode);
-    try {
-      let result: string;
-      if (isEncode) {
-        result = text.split("").map(c => c.charCodeAt(0).toString(2).padStart(8, "0")).join(" ");
-      } else {
-        result = text.split(" ").map(b => String.fromCharCode(parseInt(b, 2))).join("");
-      }
-      await reply(`💻 *Binary ${isEncode ? "Encode" : "Decode"}*\n\n*Input:* ${text.slice(0, 60)}\n*Result:* ${result.slice(0, 300)}${result.length > 300 ? "..." : ""}${FOOTER}`);
-    } catch {
-      await reply("❌ Invalid input for binary conversion.");
-    }
-  },
-});
 
 registerCommand({
   name: "fancy",

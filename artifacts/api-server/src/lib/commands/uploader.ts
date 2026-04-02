@@ -3,27 +3,6 @@ import { registerCommand } from "./types";
 const FOOTER = "\n\n> _MAXX-XMD_ ⚡";
 
 // ── URL shorteners ─────────────────────────────────────────────────────────────
-registerCommand({
-  name: "tinyurl",
-  aliases: ["shorten", "shorturl"],
-  category: "Uploader",
-  description: "Shorten a URL using TinyURL",
-  usage: ".tinyurl <url>",
-  handler: async ({ args, reply }) => {
-    const url = args[0];
-    if (!url || !url.startsWith("http")) return reply(`❓ Usage: .tinyurl <url>\nExample: .tinyurl https://google.com${FOOTER}`);
-    try {
-      const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`, {
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!res.ok) throw new Error("API error");
-      const short = await res.text();
-      await reply(`🔗 *URL Shortened (TinyURL)*\n\n📎 Original: ${url}\n✅ Short: *${short.trim()}*${FOOTER}`);
-    } catch (e: any) {
-      await reply(`❌ Failed to shorten URL: ${e.message}${FOOTER}`);
-    }
-  },
-});
 
 registerCommand({
   name: "bitly",

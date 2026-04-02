@@ -53,7 +53,7 @@ ${bar}
 🟢 *Status:* Active & Running
 
 `;
-    const botpic: string = (settings as any).botpic || "https://files.catbox.moe/8jx0q3.jpg";
+    const botpic: string = (settings as any).botpic || "https://files.catbox.moe/9r47nb.jpg";
     try {
       await sock.sendMessage(from, { image: { url: botpic }, caption: text }, { quoted: msg });
     } catch {
@@ -68,7 +68,7 @@ ${bar}
 
 registerCommand({
   name: "ping",
-  aliases: ["ping2", "speed"],
+  aliases: ["ping2", "latency"],
   category: "General",
   description: "Check bot response speed",
   handler: async ({ msg, reply }) => {
@@ -247,8 +247,8 @@ registerCommand({
 });
 
 registerCommand({
-  name: "update",
-  aliases: ["updates", "changelog", "whatsnew"],
+  name: "deploy",
+  aliases: ["updates", "changelog", "whatsnew", "redeploy"],
   category: "General",
   description: "Pull latest code from GitHub and restart the bot",
   sudoOnly: true,
@@ -598,42 +598,6 @@ registerCommand({
   },
 });
 
-registerCommand({
-  name: "crypto",
-  aliases: ["coin", "price"],
-  category: "General",
-  description: "Get live cryptocurrency price",
-  handler: async ({ args, reply }) => {
-    const input = args[0]?.toLowerCase();
-    if (!input) return reply("❓ Usage: .crypto <coin>\nExamples: .crypto bitcoin  .crypto eth  .crypto bnb");
-    const COIN_MAP: Record<string, string> = {
-      btc: "bitcoin", eth: "ethereum", bnb: "binancecoin", sol: "solana",
-      xrp: "ripple", ada: "cardano", doge: "dogecoin", matic: "matic-network",
-      dot: "polkadot", ltc: "litecoin", trx: "tron", shib: "shiba-inu",
-      avax: "avalanche-2", link: "chainlink", uni: "uniswap", usdt: "tether",
-    };
-    const id = COIN_MAP[input] || input;
-    try {
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${encodeURIComponent(id)}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);
-      const data = await res.json() as any;
-      const coin = data[id];
-      if (!coin) return reply(`❌ Coin "*${input}*" not found.\n\nTry the full name e.g. .crypto bitcoin`);
-      const price = coin.usd?.toLocaleString("en-US", { maximumFractionDigits: 6 });
-      const change = coin.usd_24h_change?.toFixed(2);
-      const mcap = coin.usd_market_cap ? `$${(coin.usd_market_cap / 1e9).toFixed(2)}B` : "N/A";
-      const arrow = change > 0 ? "📈" : "📉";
-      await reply(`💰 *${id.toUpperCase()} Price*
-
-💵 *Price:* $${price}
-${arrow} *24h Change:* ${change}%
-🏦 *Market Cap:* ${mcap}
-
-_Data from CoinGecko_`);
-    } catch {
-      await reply("❌ Could not fetch crypto price. Try again later.");
-    }
-  },
-});
 
 registerCommand({
   name: "hack",

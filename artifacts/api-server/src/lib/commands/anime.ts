@@ -37,35 +37,6 @@ async function sendReactionGif(category: string, action: string, target: string,
 
 // ── Anime Info ────────────────────────────────────────────────────────────────
 
-registerCommand({
-  name: "anime",
-  aliases: ["searchanime", "animesearch"],
-  category: "Anime",
-  description: "Search for any anime by name",
-  handler: async ({ args, reply }) => {
-    const q = args.join(" ");
-    if (!q) return reply(`❓ Usage: .anime <title>\nExample: .anime Naruto`);
-    try {
-      const res = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=1`);
-      const data = await res.json() as any;
-      const a = data.data?.[0];
-      if (!a) return reply(`❌ Anime *${q}* not found.${FOOTER}`);
-      await reply(
-        `🎌 *${a.title}* (${a.title_japanese || "N/A"})\n\n` +
-        `📺 *Type:* ${a.type || "N/A"}\n` +
-        `📅 *Aired:* ${a.aired?.string || "N/A"}\n` +
-        `🎬 *Episodes:* ${a.episodes || "?"}\n` +
-        `⭐ *Score:* ${a.score || "N/A"} / 10\n` +
-        `🏆 *Rank:* #${a.rank || "?"}\n` +
-        `📊 *Status:* ${a.status || "N/A"}\n` +
-        `🏷️ *Genres:* ${a.genres?.map((g: any) => g.name).join(", ") || "N/A"}\n\n` +
-        `📝 *Synopsis:*\n${(a.synopsis || "N/A").slice(0, 400)}...${FOOTER}`
-      );
-    } catch {
-      await reply(`❌ Anime search failed. Try again.${FOOTER}`);
-    }
-  },
-});
 
 registerCommand({
   name: "manga",
@@ -186,24 +157,6 @@ registerCommand({
   },
 });
 
-registerCommand({
-  name: "topanime",
-  aliases: ["animetop", "bestanime"],
-  category: "Anime",
-  description: "Get all-time top anime list",
-  handler: async ({ reply }) => {
-    try {
-      const res = await fetch("https://api.jikan.moe/v4/top/anime?limit=10");
-      const data = await res.json() as any;
-      const list = data.data?.slice(0, 10).map((a: any, i: number) =>
-        `${i + 1}. *${a.title}* — ⭐${a.score || "?"}`
-      ).join("\n");
-      await reply(`🏆 *All-Time Top Anime*\n\n${list || "None found."}${FOOTER}`);
-    } catch {
-      await reply(`❌ Could not fetch top anime.${FOOTER}`);
-    }
-  },
-});
 
 registerCommand({
   name: "topmangas",
