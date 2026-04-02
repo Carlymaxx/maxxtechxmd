@@ -104,7 +104,7 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       keys: makeCacheableSignalKeyStore(state.keys, logger as any),
     },
     printQRInTerminal: false,
-    browser: [settings.botName || "MAXX-XMD", "Chrome", "1.0"],
+    browser: [settings.botName || "MAXX-XMD", "Chrome", "114.0.5735.199"],
     // RAM optimizations — never cache messages in memory
     getMessage: async () => undefined,
     syncFullHistory: false,
