@@ -233,14 +233,18 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       logger.info({ sessionId, from, body: body.slice(0, 80), fromMe: msg.key?.fromMe }, "📩 Processing message");
 
       // ── Auto-react to every incoming message ─────────────────────────────
+      // Groups: ALWAYS auto-react (no toggle needed)
+      // DMs: only if autoreaction setting is ON
       if (!msg.key.fromMe) {
         try {
           const settings = loadSettings();
-          if (settings.autoreaction) {
+          const isGroup = from.endsWith("@g.us");
+          const shouldReact = isGroup || settings.autoreaction;
+          if (shouldReact) {
             const REACT_EMOJIS = ["❤️","🔥","😍","🤩","💯","👀","🎉","⚡","🙏","😂","👏","🥳","💪","🎵","✨"];
             const emoji = REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
             await sock.sendMessage(from, { react: { text: emoji, key: msg.key } });
-            logger.info({ sessionId, from, emoji }, "✅ Auto-reacted to message");
+            logger.info({ sessionId, from, emoji, isGroup }, "✅ Auto-reacted to message");
           }
         } catch { /* silently skip react errors */ }
       }
