@@ -41,8 +41,6 @@ registerCommand({
     const days = parseInt(args[0] || "7");
     if (isNaN(days) || days < 1) return reply(`❓ Usage: .inactive [days] (e.g. .inactive 7)${FOOTER}`);
 
-    await reply(`⏳ Scanning group activity for the last *${days} days*...`);
-
     try {
       const meta = await sock.groupMetadata(from);
       const participants = meta.participants;
@@ -109,8 +107,6 @@ registerCommand({
     if (!imgMsg) return reply(`❌ Reply to an image with *.watermark [text]*${FOOTER}`);
 
     const text = args.join(" ") || settings.botName || "MAXX-XMD";
-    await reply(`🖊️ Adding watermark *"${text}"*... ⏳`);
-
     try {
       const fakeMsg = m?.imageMessage ? msg : { ...msg, message: { imageMessage: imgMsg } } as any;
       const buf = await downloadMediaMessage(fakeMsg, "buffer", {}) as Buffer;
