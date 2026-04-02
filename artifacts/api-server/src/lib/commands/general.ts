@@ -258,6 +258,10 @@ const CC_TZ: Record<string, { tz: string; country: string }> = {
 };
 
 function detectTimezone(phoneJid: string): { tz: string; country: string } | null {
+  // Only real phone-number JIDs are useful — LID (@lid) and group (@g.us) JIDs
+  // carry no meaningful country code and must be skipped to avoid false matches
+  // (e.g. LID "51175206457492@lid" accidentally matches Peru +51)
+  if (!phoneJid?.endsWith("@s.whatsapp.net")) return null;
   const digits = phoneJid.replace("@s.whatsapp.net", "").replace(/\D/g, "");
   // Try longest match first (3-digit codes, then 2-digit, then 1-digit)
   for (const len of [3, 2, 1]) {
@@ -272,7 +276,7 @@ registerCommand({
   aliases: ["date", "bottime", "mydate", "mytime"],
   category: "General",
   description: "Show your local date and time based on your region",
-  handler: async ({ args, sender, reply }) => {
+  handler: async ({ args, sender, from, reply }) => {
     // If user manually provides a timezone arg, use that
     const manualTz = args.join(" ").trim();
 
@@ -281,8 +285,16 @@ registerCommand({
     let flag = "🌐";
 
     if (!manualTz) {
-      // Auto-detect from sender's phone number
-      const detected = detectTimezone(sender);
+      // Auto-detect: try sender first (real phone JID), then from (chat JID),
+      // then fall back to owner number from env (handles LID / group scenarios)
+      let detected =
+        detectTimezone(sender) ??
+        detectTimezone(from) ??
+        (() => {
+          const ownerNum = process.env.OWNER_NUMBER ?? "";
+          return ownerNum ? detectTimezone(ownerNum + "@s.whatsapp.net") : null;
+        })();
+
       if (detected) {
         tz = detected.tz;
         label = detected.country;
