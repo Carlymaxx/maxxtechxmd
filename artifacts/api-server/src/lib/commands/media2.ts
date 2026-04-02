@@ -3,6 +3,19 @@ const FOOTER = "\n\n> _MAXX-XMD_ ⚡";
 
 // ── Downloads ─────────────────────────────────────────────────────────────────
 
+// ── Shared helper: fetch URL into Buffer with timeout ─────────────────────────
+async function fetchBuffer(url: string, timeoutMs = 90000): Promise<Buffer> {
+  const res = await fetch(url, {
+    signal: AbortSignal.timeout(timeoutMs),
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; MAXX-XMD/1.0)" },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return Buffer.from(await res.arrayBuffer());
+}
+
+function sizeMB(buf: Buffer) { return (buf.length / 1024 / 1024).toFixed(1); }
+
+// ── TikTok ────────────────────────────────────────────────────────────────────
 registerCommand({
   name: "tiktok",
   aliases: ["tt", "tik", "ttdown"],
@@ -11,19 +24,36 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const url = args[0];
     if (!url || !url.includes("tiktok")) return reply(`❓ Usage: .tiktok <tiktok url>\nExample: .tiktok https://vm.tiktok.com/xxx${FOOTER}`);
+    await reply("⏳ Fetching TikTok video...");
     try {
-      await reply("⏳ Fetching TikTok video...");
-      const res = await fetch(`https://api.eliteprotech.com/tiktok?url=${encodeURIComponent(url)}`);
-      const data = await res.json() as any;
-      const videoUrl = data.url || data.data?.play || data.video;
-      if (!videoUrl) throw new Error("no video url");
-      await sock.sendMessage(from, { video: { url: videoUrl }, caption: `🎵 TikTok Video${FOOTER}`, mimetype: "video/mp4" }, { quoted: msg });
-    } catch {
-      await reply(`❌ TikTok download failed. Try a different link.${FOOTER}`);
+      let videoUrl = "";
+      let caption = "TikTok";
+
+      // API 1 — tikwm (reliable, no-watermark)
+      try {
+        const r = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(15000) });
+        const d = await r.json() as any;
+        if (d.data?.play) { videoUrl = d.data.play; caption = d.data.title || caption; }
+      } catch {}
+
+      // API 2 — eliteprotech fallback
+      if (!videoUrl) {
+        const r = await fetch(`https://eliteprotech-apis.zone.id/tiktok?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(15000) });
+        const d = await r.json() as any;
+        videoUrl = d.url || d.data?.play || d.video || "";
+      }
+
+      if (!videoUrl) throw new Error("No video URL found");
+      const buf = await fetchBuffer(videoUrl);
+      if (buf.length > 55 * 1024 * 1024) return reply(`⚠️ Video too large (${sizeMB(buf)}MB). WhatsApp limit is 55MB.${FOOTER}`);
+      await sock.sendMessage(from, { video: buf, caption: `🎵 *${caption}*${FOOTER}`, mimetype: "video/mp4" }, { quoted: msg });
+    } catch (e: any) {
+      await reply(`❌ TikTok download failed: ${e.message?.slice(0,100) || "Try a different link"}${FOOTER}`);
     }
   },
 });
 
+// ── Instagram ─────────────────────────────────────────────────────────────────
 registerCommand({
   name: "instagram",
   aliases: ["ig", "igdown", "insta"],
@@ -32,24 +62,43 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const url = args[0];
     if (!url || !url.includes("instagram")) return reply(`❓ Usage: .instagram <instagram url>${FOOTER}`);
+    await reply("⏳ Fetching Instagram media...");
     try {
-      await reply("⏳ Fetching Instagram media...");
-      const res = await fetch(`https://api.eliteprotech.com/instagram?url=${encodeURIComponent(url)}`);
-      const data = await res.json() as any;
-      const mediaUrl = data.url || data.data?.[0]?.url || data.video || data.image;
-      if (!mediaUrl) throw new Error("no media url");
-      const isVideo = mediaUrl.includes(".mp4") || data.type === "video";
-      if (isVideo) {
-        await sock.sendMessage(from, { video: { url: mediaUrl }, caption: `📸 Instagram Video${FOOTER}`, mimetype: "video/mp4" }, { quoted: msg });
-      } else {
-        await sock.sendMessage(from, { image: { url: mediaUrl }, caption: `📸 Instagram Post${FOOTER}` }, { quoted: msg });
+      let mediaUrl = "";
+      let isVideo = false;
+
+      // API 1 — eliteprotech
+      try {
+        const r = await fetch(`https://eliteprotech-apis.zone.id/igdl?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(15000) });
+        const d = await r.json() as any;
+        mediaUrl = d.url || d.data?.[0]?.url || d.video || d.image || "";
+        isVideo = !!(d.type === "video" || mediaUrl.includes(".mp4"));
+      } catch {}
+
+      // API 2 — snapinsta API fallback
+      if (!mediaUrl) {
+        const r = await fetch(`https://api.snapinsta.app/v1/get?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(15000) });
+        const d = await r.json() as any;
+        mediaUrl = d.url || d.data?.video_url || d.data?.display_url || "";
+        isVideo = !!(d.data?.video_url || mediaUrl.includes(".mp4"));
       }
-    } catch {
-      await reply(`❌ Instagram download failed.${FOOTER}`);
+
+      if (!mediaUrl) throw new Error("No media URL found");
+      const buf = await fetchBuffer(mediaUrl);
+      if (buf.length > 55 * 1024 * 1024) return reply(`⚠️ File too large (${sizeMB(buf)}MB). WhatsApp limit is 55MB.${FOOTER}`);
+
+      if (isVideo) {
+        await sock.sendMessage(from, { video: buf, caption: `📸 *Instagram Video*${FOOTER}`, mimetype: "video/mp4" }, { quoted: msg });
+      } else {
+        await sock.sendMessage(from, { image: buf, caption: `📸 *Instagram Post*${FOOTER}` }, { quoted: msg });
+      }
+    } catch (e: any) {
+      await reply(`❌ Instagram download failed: ${e.message?.slice(0,100) || "Try a direct reel/post link"}${FOOTER}`);
     }
   },
 });
 
+// ── Twitter / X ───────────────────────────────────────────────────────────────
 registerCommand({
   name: "twitter",
   aliases: ["tw", "xvideo", "xdown"],
@@ -58,19 +107,39 @@ registerCommand({
   handler: async ({ args, sock, from, msg, reply }) => {
     const url = args[0];
     if (!url || (!url.includes("twitter") && !url.includes("x.com"))) return reply(`❓ Usage: .twitter <twitter/x url>${FOOTER}`);
+    await reply("⏳ Fetching Twitter/X video...");
     try {
-      await reply("⏳ Fetching Twitter/X video...");
-      const res = await fetch(`https://api.eliteprotech.com/twitter?url=${encodeURIComponent(url)}`);
-      const data = await res.json() as any;
-      const videoUrl = data.url || data.data?.url || data.video;
-      if (!videoUrl) throw new Error("no video url");
-      await sock.sendMessage(from, { video: { url: videoUrl }, caption: `🐦 Twitter/X Video${FOOTER}`, mimetype: "video/mp4" }, { quoted: msg });
-    } catch {
-      await reply(`❌ Twitter/X download failed.${FOOTER}`);
+      let videoUrl = "";
+
+      // API 1 — eliteprotech
+      try {
+        const r = await fetch(`https://eliteprotech-apis.zone.id/twitter?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(15000) });
+        const d = await r.json() as any;
+        videoUrl = d.url || d.data?.url || d.video || d.hd || d.sd || "";
+      } catch {}
+
+      // API 2 — twitsave fallback
+      if (!videoUrl) {
+        const r = await fetch(`https://twitsave.com/info?url=${encodeURIComponent(url)}`, {
+          signal: AbortSignal.timeout(15000),
+          headers: { "User-Agent": "Mozilla/5.0" }
+        });
+        const text = await r.text();
+        const match = text.match(/href="(https:\/\/[^"]+\.mp4[^"]*)"/);
+        if (match) videoUrl = match[1];
+      }
+
+      if (!videoUrl) throw new Error("No video URL found");
+      const buf = await fetchBuffer(videoUrl);
+      if (buf.length > 55 * 1024 * 1024) return reply(`⚠️ Video too large (${sizeMB(buf)}MB). WhatsApp limit is 55MB.${FOOTER}`);
+      await sock.sendMessage(from, { video: buf, caption: `🐦 *Twitter/X Video*${FOOTER}`, mimetype: "video/mp4" }, { quoted: msg });
+    } catch (e: any) {
+      await reply(`❌ Twitter/X download failed: ${e.message?.slice(0,100) || "Try a direct tweet link"}${FOOTER}`);
     }
   },
 });
 
+// ── Facebook ──────────────────────────────────────────────────────────────────
 registerCommand({
   name: "facebook",
   aliases: ["fb", "fbvideo", "fbdown"],
@@ -78,16 +147,39 @@ registerCommand({
   description: "Download Facebook video (.facebook <url>)",
   handler: async ({ args, sock, from, msg, reply }) => {
     const url = args[0];
-    if (!url || !url.includes("facebook")) return reply(`❓ Usage: .facebook <facebook url>${FOOTER}`);
+    if (!url || (!url.includes("facebook") && !url.includes("fb.watch")))
+      return reply(`❓ Usage: .facebook <facebook url>\nExample: .facebook https://fb.watch/xxx${FOOTER}`);
+    await reply("⏳ Fetching Facebook video...");
     try {
-      await reply("⏳ Fetching Facebook video...");
-      const res = await fetch(`https://api.eliteprotech.com/facebook?url=${encodeURIComponent(url)}`);
-      const data = await res.json() as any;
-      const videoUrl = data.url || data.data?.url || data.video;
-      if (!videoUrl) throw new Error("no video url");
-      await sock.sendMessage(from, { video: { url: videoUrl }, caption: `📘 Facebook Video${FOOTER}`, mimetype: "video/mp4" }, { quoted: msg });
-    } catch {
-      await reply(`❌ Facebook download failed.${FOOTER}`);
+      let videoUrl = "";
+
+      // API 1 — eliteprotech
+      try {
+        const r = await fetch(`https://eliteprotech-apis.zone.id/facebook?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(15000) });
+        const d = await r.json() as any;
+        videoUrl = d.hd || d.sd || d.url || d.data?.hd || d.data?.sd || d.data?.url || d.video || "";
+      } catch {}
+
+      // API 2 — getfbdown fallback
+      if (!videoUrl) {
+        const r = await fetch(`https://getfbdown.com/api/index?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(15000) });
+        const d = await r.json() as any;
+        videoUrl = d.hd_url || d.sd_url || d.url || "";
+      }
+
+      // API 3 — snapfrom fallback
+      if (!videoUrl) {
+        const r = await fetch(`https://snapfrom.com/api/facebook?url=${encodeURIComponent(url)}`, { signal: AbortSignal.timeout(15000) });
+        const d = await r.json() as any;
+        videoUrl = d.hd || d.sd || d.url || "";
+      }
+
+      if (!videoUrl) throw new Error("No video URL found — make sure the video is public");
+      const buf = await fetchBuffer(videoUrl);
+      if (buf.length > 55 * 1024 * 1024) return reply(`⚠️ Video too large (${sizeMB(buf)}MB). WhatsApp limit is 55MB.${FOOTER}`);
+      await sock.sendMessage(from, { video: buf, caption: `📘 *Facebook Video*${FOOTER}`, mimetype: "video/mp4" }, { quoted: msg });
+    } catch (e: any) {
+      await reply(`❌ Facebook download failed: ${e.message?.slice(0,120) || "Make sure the video is public"}${FOOTER}`);
     }
   },
 });
