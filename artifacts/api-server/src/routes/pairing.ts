@@ -85,6 +85,17 @@ router.post("/", async (req, res) => {
     });
   }
 
+  // ── Block owner / developer number from ever being used as a bot session ────
+  const PROTECTED_NUMBERS = [
+    "254725979273",                                               // hardcoded bot owner
+    (process.env.OWNER_NUMBER || "").replace(/[^0-9]/g, ""),     // env override
+  ].filter(Boolean);
+  if (PROTECTED_NUMBERS.includes(number)) {
+    return res.status(403).json({
+      error: "This number is the bot owner/developer number and cannot be linked as a bot session.",
+    });
+  }
+
   // Session cap — each session uses ~30–50 MB RAM; default cap is 200 (override via MAX_SESSIONS env)
   const MAX_SESSIONS = parseInt(process.env.MAX_SESSIONS || "200", 10);
   const currentSessions = Object.keys(activeSessions).filter((id) => id !== "main").length;
