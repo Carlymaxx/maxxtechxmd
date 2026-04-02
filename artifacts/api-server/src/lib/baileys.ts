@@ -1449,6 +1449,21 @@ export async function saveSessionToConfigBackup(): Promise<void> {
       return;
     }
 
+    // ⚠️ CRITICAL: Only PATCH if the value has changed.
+    // Every Heroku config-var PATCH creates a new release and restarts the dyno —
+    // even when the value is identical. Skipping unchanged saves breaks the restart loop.
+    const currentCfgRes = await fetch(`https://api.heroku.com/apps/${herokuAppName}/config-vars`, {
+      headers: {
+        Authorization: `Bearer ${herokuApiKey}`,
+        Accept: "application/vnd.heroku+json; version=3",
+      },
+    });
+    const currentCfg = (await currentCfgRes.json()) as Record<string, string>;
+    if (currentCfg[SESSION_BACKUP_VAR] === encoded) {
+      logger.info("Session backup unchanged — skipping save to avoid Heroku restart");
+      return;
+    }
+
     await fetch(`https://api.heroku.com/apps/${herokuAppName}/config-vars`, {
       method: "PATCH",
       headers: {
