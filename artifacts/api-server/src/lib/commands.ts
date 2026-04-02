@@ -1453,10 +1453,8 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
 
   // ── Command routing ─────────────────────────────────────────────────────────
   if (!body.startsWith(prefix)) {
-    // ── Chatbot — DMs (global) + groups (per-group OR global), owner-only toggle
-    const groupChatbotOn = isGroup && getGroupSetting(from, "chatbot");
-    const chatbotActive = settings.chatbot || groupChatbotOn;
-    if (chatbotActive) {
+    // ── Chatbot — private DMs only, owner-controllable ──────────────────────
+    if (settings.chatbot && !isGroup) {
       const q = body.trim();
       if (q) {
         sock.sendPresenceUpdate("composing", from).catch(() => {});
