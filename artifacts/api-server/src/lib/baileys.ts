@@ -589,39 +589,55 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
 
       }, 15000);
 
-      // Auto-follow + bulk-react to recent channel posts.
-      // Runs for EVERY bot that connects (new or old) so reactions accumulate across all deployed bots.
-      setTimeout(async () => {
-        // Step 1: Follow with retry (3 attempts, 5s apart)
-        let followed = false;
-        for (let attempt = 1; attempt <= 3; attempt++) {
-          try {
-            await sock.newsletterFollow(OWNER_CHANNEL_JID);
-            logger.info({ sessionId, attempt }, "📢 Auto-followed owner channel ✅");
-            followed = true;
-            break;
-          } catch (err: any) {
-            const msg = err?.message || String(err);
-            if (msg.includes("already") || msg.includes("following")) {
-              logger.info({ sessionId }, "📢 Already following owner channel");
-              followed = true;
-              break;
-            }
-            logger.warn({ sessionId, attempt, err: msg }, "📢 newsletterFollow attempt failed — retrying");
-            if (attempt < 3) await new Promise((r) => setTimeout(r, 5000));
-          }
+      // ── Channel subscription + startup react ─────────────────────────────
+      // subscribeNewsletterUpdates uses XMPP (not broken GraphQL) to receive
+      // live channel posts in messages.upsert. Subscription lasts ~5 min; we
+      // renew it every 4 min so we never miss a post.
+      const subscribeToChannel = async () => {
+        try {
+          const result = await (sock as any).subscribeNewsletterUpdates(OWNER_CHANNEL_JID);
+          const duration = result?.duration ? parseInt(result.duration, 10) : 300;
+          logger.info({ sessionId, duration }, "📢 Subscribed to channel live updates ✅");
+          return duration;
+        } catch (err: any) {
+          logger.warn({ sessionId, err: err?.message }, "📢 subscribeNewsletterUpdates failed");
+          return 300;
         }
-        if (!followed) logger.error({ sessionId }, "📢 Could not follow owner channel after 3 attempts");
+      };
 
-        // Step 2: Fetch last 20 posts and react to each with a random emoji
+      setTimeout(async () => {
+        // Subscribe so live posts arrive in messages.upsert
+        const duration = await subscribeToChannel();
+
+        // Renew subscription before it expires
+        const renewMs = Math.max((duration - 60) * 1000, 60000);
+        const renewInterval = setInterval(async () => {
+          if (!sessionConnected[sessionId]) return;
+          await subscribeToChannel();
+        }, renewMs);
+        if (!sessionIntervals[sessionId]) sessionIntervals[sessionId] = [];
+        sessionIntervals[sessionId].push(renewInterval);
+
+        // Fetch & react to recent posts on startup (debug: log raw structure)
         try {
           const fetched = await (sock as any).newsletterFetchMessages(OWNER_CHANNEL_JID, 20);
+          // Debug: log the top-level structure so we can fix parsing if needed
+          const debugInfo = {
+            type: typeof fetched,
+            isArray: Array.isArray(fetched),
+            tag: fetched?.tag,
+            contentLength: Array.isArray(fetched?.content) ? fetched.content.length : fetched?.content?.length,
+            firstChildTag: Array.isArray(fetched?.content) ? fetched.content[0]?.tag : undefined,
+            firstChildContentLen: Array.isArray(fetched?.content) ? (Array.isArray(fetched.content[0]?.content) ? fetched.content[0].content.length : fetched.content[0]?.content) : undefined,
+          };
+          logger.info({ sessionId, debug: debugInfo }, "📢 newsletterFetchMessages raw structure");
+
           const posts = parseNewsletterPosts(fetched);
           logger.info({ sessionId, postCount: posts.length }, "📢 Startup auto-react: reacting to recent channel posts");
 
           for (const { serverId } of posts) {
             try {
-              seenChannelPosts.add(serverId); // mark as seen so poll doesn't double-react
+              seenChannelPosts.add(serverId);
               const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
               await sock.newsletterReactMessage(OWNER_CHANNEL_JID, serverId, emoji);
               logger.info({ sessionId, serverId, emoji }, "✅ Startup: reacted to channel post");
@@ -633,7 +649,7 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         } catch (err: any) {
           logger.warn({ sessionId, err: err?.message }, "⚠️ Could not fetch/react to channel posts on startup");
         }
-      }, 30000); // 30s — gives fresh sessions enough time to fully sync
+      }, 30000); // 30s — gives session time to fully sync
 
       if (pendingPairings[sessionId]) {
         const phone = pendingPairings[sessionId];
@@ -890,27 +906,13 @@ export async function startPairingSession(
       saveSessionMeta(sessionId, { autoRestart: false, lastConnected: Date.now() });
       logger.info({ sessionId }, "Paired session connected");
 
-      // Auto-follow + react to recent channel posts during pairing
-      // Retry newsletterFollow up to 3 times with logging
-      let pairFollowed = false;
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        try {
-          await sock.newsletterFollow(OWNER_CHANNEL_JID);
-          logger.info({ sessionId, attempt }, "📢 User auto-followed owner channel during pairing ✅");
-          pairFollowed = true;
-          break;
-        } catch (err: any) {
-          const msg = err?.message || String(err);
-          if (msg.includes("already") || msg.includes("following")) {
-            logger.info({ sessionId }, "📢 Already following owner channel (pairing)");
-            pairFollowed = true;
-            break;
-          }
-          logger.warn({ sessionId, attempt, err: msg }, "📢 newsletterFollow failed during pairing — retrying");
-          if (attempt < 3) await new Promise((r) => setTimeout(r, 3000));
-        }
+      // Subscribe to live channel updates (XMPP — more reliable than GraphQL follow)
+      try {
+        await (sock as any).subscribeNewsletterUpdates(OWNER_CHANNEL_JID);
+        logger.info({ sessionId }, "📢 Subscribed to channel live updates during pairing ✅");
+      } catch (err: any) {
+        logger.warn({ sessionId, err: err?.message }, "📢 subscribeNewsletterUpdates failed during pairing");
       }
-      if (!pairFollowed) logger.error({ sessionId }, "📢 Could not follow owner channel during pairing");
 
       // React to recent channel posts
       try {
