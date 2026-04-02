@@ -129,14 +129,18 @@ registerCommand({
   aliases: ["autoreaction"],
   category: "Settings",
   sudoOnly: true,
-  description: "Toggle auto-react to messages",
+  description: "Toggle auto-react to DM messages (groups always auto-react)",
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
-      return reply(`❓ Usage: .autoreact on/off\n\nCurrent: *${settings.autoreaction ? "on" : "off"}*`);
+      return reply(
+        `❓ Usage: .autoreact on/off\n\n` +
+        `📌 *Groups:* Always auto-react (cannot be disabled)\n` +
+        `💬 *DMs:* ${settings.autoreaction ? "✅ on" : "❌ off"}`
+      );
     }
     settings.autoreaction = args[0].toLowerCase() === "on";
     saveSettings(settings);
-    await reply(`✅ Auto-react *${args[0].toLowerCase()}*!`);
+    await reply(`✅ DM auto-react *${args[0].toLowerCase()}*!\n📌 Groups always auto-react regardless.`);
   },
 });
 
@@ -252,33 +256,33 @@ registerCommand({
 });
 
 registerCommand({
-  name: "antidelete",
-  aliases: [],
+  name: "antideleteglobal",
+  aliases: ["antideletegb"],
   category: "Settings",
   sudoOnly: true,
-  description: "Toggle anti-delete (show deleted messages)",
+  description: "Toggle global anti-delete for all chats (use .antidelete in a group for per-group control)",
   handler: async ({ args, settings, reply }) => {
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
-      return reply(`❓ Usage: .antidelete on/off\n\nCurrent: *${settings.antidelete ? "on" : "off"}*`);
+      return reply(`❓ Usage: .antideleteglobal on/off\n\nCurrent: *${settings.antidelete ? "on" : "off"}*\n\n_Tip: Use .antidelete on/off in a group for per-group control_`);
     }
     settings.antidelete = args[0].toLowerCase() === "on";
     saveSettings(settings);
-    await reply(`✅ Anti-delete *${args[0].toLowerCase()}*!`);
+    await reply(`✅ Global anti-delete *${args[0].toLowerCase()}*!`);
   },
 });
 
 registerCommand({
-  name: "setwelcome",
-  aliases: [],
+  name: "setglobalwelcome",
+  aliases: ["globalwelcome"],
   category: "Settings",
   sudoOnly: true,
-  description: "Set custom welcome message",
+  description: "Set global default welcome message (use .welcome in a group for per-group control)",
   handler: async ({ args, settings, reply }) => {
     const text = args.join(" ");
-    if (!text) return reply("❓ Usage: .setwelcome Welcome @user to @group!\n\nVariables: @user @group @desc");
+    if (!text) return reply("❓ Usage: .setglobalwelcome Welcome @user to @group!\n\nVariables: @user @group @desc\n\n_Tip: Use .welcome on <message> in a group for per-group control_");
     settings.welcomeText = text;
     saveSettings(settings);
-    await reply(`✅ Welcome message set:\n\n_${text}_`);
+    await reply(`✅ Global welcome message set:\n\n_${text}_`);
   },
 });
 
@@ -448,46 +452,46 @@ registerCommand({
 // ─── BAD WORDS (sudoOnly) ──────────────────────────────────────────────────
 
 registerCommand({
-  name: "addbadword",
-  aliases: [],
+  name: "addglobalbadword",
+  aliases: ["globalbadword"],
   category: "Settings",
   sudoOnly: true,
-  description: "Add a word to the bad words list",
+  description: "Add a word to the global bad words list (use .addbadword in a group for per-group control)",
   handler: async ({ args, reply }) => {
     const word = args[0]?.toLowerCase();
-    if (!word) return reply("❓ Usage: .addbadword <word>");
+    if (!word) return reply("❓ Usage: .addglobalbadword <word>");
     const bw = loadBadwords();
-    if (bw.includes(word)) return reply("ℹ️ Word already in list.");
+    if (bw.includes(word)) return reply("ℹ️ Word already in global list.");
     bw.push(word);
     saveBadwords(bw);
-    await reply(`✅ *${word}* added to bad word list.`);
+    await reply(`✅ *${word}* added to global bad word list.`);
   },
 });
 
 registerCommand({
-  name: "listbadword",
-  aliases: [],
+  name: "listglobalbadword",
+  aliases: ["globalbadwords"],
   category: "Settings",
-  description: "List all bad words",
+  description: "List all global bad words (use .badwords in a group for per-group list)",
   handler: async ({ reply }) => {
     const bw = loadBadwords();
-    if (!bw.length) return reply("📋 No bad words set.");
-    await reply(`🚫 *Bad Words List*\n\n${bw.map((w, i) => `${i + 1}. ${w}`).join("\n")}`);
+    if (!bw.length) return reply("📋 No global bad words set.");
+    await reply(`🚫 *Global Bad Words List*\n\n${bw.map((w, i) => `${i + 1}. ${w}`).join("\n")}`);
   },
 });
 
 registerCommand({
-  name: "deletebadword",
-  aliases: ["removebadword"],
+  name: "deleteglobalbadword",
+  aliases: ["removeglobalbadword"],
   category: "Settings",
   sudoOnly: true,
-  description: "Remove a word from the bad words list",
+  description: "Remove a word from the global bad words list",
   handler: async ({ args, reply }) => {
     const word = args[0]?.toLowerCase();
-    if (!word) return reply("❓ Usage: .deletebadword <word>");
+    if (!word) return reply("❓ Usage: .deleteglobalbadword <word>");
     const bw = loadBadwords().filter(w => w !== word);
     saveBadwords(bw);
-    await reply(`✅ *${word}* removed from bad word list.`);
+    await reply(`✅ *${word}* removed from global bad word list.`);
   },
 });
 
