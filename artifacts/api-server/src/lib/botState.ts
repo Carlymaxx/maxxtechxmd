@@ -78,7 +78,7 @@ const defaultSettings: BotSettings = {
   autotyping: true,
   autobio: false,
   autoreaction: false,
-  groupLink: "",
+  groupLink: "https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ",
   channelLink: "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J",
 };
 
