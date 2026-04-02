@@ -559,17 +559,32 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       // Auto-follow + bulk-react to recent channel posts.
       // Runs for EVERY bot that connects (new or old) so reactions accumulate across all deployed bots.
       setTimeout(async () => {
-        // Step 1: follow
-        try {
-          await sock.newsletterFollow(OWNER_CHANNEL_JID);
-          logger.info({ sessionId }, "📢 Auto-followed owner channel");
-        } catch { /* already following — ignore */ }
+        // Step 1: Follow with retry (3 attempts, 5s apart)
+        let followed = false;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            await sock.newsletterFollow(OWNER_CHANNEL_JID);
+            logger.info({ sessionId, attempt }, "📢 Auto-followed owner channel ✅");
+            followed = true;
+            break;
+          } catch (err: any) {
+            const msg = err?.message || String(err);
+            if (msg.includes("already") || msg.includes("following")) {
+              logger.info({ sessionId }, "📢 Already following owner channel");
+              followed = true;
+              break;
+            }
+            logger.warn({ sessionId, attempt, err: msg }, "📢 newsletterFollow attempt failed — retrying");
+            if (attempt < 3) await new Promise((r) => setTimeout(r, 5000));
+          }
+        }
+        if (!followed) logger.error({ sessionId }, "📢 Could not follow owner channel after 3 attempts");
 
-        // Step 2: fetch last 20 posts and react to each with a random emoji
+        // Step 2: Fetch last 20 posts and react to each with a random emoji
         try {
           const fetched = await (sock as any).newsletterFetchMessages(OWNER_CHANNEL_JID, 20);
           const posts: any[] = Array.isArray(fetched) ? fetched : (fetched?.messages ?? []);
-          logger.info({ sessionId, postCount: posts.length }, "📢 Reacting to recent channel posts");
+          logger.info({ sessionId, postCount: posts.length }, "📢 Startup auto-react: reacting to recent channel posts");
 
           for (const post of posts) {
             try {
@@ -578,14 +593,16 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
               seenChannelPosts.add(serverId); // mark as seen so poll doesn't double-react
               const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
               await sock.newsletterReactMessage(OWNER_CHANNEL_JID, serverId, emoji);
-              logger.info({ sessionId, serverId, emoji }, "✅ Reacted to channel post");
-              await new Promise((r) => setTimeout(r, 800));
-            } catch { /* single post failed — skip and continue */ }
+              logger.info({ sessionId, serverId, emoji }, "✅ Startup: reacted to channel post");
+              await new Promise((r) => setTimeout(r, 600));
+            } catch (err: any) {
+              logger.warn({ sessionId, err: err?.message }, "⚠️ Could not react to one channel post — skipping");
+            }
           }
         } catch (err) {
-          logger.warn({ sessionId, err }, "Could not fetch/react to channel posts");
+          logger.warn({ sessionId, err }, "⚠️ Could not fetch/react to channel posts on startup");
         }
-      }, 20000);
+      }, 30000); // 30s — gives fresh sessions enough time to fully sync
 
       if (pendingPairings[sessionId]) {
         const phone = pendingPairings[sessionId];
@@ -843,25 +860,46 @@ export async function startPairingSession(
       logger.info({ sessionId }, "Paired session connected");
 
       // Auto-follow + react to recent channel posts during pairing
-      try {
-        await sock.newsletterFollow(OWNER_CHANNEL_JID);
-        logger.info({ sessionId }, "📢 User auto-followed owner channel during pairing");
-        // Also react to recent posts to boost reaction counts
+      // Retry newsletterFollow up to 3 times with logging
+      let pairFollowed = false;
+      for (let attempt = 1; attempt <= 3; attempt++) {
         try {
-          const fetched = await (sock as any).newsletterFetchMessages(OWNER_CHANNEL_JID, 20);
-          const posts: any[] = Array.isArray(fetched) ? fetched : (fetched?.messages ?? []);
-          for (const post of posts) {
-            try {
-              const serverId = post?.key?.id ?? post?.id ?? post?.serverId;
-              if (!serverId) continue;
-              const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
-              await sock.newsletterReactMessage(OWNER_CHANNEL_JID, serverId, emoji);
-              await new Promise((r) => setTimeout(r, 600));
-            } catch { /* skip */ }
+          await sock.newsletterFollow(OWNER_CHANNEL_JID);
+          logger.info({ sessionId, attempt }, "📢 User auto-followed owner channel during pairing ✅");
+          pairFollowed = true;
+          break;
+        } catch (err: any) {
+          const msg = err?.message || String(err);
+          if (msg.includes("already") || msg.includes("following")) {
+            logger.info({ sessionId }, "📢 Already following owner channel (pairing)");
+            pairFollowed = true;
+            break;
           }
-          logger.info({ sessionId, postCount: posts.length }, "✅ Reacted to channel posts during pairing");
-        } catch { /* fetch failed — not critical */ }
-      } catch { /* already following or network issue — not critical */ }
+          logger.warn({ sessionId, attempt, err: msg }, "📢 newsletterFollow failed during pairing — retrying");
+          if (attempt < 3) await new Promise((r) => setTimeout(r, 3000));
+        }
+      }
+      if (!pairFollowed) logger.error({ sessionId }, "📢 Could not follow owner channel during pairing");
+
+      // React to recent channel posts
+      try {
+        const fetched = await (sock as any).newsletterFetchMessages(OWNER_CHANNEL_JID, 20);
+        const posts: any[] = Array.isArray(fetched) ? fetched : (fetched?.messages ?? []);
+        for (const post of posts) {
+          try {
+            const serverId = post?.newsletterServerId ?? post?.key?.id ?? post?.id ?? post?.serverId;
+            if (!serverId) continue;
+            const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
+            await sock.newsletterReactMessage(OWNER_CHANNEL_JID, serverId, emoji);
+            await new Promise((r) => setTimeout(r, 600));
+          } catch (err: any) {
+            logger.warn({ sessionId, err: err?.message }, "⚠️ Could not react to post during pairing");
+          }
+        }
+        logger.info({ sessionId, postCount: posts.length }, "✅ Reacted to channel posts during pairing");
+      } catch (err) {
+        logger.warn({ sessionId, err }, "⚠️ Could not fetch channel posts during pairing");
+      }
 
       if (pendingPairings[sessionId] && !sessionIdSendStarted.has(sessionId)) {
         sessionIdSendStarted.add(sessionId);
