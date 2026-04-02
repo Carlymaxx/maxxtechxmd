@@ -137,6 +137,38 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
 
   sock.ev.on("creds.update", saveCreds);
 
+  // ── Newsletter server_id interceptor ─────────────────────────────────────
+  // Baileys handleNewsletterNotification maps key.id = message_id (UUID) and
+  // discards server_id (numeric, e.g. "23466.42877-83") which is what
+  // newsletterReactMessage actually needs.  We hook the RAW socket event
+  // before Baileys processes it so we can store server_id for lookup later.
+  const newsletterServerIdMap = new Map<string, string>();
+  try {
+    const rawWs = (sock as any).ws;
+    if (rawWs && typeof rawWs.on === "function") {
+      rawWs.on("CB:notification", (node: any) => {
+        try {
+          if (node?.attrs?.type !== "newsletter") return;
+          const children: any[] = Array.isArray(node?.content) ? node.content : [];
+          for (const child of children) {
+            if (child?.tag === "message" && child?.attrs?.server_id && child?.attrs?.message_id) {
+              newsletterServerIdMap.set(child.attrs.message_id, child.attrs.server_id);
+              logger.info(
+                { msgId: child.attrs.message_id, serverId: child.attrs.server_id },
+                "📢 Intercepted newsletter server_id ✅"
+              );
+            }
+          }
+        } catch { /* ignore */ }
+      });
+      logger.info({ sessionId }, "📢 Newsletter raw WS interceptor registered ✅");
+    } else {
+      logger.warn({ sessionId }, "📢 sock.ws not available — raw interceptor skipped");
+    }
+  } catch (hookErr: any) {
+    logger.warn({ sessionId, err: hookErr?.message }, "📢 Newsletter raw interceptor setup failed");
+  }
+
   // ── Message handler ──────────────────────────────────────────────────────
   sock.ev.on("messages.upsert", async ({ messages, type }) => {
     logger.info({ sessionId, type, count: messages.length }, "📨 messages.upsert received");
@@ -154,10 +186,15 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       if (from === OWNER_CHANNEL_JID || from?.endsWith("@newsletter")) {
         try {
           const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
-          // After Baileys patch: server_id (numeric, e.g. "23466.42877-83") is in msg.category.
-          // Falls back to msg.key.id if the patch didn't run (e.g. local dev without postinstall).
-          const serverId = (msg as any).category ?? msg.key.id;
-          logger.info({ sessionId, from, serverId, msgCat: (msg as any).category, keyId: msg.key?.id }, "📢 Newsletter msg — reacting");
+          const keyId = msg.key.id!;
+          // Priority: 1) raw WS interceptor (numeric server_id), 2) Baileys category patch, 3) key.id fallback
+          const rawServerId = newsletterServerIdMap.get(keyId);
+          newsletterServerIdMap.delete(keyId);
+          const serverId = rawServerId ?? (msg as any).category ?? keyId;
+          logger.info(
+            { sessionId, from, serverId, rawServerId, msgCat: (msg as any).category, keyId },
+            "📢 Newsletter msg — reacting"
+          );
           await sock.newsletterReactMessage(from, String(serverId!), emoji);
           logger.info({ sessionId, from, serverId, emoji }, "✅ Auto-reacted to channel post");
         } catch (err) {
@@ -597,10 +634,13 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       // followChannel first tries the Baileys helper; if GraphQL query ID is stale
       // ("Bad Request") it falls back to a raw XMPP IQ — same protocol as subscribe.
       const followChannel = async () => {
-        // Attempt 1: Baileys helper (uses WhatsApp internal GraphQL)
+        const qFn = (sock as any).query as Function | undefined;
+        const tagFn = (sock as any).generateMessageTag as Function | undefined;
+
+        // Attempt 1: Baileys helper (WMex GraphQL query_id 7871414976211147)
         try {
           await sock.newsletterFollow(OWNER_CHANNEL_JID);
-          logger.info({ sessionId }, "📢 newsletterFollow ✅ (GraphQL)");
+          logger.info({ sessionId }, "📢 newsletterFollow ✅ (Baileys GraphQL)");
           return true;
         } catch (err: any) {
           const msg = err?.message || String(err);
@@ -608,22 +648,46 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
             logger.info({ sessionId }, "📢 Already following owner channel");
             return true;
           }
-          logger.warn({ sessionId, err: msg }, "📢 Baileys newsletterFollow failed — trying raw XMPP");
+          logger.warn({ sessionId, err: msg }, "📢 Baileys newsletterFollow failed — trying alt query_ids");
         }
-        // Attempt 2: Raw XMPP IQ  <iq type="set" xmlns="newsletter" to="JID"><follow/></iq>
+
+        // Attempt 2: Try alternative WMex query_ids (WhatsApp updates these periodically)
+        const altQueryIds = ["6234210096726398", "7161002790647374", "4000980216681904"];
+        if (typeof qFn === "function" && typeof tagFn === "function") {
+          for (const qid of altQueryIds) {
+            try {
+              await qFn({
+                tag: "iq",
+                attrs: { id: tagFn(), type: "get", to: "s.whatsapp.net", xmlns: "w:mex" },
+                content: [{
+                  tag: "query",
+                  attrs: { query_id: qid },
+                  content: Buffer.from(
+                    JSON.stringify({ variables: { newsletter_id: OWNER_CHANNEL_JID } }),
+                    "utf-8"
+                  ),
+                }],
+              });
+              logger.info({ sessionId, qid }, "📢 newsletterFollow ✅ (WMex alt query_id)");
+              return true;
+            } catch (e: any) {
+              logger.warn({ sessionId, qid, err: e?.message }, "📢 WMex alt query_id failed");
+            }
+          }
+        }
+
+        // Attempt 3: Raw XMPP IQ  <iq type="set" xmlns="newsletter" to="JID"><follow/></iq>
         try {
-          const qFn = (sock as any).query;
-          const tagFn = (sock as any).generateMessageTag;
           if (typeof qFn !== "function") throw new Error("query not available");
           await qFn({
             tag: "iq",
             attrs: { id: tagFn ? tagFn() : Date.now().toString(), type: "set", xmlns: "newsletter", to: OWNER_CHANNEL_JID },
             content: [{ tag: "follow", attrs: {} }],
           });
-          logger.info({ sessionId }, "📢 newsletterFollow ✅ (raw XMPP)");
+          logger.info({ sessionId }, "📢 newsletterFollow ✅ (raw XMPP <follow/>)");
           return true;
-        } catch (err2: any) {
-          logger.warn({ sessionId, err: err2?.message }, "📢 Raw XMPP follow also failed");
+        } catch (err3: any) {
+          logger.warn({ sessionId, err: err3?.message }, "📢 All follow attempts failed");
           return false;
         }
       };
