@@ -654,7 +654,6 @@ registerCommand({
   handler: async ({ sock, from, args, reply }) => {
     const url = args[0];
     if (!url?.includes("tiktok")) return reply("❓ Usage: .tiktokaudio <TikTok URL>");
-    await reply("⏳ Extracting audio...");
     try {
       const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
       const res = await fetch(apiUrl);
@@ -740,7 +739,6 @@ registerCommand({
     const ctx = msg.message?.extendedTextMessage?.contextInfo;
     const vidMsg = msg.message?.videoMessage || ctx?.quotedMessage?.videoMessage;
     if (!vidMsg) return reply("❌ Reply to a video message with .tomp3");
-    await reply("⏳ Converting to audio...");
     try {
       const buf = await downloadMediaMessage({ message: { videoMessage: vidMsg } } as WAMessage, "buffer", {});
       const os = await import("os");
@@ -767,7 +765,6 @@ async function applyAudioEffect(
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
   const audioMsg = msg.message?.audioMessage || ctx?.quotedMessage?.audioMessage;
   if (!audioMsg) return reply(`❌ Reply to an audio message with .${label.toLowerCase()}`);
-  await reply(`⏳ Applying ${label} effect...`);
   try {
     const buf = await downloadMediaMessage({ message: { audioMessage: audioMsg } } as WAMessage, "buffer", {});
     const os = await import("os");
@@ -859,7 +856,6 @@ registerCommand({
   handler: async ({ args, reply }) => {
     const q = args.join(" ");
     if (!q) return reply(`❓ Usage: .gpt <question>\nExample: .gpt Explain quantum physics`);
-    await reply(`🤖 *ChatGPT*\n\n⏳ Thinking...`);
     try {
       const { answer } = await askGPT(q);
       await reply(`🤖 *ChatGPT*\n\n❓ *${q}*\n\n${answer}`);
@@ -879,7 +875,6 @@ registerCommand({
     if (!q) return reply(
       `╔══════════════════════╗\n║ 🤖 *MAXX AI* 🤖\n╚══════════════════════╝\n\n❓ *Usage:* .ai <question>\n\n*Examples:*\n• .ai What is Nigeria's GDP?\n• .ask Write a love poem`
     );
-    await reply(`╔══════════════════════╗\n║ 🤖 *MAXX AI* 🤖\n╚══════════════════════╝\n\n⏳ Thinking...`);
     try {
       const { answer } = await askGemini(q);
       await reply(`╔══════════════════════╗\n║ 🤖 *MAXX AI* 🤖\n╚══════════════════════╝\n\n❓ *${q}*\n\n${answer}`);
@@ -897,7 +892,6 @@ registerCommand({
   handler: async ({ args, reply }) => {
     const q = args.join(" ");
     if (!q) return reply("❓ Usage: .gemini <question>");
-    await reply(`🤖 *Gemini AI*\n\n⏳ Thinking...`);
     try {
       const { answer, citations } = await askGemini(q);
       await reply(`✨ *Gemini AI*\n\n❓ *${q}*\n\n${answer}${citations}`);
@@ -996,7 +990,6 @@ registerCommand({
   handler: async ({ args, reply }) => {
     const url = args[0];
     if (!url?.includes("mediafire")) return reply("❓ Usage: .mediafire <MediaFire URL>\nExample: .mediafire https://www.mediafire.com/file/xxx");
-    await reply("⏳ Extracting download link...");
     try {
       const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } });
       const html = await res.text();
@@ -1041,7 +1034,6 @@ registerCommand({
   handler: async ({ sock, from, args, reply }) => {
     const url = args[0];
     if (!url) return reply("❓ Usage: .ssweb <URL>\nExample: .ssweb https://google.com");
-    await reply("⏳ Taking screenshot...");
     try {
       const ssUrl = `https://image.thum.io/get/width/1280/height/720/crop/720/noanimate/${url}`;
       await sock.sendMessage(from, {
@@ -1234,7 +1226,6 @@ registerCommand({
     const ctx = msg.message?.extendedTextMessage?.contextInfo;
     const audioMsg = msg.message?.audioMessage || ctx?.quotedMessage?.audioMessage;
     if (!audioMsg) return reply("❌ Reply to an audio message with .tovideo");
-    await reply("⏳ Converting audio to video...");
     try {
       const buf = await downloadMediaMessage({ message: { audioMessage: audioMsg } } as WAMessage, "buffer", {});
       const os = await import("os");
@@ -1265,7 +1256,6 @@ registerCommand({
     const vidMsg = msg.message?.videoMessage || ctx?.quotedMessage?.videoMessage;
     if (!vidMsg) return reply("❌ Reply to a video with .volvideo <multiplier>\nExample: .volvideo 2.0\nValues: 0.5 (half) 2.0 (double)");
     const vol = Math.min(Math.max(parseFloat(args[0]) || 2, 0.1), 10);
-    await reply(`⏳ Adjusting volume to ${vol}x...`);
     try {
       const buf = await downloadMediaMessage({ message: { videoMessage: vidMsg } } as WAMessage, "buffer", {});
       const os = await import("os");
