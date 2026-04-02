@@ -470,13 +470,18 @@ registerCommand({
       const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
       const target = m?.audioMessage ? msg : { ...msg, message: { audioMessage: audMsg } } as any;
       const buf = await downloadMediaMessage(target, "buffer", {});
+      // Upload audio to a temporary host then pass URL to Pollinations vision
       const form = new FormData();
       form.append("file", new Blob([buf as Buffer], { type: "audio/ogg" }), "audio.ogg");
-      form.append("model", "whisper-1");
-      const ans = await pollinationsText("Transcribe this audio to text. If you cannot, respond with a placeholder.", "openai");
+      const uploadRes = await fetch("https://tmpfiles.org/api/v1/upload", { method: "POST", body: form });
+      if (!uploadRes.ok) throw new Error("Upload failed");
+      const uploadJson = await uploadRes.json() as any;
+      const fileUrl = uploadJson?.data?.url?.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+      if (!fileUrl) throw new Error("No URL returned");
+      const ans = await pollinationsText(`Please transcribe the audio file at this URL: ${fileUrl}`, "openai");
       await reply(`🎤 *Voice Transcription*\n\n${ans}${FOOTER}`);
     } catch (e: any) {
-      await reply(`❌ Transcription failed: ${e.message}\n\n💡 Tip: Use Google Recorder or OtterAI for voice transcription${FOOTER}`);
+      await reply(`❌ Transcription unavailable right now.\n\n💡 *Free alternatives:*\n• Google Recorder (Android)\n• Otter.ai\n• Microsoft 365 Voice${FOOTER}`);
     }
   },
 });
