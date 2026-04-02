@@ -441,6 +441,48 @@ registerCommand({
 });
 
 registerCommand({
+  name: "gchatbot",
+  aliases: ["groupchatbot", "groupai", "gai"],
+  category: "Group",
+  description: "Enable/disable AI chatbot replies in this group (owner only)",
+  groupOnly: true,
+  sudoOnly: true,
+  handler: async ({ from, args, reply }) => {
+    const arg = args[0]?.toLowerCase();
+    const current = getGroupSetting(from, "chatbot", false);
+
+    if (arg === "on") {
+      setGroupSetting(from, "chatbot", true);
+      return reply(
+        `🤖 *Group AI Chatbot ENABLED* ✅\n\n` +
+        `I will now reply to every message in this group with AI responses.\n\n` +
+        `💡 *Tips:*\n` +
+        `• Members can ask me anything freely\n` +
+        `• Commands still work as normal (use ${"."})\n` +
+        `• Only you (owner) can turn this off\n\n` +
+        `Use *.gchatbot off* to disable.\n\n> _MAXX-XMD_ ⚡`
+      );
+    }
+    if (arg === "off") {
+      setGroupSetting(from, "chatbot", false);
+      return reply(
+        `🤖 *Group AI Chatbot DISABLED* ❌\n\n` +
+        `I will no longer reply to non-command messages in this group.\n\n` +
+        `Use *.gchatbot on* to re-enable.\n\n> _MAXX-XMD_ ⚡`
+      );
+    }
+    const status = current ? "🟢 *ON*" : "🔴 *OFF*";
+    await reply(
+      `🤖 *Group Chatbot Status:* ${status}\n\n` +
+      `📌 *Usage:*\n` +
+      `.gchatbot on  — enable AI replies in this group\n` +
+      `.gchatbot off — disable AI replies\n\n` +
+      `_Only the bot owner can toggle this._\n\n> _MAXX-XMD_ ⚡`
+    );
+  },
+});
+
+registerCommand({
   name: "announce",
   aliases: ["announcements"],
   category: "Group",
