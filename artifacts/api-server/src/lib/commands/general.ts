@@ -52,17 +52,16 @@ ${bar}
 🌍 *Website:* www.maxxtech.co.ke
 🟢 *Status:* Active & Running
 
-`;
+━━━━━━━━━━━━━━━━━━━━━━━━
+📢 *Join our WhatsApp Channel*
+https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J
+━━━━━━━━━━━━━━━━━━━━━━━━`;
     const botpic: string = (settings as any).botpic || "https://files.catbox.moe/9r47nb.jpg";
     try {
       await sock.sendMessage(from, { image: { url: botpic }, caption: text }, { quoted: msg });
     } catch {
       await sock.sendMessage(from, { text }, { quoted: msg });
     }
-    // Send channel URL as standalone so WhatsApp renders the "View channel" button
-    await sock.sendMessage(from, {
-      text: `📢 *Follow ${settings.botName} on WhatsApp Channel* — tap below 👇\n\nhttps://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J`,
-    });
   },
 });
 
