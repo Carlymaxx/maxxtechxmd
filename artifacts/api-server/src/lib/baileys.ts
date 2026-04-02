@@ -7,6 +7,7 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys";
 import { handleMessage } from "./commands.js";
 import { WORKSPACE_ROOT, registerLiveSession, unregisterLiveSession, recordActivity } from "./botState.js";
+import { getGroupSettings } from "./commands/protection.js";
 import fs from "fs";
 import path from "path";
 import zlib from "zlib";
@@ -26,6 +27,18 @@ export const sessionConnected: Record<string, boolean> = {};
 export const latestQR: Record<string, string> = {};
 export const stoppingSessions: Set<string> = new Set();
 export const pendingPairings: Record<string, string> = {};
+
+// ── Anti-delete message cache — stores up to 500 recent messages in RAM ───────
+const MSG_CACHE_MAX = 500;
+const msgCache = new Map<string, any>(); // msgId → WAMessage
+function cacheMessage(msg: any) {
+  if (!msg?.key?.id || !msg.message) return;
+  msgCache.set(msg.key.id, msg);
+  if (msgCache.size > MSG_CACHE_MAX) {
+    const oldest = msgCache.keys().next().value;
+    if (oldest) msgCache.delete(oldest);
+  }
+}
 
 // Cache of generated SESSION_IDs keyed by sessionId.
 // Kept for 30 minutes so the user can still copy from the website
@@ -227,6 +240,9 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       if (from.endsWith("@g.us") && !msg.key.fromMe && msg.key.participant) {
         recordActivity(from, msg.key.participant);
       }
+
+      // ── Cache message for anti-delete (store in RAM, no disk) ─────────────
+      cacheMessage(msg);
 
       try {
         await handleMessage(sock, msg);
@@ -435,24 +451,86 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
     }
   });
 
-  // ── Anti-delete: re-send deleted messages ────────────────────────────────
+  // ── Anti-delete: re-send deleted messages with their actual content ──────
   sock.ev.on("messages.update", async (updates) => {
-    try {
-      const settings = loadSettings();
-      if (!settings.antidelete) return;
-      for (const { key, update } of updates) {
-        if (update.messageStubType === 1 /* REVOKE */ || (update as any).message === null) {
-          const chat = key.remoteJid;
-          const sender = key.participant || key.remoteJid;
-          if (!chat) continue;
-          const senderTag = `@${(sender || "").replace("@s.whatsapp.net", "")}`;
+    for (const { key, update } of updates) {
+      try {
+        const isRevoke = update.messageStubType === 1 || (update as any).message === null;
+        if (!isRevoke) continue;
+
+        const chat = key.remoteJid;
+        if (!chat) continue;
+
+        // Ignore deletes by the bot itself
+        if (key.fromMe) continue;
+
+        // ── Check per-group / global antidelete setting ──────────────────
+        const settings = loadSettings();
+        const isGroup = chat.endsWith("@g.us");
+        const grpSettings = getGroupSettings(chat);
+        const enabled = isGroup ? !!grpSettings.antidelete : !!settings.antidelete;
+        if (!enabled) continue;
+
+        const sender = key.participant || key.remoteJid || "";
+        const senderTag = `@${sender.replace("@s.whatsapp.net", "")}`;
+        const cached = msgCache.get(key.id!);
+        const m = cached?.message as any;
+
+        // Determine message type label
+        const msgType = !m            ? "🔴 Unknown"
+          : m.imageMessage             ? "🖼️ Image"
+          : m.videoMessage             ? "🎥 Video"
+          : m.audioMessage             ? "🎙️ Voice/Audio"
+          : m.stickerMessage           ? "🎭 Sticker"
+          : m.documentMessage          ? "📄 Document"
+          : m.locationMessage          ? "📍 Location"
+          : m.contactMessage           ? "👤 Contact"
+          :                             "💬 Text";
+
+        // Notification header
+        await sock.sendMessage(chat, {
+          text:
+            `🚨 *Anti-Delete Alert!*\n\n` +
+            `👤 *Who:* ${senderTag}\n` +
+            `📌 *Type:* ${msgType}\n\n` +
+            `_Here's the deleted message_ 👇\n\n> _MAXX-XMD_ ⚡`,
+          mentions: sender ? [sender] : [],
+        });
+
+        if (!m) {
+          // Message not in cache — notify only (bot restarted or wasn't online when sent)
           await sock.sendMessage(chat, {
-            text: `🚨 *Anti-Delete*\n\n${senderTag} deleted a message!`,
-            mentions: sender ? [sender] : [],
+            text: `_⚠️ Content unavailable — message was sent before the bot started or cache was cleared._`,
           });
+          continue;
         }
-      }
-    } catch { /* ignore */ }
+
+        // ── Re-send the actual content ────────────────────────────────────
+        try {
+          // Try forwarding the original message wholesale (handles all media types)
+          await (sock as any).sendMessage(chat, { forward: cached, force: true });
+        } catch {
+          // Forward failed — extract text/caption as fallback
+          const text =
+            m.conversation ||
+            m.extendedTextMessage?.text ||
+            m.imageMessage?.caption ||
+            m.videoMessage?.caption ||
+            m.documentMessage?.caption ||
+            m.audioMessage?.caption ||
+            null;
+          if (text) {
+            await sock.sendMessage(chat, {
+              text: `📩 *Deleted content:*\n\n${text}`,
+            });
+          } else {
+            await sock.sendMessage(chat, {
+              text: `_(Media content could not be re-sent)_`,
+            });
+          }
+        }
+      } catch { /* ignore individual message errors */ }
+    }
   });
 
   sock.ev.on("connection.update", async (update) => {
