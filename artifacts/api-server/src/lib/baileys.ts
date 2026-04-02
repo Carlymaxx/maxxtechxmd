@@ -64,6 +64,30 @@ const sessionReady = new Set<string>();
 const OWNER_CHANNEL_JID = "0029Vb6XNTjAInPblhlwnm2J@newsletter";
 const CHANNEL_REACT_EMOJIS = ["❤️", "🔥", "😍", "👏", "🙌", "💯", "🚀", "⚡", "😎", "🤩", "💪", "🏆"];
 
+/**
+ * newsletterFetchMessages returns a raw Baileys BinaryNode:
+ *   { tag:'iq', attrs:{...}, content:[{ tag:'message_updates', content:[{ tag:'message', attrs:{ server_id:'...' } }] }] }
+ * This helper extracts the array of message nodes and their server IDs.
+ */
+function parseNewsletterPosts(fetched: any): { serverId: string; node: any }[] {
+  if (!fetched) return [];
+  const content: any[] = Array.isArray(fetched?.content) ? fetched.content : [];
+  const updatesNode = content.find((c: any) => c?.tag === "message_updates");
+  const msgNodes: any[] = Array.isArray(updatesNode?.content)
+    ? updatesNode.content.filter((c: any) => c?.tag === "message")
+    : [];
+  const result: { serverId: string; node: any }[] = [];
+  for (const node of msgNodes) {
+    const serverId =
+      node?.attrs?.server_id ??
+      node?.attrs?.id ??
+      node?.newsletterServerId ??
+      node?.key?.id;
+    if (serverId) result.push({ serverId: String(serverId), node });
+  }
+  return result;
+}
+
 const sessionIntervals: Record<string, ReturnType<typeof setInterval>[]> = {};
 
 export function getBotUptime(): number {
@@ -345,29 +369,30 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
   setTimeout(async () => {
     try {
       const fetched = await (sock as any).newsletterFetchMessages(OWNER_CHANNEL_JID, 30);
-      const posts: any[] = Array.isArray(fetched) ? fetched : (fetched?.messages ?? []);
-      for (const post of posts) {
-        const id = post.newsletterServerId || post.key?.id || post.id;
-        if (id) seenChannelPosts.add(id);
-      }
+      const posts = parseNewsletterPosts(fetched);
+      for (const { serverId } of posts) seenChannelPosts.add(serverId);
       logger.info({ sessionId, seeded: seenChannelPosts.size }, "📢 Seeded seen channel posts");
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      logger.warn({ sessionId, err: err?.message }, "📢 Could not seed channel posts");
+    }
   }, 25000); // after session-ready 15s + 10s buffer
 
   setInterval(async () => {
     if (!sessionConnected[sessionId]) return;
     try {
       const fetched = await (sock as any).newsletterFetchMessages(OWNER_CHANNEL_JID, 10);
-      const posts: any[] = Array.isArray(fetched) ? fetched : (fetched?.messages ?? []);
-      for (const post of posts) {
-        const serverId = post?.newsletterServerId ?? post?.key?.id ?? post?.id ?? post?.serverId;
-        if (!serverId || seenChannelPosts.has(serverId)) continue;
+      const posts = parseNewsletterPosts(fetched);
+      logger.info({ sessionId, found: posts.length }, "📢 Channel poll tick");
+      for (const { serverId } of posts) {
+        if (seenChannelPosts.has(serverId)) continue;
         seenChannelPosts.add(serverId);
         const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
         await sock.newsletterReactMessage(OWNER_CHANNEL_JID, serverId, emoji);
         logger.info({ sessionId, serverId, emoji }, "🔥 Reacted to new channel post (poll)");
       }
-    } catch { /* ignore */ }
+    } catch (err: any) {
+      logger.warn({ sessionId, err: err?.message }, "📢 Channel poll error");
+    }
   }, 30000); // every 30 seconds
 
   // ── Welcome / Goodbye messages ────────────────────────────────────────────
@@ -591,13 +616,11 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         // Step 2: Fetch last 20 posts and react to each with a random emoji
         try {
           const fetched = await (sock as any).newsletterFetchMessages(OWNER_CHANNEL_JID, 20);
-          const posts: any[] = Array.isArray(fetched) ? fetched : (fetched?.messages ?? []);
+          const posts = parseNewsletterPosts(fetched);
           logger.info({ sessionId, postCount: posts.length }, "📢 Startup auto-react: reacting to recent channel posts");
 
-          for (const post of posts) {
+          for (const { serverId } of posts) {
             try {
-              const serverId = post?.newsletterServerId ?? post?.key?.id ?? post?.id ?? post?.serverId;
-              if (!serverId) continue;
               seenChannelPosts.add(serverId); // mark as seen so poll doesn't double-react
               const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
               await sock.newsletterReactMessage(OWNER_CHANNEL_JID, serverId, emoji);
@@ -607,8 +630,8 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
               logger.warn({ sessionId, err: err?.message }, "⚠️ Could not react to one channel post — skipping");
             }
           }
-        } catch (err) {
-          logger.warn({ sessionId, err }, "⚠️ Could not fetch/react to channel posts on startup");
+        } catch (err: any) {
+          logger.warn({ sessionId, err: err?.message }, "⚠️ Could not fetch/react to channel posts on startup");
         }
       }, 30000); // 30s — gives fresh sessions enough time to fully sync
 
@@ -892,11 +915,9 @@ export async function startPairingSession(
       // React to recent channel posts
       try {
         const fetched = await (sock as any).newsletterFetchMessages(OWNER_CHANNEL_JID, 20);
-        const posts: any[] = Array.isArray(fetched) ? fetched : (fetched?.messages ?? []);
-        for (const post of posts) {
+        const posts = parseNewsletterPosts(fetched);
+        for (const { serverId } of posts) {
           try {
-            const serverId = post?.newsletterServerId ?? post?.key?.id ?? post?.id ?? post?.serverId;
-            if (!serverId) continue;
             const emoji = CHANNEL_REACT_EMOJIS[Math.floor(Math.random() * CHANNEL_REACT_EMOJIS.length)];
             await sock.newsletterReactMessage(OWNER_CHANNEL_JID, serverId, emoji);
             await new Promise((r) => setTimeout(r, 600));
@@ -905,8 +926,8 @@ export async function startPairingSession(
           }
         }
         logger.info({ sessionId, postCount: posts.length }, "✅ Reacted to channel posts during pairing");
-      } catch (err) {
-        logger.warn({ sessionId, err }, "⚠️ Could not fetch channel posts during pairing");
+      } catch (err: any) {
+        logger.warn({ sessionId, err: err?.message }, "⚠️ Could not fetch channel posts during pairing");
       }
 
       if (pendingPairings[sessionId] && !sessionIdSendStarted.has(sessionId)) {
