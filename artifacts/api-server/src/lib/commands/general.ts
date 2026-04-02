@@ -378,8 +378,7 @@ https://pair.maxxtech.co.ke
 ╚══════════════════════╝
 
 📱 *Number:* +${phone}
-⏳ Generating pairing code...
-Please wait up to 30 seconds...`);
+`);
 
     try {
       const { generatePairingCode } = await import("../baileys.js");
