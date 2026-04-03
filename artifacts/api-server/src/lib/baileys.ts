@@ -737,8 +737,15 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       // Signal sessions (pre-key, sender-key, session files) are in the ephemeral
       // filesystem. We back them up into the SESSION_ID config var immediately on
       // connection so the next deploy restores everything.
-      if (sessionId === "main") {
+      // We also run a periodic backup every 10 min to capture any new sessions.
+      if (sessionId === "main" && process.env.HEROKU_API_KEY && process.env.HEROKU_APP_NAME) {
         backupSessionToHeroku("main").catch(() => {});
+        const _periodicBackup = setInterval(() => {
+          backupSessionToHeroku("main").catch(() => {});
+        }, 10 * 60 * 1000); // every 10 min
+        sock.ev.on("connection.update", (u) => {
+          if (u.connection === "close") clearInterval(_periodicBackup);
+        });
       }
 
       // ── Channel subscription + startup react ─────────────────────────────
