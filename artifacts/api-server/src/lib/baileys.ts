@@ -641,13 +641,12 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       logger.info({ sessionId, botJid }, "Session connected");
       saveSessionMeta(sessionId, { autoRestart: true, lastConnected: Date.now() });
 
-      // Mark session ready after 15s so WhatsApp finishes key sync before we process commands.
-      // This prevents decrypt failures on brand-new sessions.
-      setTimeout(() => {
-        sessionReady.add(sessionId);
-        logger.info({ sessionId }, "✅ Session ready — now processing incoming commands");
-
-      }, 15000);
+      // Mark session ready immediately — Baileys only fires connection="open" AFTER
+      // the full key-sync handshake completes, so we don't need an extra delay.
+      // Decrypt failures on fresh Signal sessions are handled by maxMsgRetryCount=2
+      // (retry receipts trigger key exchange automatically).
+      sessionReady.add(sessionId);
+      logger.info({ sessionId }, "✅ Session ready — now processing incoming commands");
 
       // ── Channel subscription + startup react ─────────────────────────────
       // subscribeNewsletterUpdates (XMPP) receives live posts in messages.upsert.
