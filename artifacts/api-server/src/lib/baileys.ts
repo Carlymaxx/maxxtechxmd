@@ -1626,11 +1626,25 @@ export async function backupSessionToHeroku(folderName = "main"): Promise<void> 
   if (!fs.existsSync(folder)) return;
 
   try {
-    const files = fs.readdirSync(folder).filter(f => f.endsWith(".json"));
-    if (files.length === 0) return;
+    const allFiles = fs.readdirSync(folder).filter(f => f.endsWith(".json"));
+    if (allFiles.length === 0) return;
+
+    // ── Only back up files essential for fast session recovery ─────────────
+    // We SKIP session-JID.json (per-user Signal sessions) because with 100+
+    // group members they can exceed Heroku's 32 KB config-var limit.
+    // Sender-key files are crucial — they let mapret decrypt GROUP messages
+    // without waiting for per-user retry exchanges on every restart.
+    const ESSENTIAL = (f: string) =>
+      f === "creds.json" ||
+      f.startsWith("pre-key-") ||          // pre-key bundles — enables session setup
+      f.startsWith("sender-key-") ||        // GROUP sender keys — decrypt group msgs immediately
+      f.startsWith("app-state-sync-key-"); // app state sync keys
+
+    const filesToBackup = allFiles.filter(ESSENTIAL);
+    if (filesToBackup.length === 0) return;
 
     const allData: Record<string, unknown> = {};
-    for (const file of files) {
+    for (const file of filesToBackup) {
       try {
         allData[file] = JSON.parse(fs.readFileSync(path.join(folder, file), "utf8"));
       } catch { /* skip unreadable files */ }
@@ -1638,7 +1652,15 @@ export async function backupSessionToHeroku(folderName = "main"): Promise<void> 
 
     const payload = JSON.stringify(allData);
     const compressed = zlib.gzipSync(Buffer.from(payload, "utf8"));
-    const encoded = "MAXX-XMD~" + compressed.toString("base64");
+    const encodedStr = compressed.toString("base64");
+
+    // Guard against Heroku's 32 KB per-var limit
+    if (encodedStr.length > 28_000) {
+      logger.warn({ app: appName, size: encodedStr.length }, "⚠️ Session backup too large for Heroku — skipping");
+      return;
+    }
+
+    const encoded = "MAXX-XMD~" + encodedStr;
 
     const res = await fetch(`https://api.heroku.com/apps/${appName}/config-vars`, {
       method: "PATCH",
@@ -1651,7 +1673,7 @@ export async function backupSessionToHeroku(folderName = "main"): Promise<void> 
     });
 
     if (res.ok) {
-      logger.info({ app: appName, files: files.length }, "✅ Session backed up to Heroku — all Signal sessions will survive deploys");
+      logger.info({ app: appName, files: filesToBackup.length, sizeB: encodedStr.length }, "✅ Session backed up to Heroku — sender-keys + pre-keys survive deploys");
     } else {
       const err = await res.text();
       logger.warn({ app: appName, status: res.status, err: err.slice(0, 100) }, "⚠️ Session Heroku backup failed");
