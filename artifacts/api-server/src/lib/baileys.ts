@@ -19,27 +19,41 @@ import { logger } from "./logger.js";
 // We still get errors (level 50) so real problems surface.
 const baileysLogger = pino({ level: "silent" });
 
-// Suppress the verbose Signal session dumps that Baileys writes directly to
-// process.stdout (not through pino). These "Closing session: SessionEntry {…}"
-// blocks flood the rolling log buffer and hide real events.
-const _origStdoutWrite = process.stdout.write.bind(process.stdout);
-(process.stdout as any).write = (chunk: any, ...rest: any[]) => {
-  const str = typeof chunk === "string" ? chunk : chunk?.toString?.() ?? "";
-  if (
+// Suppress the verbose Signal session dumps that Baileys writes to stdout/stderr.
+// "Closing session: SessionEntry {…}" blocks flood the rolling log buffer.
+function _isSignalSessionDump(str: string): boolean {
+  return (
     str.includes("Closing session: SessionEntry") ||
     str.includes("Removing old closed session: SessionEntry") ||
-    /^\s*_chains:\s*\{/.test(str) ||
-    /^\s*registrationId:\s*\d/.test(str) ||
-    /^\s*currentRatchet:\s*\{/.test(str) ||
-    /^\s*indexInfo:\s*\{/.test(str) ||
-    /^\s*pendingPreKey:\s*\{/.test(str) ||
-    /^\s*baseKey:\s*<Buffer/.test(str) ||
-    /^\s*preKeyId:\s*\d/.test(str) ||
-    /^\s*(closed|used|created):\s*-?\d/.test(str) ||
-    /^\s*(pubKey|privKey|rootKey):\s*<Buffer/.test(str)
-  ) return true;
+    /\s*_chains:\s*\{/.test(str) ||
+    /\s*registrationId:\s*\d/.test(str) ||
+    /\s*currentRatchet:\s*\{/.test(str) ||
+    /\s*indexInfo:\s*\{/.test(str) ||
+    /\s*pendingPreKey:\s*\{/.test(str) ||
+    /\s*baseKey:\s*<Buffer/.test(str) ||
+    /\s*preKeyId:\s*\d{4,}/.test(str) ||
+    /\s*(closed|used|created):\s*-?\d{10,}/.test(str) ||
+    /\s*(pubKey|privKey|rootKey|lastRemoteEphemeralKey):\s*<Buffer/.test(str) ||
+    /\s*ephemeralKeyPair:\s*\{/.test(str) ||
+    /\s*chainKey:\s*\[Object\]/.test(str)
+  );
+}
+const _origStdoutWrite = process.stdout.write.bind(process.stdout);
+const _origStderrWrite = process.stderr.write.bind(process.stderr);
+(process.stdout as any).write = (chunk: any, ...rest: any[]) => {
+  const str = typeof chunk === "string" ? chunk : Buffer.isBuffer(chunk) ? chunk.toString() : String(chunk ?? "");
+  if (_isSignalSessionDump(str)) return true;
   return _origStdoutWrite(chunk, ...rest);
 };
+(process.stderr as any).write = (chunk: any, ...rest: any[]) => {
+  const str = typeof chunk === "string" ? chunk : Buffer.isBuffer(chunk) ? chunk.toString() : String(chunk ?? "");
+  if (_isSignalSessionDump(str)) return true;
+  return _origStderrWrite(chunk, ...rest);
+};
+const _origLog = console.log;
+const _origError = console.error;
+console.log = (...args: any[]) => { const s = args.map(a => String(a ?? "")).join(" "); if (_isSignalSessionDump(s)) return; _origLog(...args); };
+console.error = (...args: any[]) => { const s = args.map(a => String(a ?? "")).join(" "); if (_isSignalSessionDump(s)) return; _origError(...args); };
 import {
   AUTH_DIR,
   ensureAuthDir,
