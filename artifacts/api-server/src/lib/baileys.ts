@@ -23,6 +23,7 @@ const baileysLogger = pino({ level: "silent" });
 // "Closing session: SessionEntry {…}" blocks flood the rolling log buffer.
 function _isSignalSessionDump(str: string): boolean {
   return (
+    // Signal SessionEntry object dumps (key rotation verbose output)
     str.includes("Closing session: SessionEntry") ||
     str.includes("Removing old closed session: SessionEntry") ||
     /\s*_chains:\s*\{/.test(str) ||
@@ -35,7 +36,16 @@ function _isSignalSessionDump(str: string): boolean {
     /\s*(closed|used|created):\s*-?\d{10,}/.test(str) ||
     /\s*(pubKey|privKey|rootKey|lastRemoteEphemeralKey):\s*<Buffer/.test(str) ||
     /\s*ephemeralKeyPair:\s*\{/.test(str) ||
-    /\s*chainKey:\s*\[Object\]/.test(str)
+    /\s*chainKey:\s*\[Object\]/.test(str) ||
+    // Signal Bad MAC decrypt error stack traces (normal during session re-establishment)
+    str.includes("Session error:Error: Bad MAC") ||
+    str.includes("at Object.verifyMAC") ||
+    str.includes("at SessionCipher2.doDecryptWhisperMessage") ||
+    str.includes("at SessionCipher2.decryptWithSessions") ||
+    str.includes("at async SessionCipher2.") ||
+    str.includes("@whiskeysockets+libsignal-node") ||
+    str.includes("Failed to decrypt message with any known session") ||
+    str.includes("at async _asyncQueueExecutor")
   );
 }
 const _origStdoutWrite = process.stdout.write.bind(process.stdout);
