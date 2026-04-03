@@ -186,7 +186,19 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
     fireInitQueries: false,
   });
 
-  sock.ev.on("creds.update", saveCreds);
+  // Throttled Heroku backup — fires after each session key change (pre-key exchange).
+  // Delay 30s so multiple rapid key updates are coalesced into one backup call.
+  let _herokuBackupTimer: ReturnType<typeof setTimeout> | null = null;
+  sock.ev.on("creds.update", () => {
+    saveCreds();
+    if (sessionId === "main" && process.env.HEROKU_API_KEY && process.env.HEROKU_APP_NAME) {
+      if (_herokuBackupTimer) clearTimeout(_herokuBackupTimer);
+      _herokuBackupTimer = setTimeout(() => {
+        _herokuBackupTimer = null;
+        backupSessionToHeroku("main").catch(() => {});
+      }, 30_000);
+    }
+  });
 
   // ── Newsletter server_id interceptor ─────────────────────────────────────
   // Baileys handleNewsletterNotification maps key.id = message_id (UUID) and
@@ -720,6 +732,14 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       // (retry receipts trigger key exchange automatically).
       sessionReady.add(sessionId);
       logger.info({ sessionId }, "✅ Session ready — now processing incoming commands");
+
+      // ── Persist full auth state to Heroku so sessions survive deploys ─────
+      // Signal sessions (pre-key, sender-key, session files) are in the ephemeral
+      // filesystem. We back them up into the SESSION_ID config var immediately on
+      // connection so the next deploy restores everything.
+      if (sessionId === "main") {
+        backupSessionToHeroku("main").catch(() => {});
+      }
 
       // ── Channel subscription + startup react ─────────────────────────────
       // subscribeNewsletterUpdates (XMPP) receives live posts in messages.upsert.
@@ -1585,6 +1605,55 @@ async function sendSessionIdToUser(
   }
 }
 
+// ── Session persistence: backup all auth files to Heroku config var ──────────
+// Heroku dynos have ephemeral storage — every deploy wipes all files.
+// We persist the FULL auth state (creds.json + all Signal session files) by
+// updating the SESSION_ID config var on the Heroku app after connection opens.
+// Requires HEROKU_API_KEY and HEROKU_APP_NAME env vars on the dyno.
+export async function backupSessionToHeroku(folderName = "main"): Promise<void> {
+  const apiKey = process.env.HEROKU_API_KEY;
+  const appName = process.env.HEROKU_APP_NAME;
+  if (!apiKey || !appName) return; // no-op if not on Heroku or creds missing
+
+  const folder = path.join(AUTH_DIR, folderName);
+  if (!fs.existsSync(folder)) return;
+
+  try {
+    const files = fs.readdirSync(folder).filter(f => f.endsWith(".json"));
+    if (files.length === 0) return;
+
+    const allData: Record<string, unknown> = {};
+    for (const file of files) {
+      try {
+        allData[file] = JSON.parse(fs.readFileSync(path.join(folder, file), "utf8"));
+      } catch { /* skip unreadable files */ }
+    }
+
+    const payload = JSON.stringify(allData);
+    const compressed = zlib.gzipSync(Buffer.from(payload, "utf8"));
+    const encoded = "MAXX-XMD~" + compressed.toString("base64");
+
+    const res = await fetch(`https://api.heroku.com/apps/${appName}/config-vars`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Accept": "application/vnd.heroku+json; version=3",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ SESSION_ID: encoded }),
+    });
+
+    if (res.ok) {
+      logger.info({ app: appName, files: files.length }, "✅ Session backed up to Heroku — all Signal sessions will survive deploys");
+    } else {
+      const err = await res.text();
+      logger.warn({ app: appName, status: res.status, err: err.slice(0, 100) }, "⚠️ Session Heroku backup failed");
+    }
+  } catch (err: any) {
+    logger.warn({ err: err.message }, "⚠️ Session Heroku backup threw — will retry on next creds.update");
+  }
+}
+
 export function restoreSessionFromEnv(): void {
   const sessionId = process.env.SESSION_ID;
   if (!sessionId) return;
@@ -1604,7 +1673,6 @@ export function restoreSessionFromEnv(): void {
     if (encoded.startsWith("MAXX-XMD~")) {
       encoded = encoded.replace("MAXX-XMD~", "").trim();
     }
-    // Remove any whitespace that could corrupt base64
     encoded = encoded.replace(/\s+/g, "");
 
     if (!encoded) {
@@ -1613,18 +1681,31 @@ export function restoreSessionFromEnv(): void {
     }
 
     const compressed = Buffer.from(encoded, "base64");
-    const credsJson = zlib.gunzipSync(compressed).toString("utf8");
+    const decompressed = zlib.gunzipSync(compressed).toString("utf8");
+    const parsed = JSON.parse(decompressed);
 
-    // Validate it is real JSON before writing
-    const parsed = JSON.parse(credsJson);
+    if (!fs.existsSync(mainFolder)) fs.mkdirSync(mainFolder, { recursive: true });
+
+    // ── New format: { "creds.json": {...}, "pre-key-1.json": {...}, ... } ──
+    // All auth files are packed together so Signal sessions survive deploys.
+    if (parsed["creds.json"] && typeof parsed["creds.json"] === "object") {
+      let fileCount = 0;
+      for (const [filename, data] of Object.entries(parsed)) {
+        if (!filename.endsWith(".json")) continue;
+        fs.writeFileSync(path.join(mainFolder, filename), JSON.stringify(data), "utf8");
+        fileCount++;
+      }
+      logger.info({ mainFolder, files: fileCount }, "✅ Session restored from SESSION_ID (full format — creds + Signal sessions)");
+      return;
+    }
+
+    // ── Legacy format: creds.json content directly ─────────────────────────
     if (!parsed.noiseKey || !parsed.signedIdentityKey) {
       logger.error("SESSION_ID decoded but creds.json is missing required fields (noiseKey/signedIdentityKey) — invalid session");
       return;
     }
-
-    if (!fs.existsSync(mainFolder)) fs.mkdirSync(mainFolder, { recursive: true });
-    fs.writeFileSync(credsPath, credsJson, "utf8");
-    logger.info({ mainFolder }, "✅ Session restored from SESSION_ID — bot will connect on startup");
+    fs.writeFileSync(credsPath, decompressed, "utf8");
+    logger.info({ mainFolder }, "✅ Session restored from SESSION_ID (legacy creds-only format) — Signal sessions will establish fresh");
   } catch (err: any) {
     logger.error({ err: err.message }, "❌ Failed to restore session from SESSION_ID — check that SESSION_ID was copied completely without spaces or line breaks");
   }
