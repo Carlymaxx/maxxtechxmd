@@ -127,10 +127,11 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
     getMessage: async () => undefined,
     syncFullHistory: false,
     markOnlineOnConnect: false,
-    // Fast retries: 5 retries * 300ms = 1.5s max buffer lock per failed decrypt
-    // (vs old: 3 retries * 2000ms = 6s lock, then 30s buffer timeout)
+    // 1 retry max to avoid flooding groups with "Waiting for this message" storms
+    // after a fresh session pair. Session keys re-establish naturally; retries only
+    // create noise and cause group members to see decrypt failures.
     retryRequestDelayMs: 300,
-    maxMsgRetryCount: 5,
+    maxMsgRetryCount: 1,
     defaultQueryTimeoutMs: 15000,
     fireInitQueries: false,
   });
