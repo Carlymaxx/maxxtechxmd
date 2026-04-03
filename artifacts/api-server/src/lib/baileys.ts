@@ -352,10 +352,27 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         if (ageSeconds > 90) continue;
       }
 
-      const body = (msg.message as any)?.conversation
-        || (msg.message as any)?.extendedTextMessage?.text
+      // ── Unwrap linked-device message containers ────────────────────────
+      // When the owner sends a message from their primary phone, the linked-device
+      // bot receives it inside a deviceSentMessage wrapper.  We must unwrap it
+      // before extracting the body, otherwise body is always "".
+      const innerMsg: any =
+        (msg.message as any)?.deviceSentMessage?.message   // owner's own msg on linked device
+        ?? (msg.message as any)?.ephemeralMessage?.message  // ephemeral (disappearing msgs)
+        ?? (msg.message as any)?.viewOnceMessage?.message   // view-once
+        ?? msg.message;
+
+      const body =
+        (innerMsg as any)?.conversation
+        || (innerMsg as any)?.extendedTextMessage?.text
+        || (innerMsg as any)?.imageMessage?.caption
+        || (innerMsg as any)?.videoMessage?.caption
+        || (innerMsg as any)?.documentMessage?.caption
+        || (innerMsg as any)?.buttonsResponseMessage?.selectedButtonId
+        || (innerMsg as any)?.listResponseMessage?.singleSelectReply?.selectedRowId
+        || (innerMsg as any)?.templateButtonReplyMessage?.selectedId
         || "";
-      logger.info({ sessionId, from, body: body.slice(0, 80), fromMe: msg.key?.fromMe }, "📩 Processing message");
+      logger.info({ sessionId, from, body: body.slice(0, 80), fromMe: msg.key?.fromMe, msgKeys: Object.keys(msg.message||{}).slice(0,5) }, "📩 Processing message");
 
       // ── Auto-react to every incoming message ─────────────────────────────
       // Groups: ON by default, but can be toggled off per-group with .groupreact off
