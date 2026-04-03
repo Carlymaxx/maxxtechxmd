@@ -315,7 +315,8 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
           if (shouldReact) {
             const REACT_EMOJIS = ["❤️","🔥","😍","🤩","💯","👀","🎉","⚡","🙏","😂","👏","🥳","💪","🎵","✨"];
             const emoji = REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
-            await sock.sendMessage(from, { react: { text: emoji, key: msg.key } });
+            // Fire-and-forget — never block message processing for a react
+            sock.sendMessage(from, { react: { text: emoji, key: msg.key } }).catch(() => {});
             logger.info({ sessionId, from, emoji, isGroup }, "✅ Auto-reacted to message");
           }
         } catch { /* silently skip react errors */ }

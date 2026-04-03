@@ -94,6 +94,35 @@ async function keithSpotify(spUrl: string): Promise<{ url: string; title?: strin
   return null;
 }
 
+// ── Group metadata cache — avoids fetching WhatsApp 3× per command ───────────
+const groupMetaCache = new Map<string, { data: any; ts: number }>();
+const GROUP_META_TTL = 5 * 60 * 1000; // 5 minutes
+async function getCachedGroupMeta(sock: WASocket, jid: string): Promise<any> {
+  const cached = groupMetaCache.get(jid);
+  if (cached && Date.now() - cached.ts < GROUP_META_TTL) return cached.data;
+  try {
+    const data = await sock.groupMetadata(jid);
+    groupMetaCache.set(jid, { data, ts: Date.now() });
+    return data;
+  } catch { return null; }
+}
+
+// ── Anti-badword in-memory cache — avoids disk reads on every message ─────────
+let _bwCache: { settings: Record<string, any>; words: string[]; ts: number } | null = null;
+const BW_CACHE_TTL = 30 * 1000; // 30 seconds
+function getBadwordCache(): { settings: Record<string, any>; words: string[] } | null {
+  if (_bwCache && Date.now() - _bwCache.ts < BW_CACHE_TTL) return _bwCache;
+  try {
+    const grpSettingsFile = path.join(WORKSPACE_ROOT, "group_settings.json");
+    const bwFile = path.join(WORKSPACE_ROOT, "badwords.json");
+    if (!fs.existsSync(grpSettingsFile) || !fs.existsSync(bwFile)) return null;
+    const settings: Record<string, any> = JSON.parse(fs.readFileSync(grpSettingsFile, "utf8") || "{}");
+    const words: string[] = JSON.parse(fs.readFileSync(bwFile, "utf8") || "[]");
+    _bwCache = { settings, words, ts: Date.now() };
+    return _bwCache;
+  } catch { return null; }
+}
+
 // ── Active user tracker ───────────────────────────────────────────────────────
 export interface ActiveUserEntry {
   jid: string;
@@ -1503,9 +1532,9 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     });
   }
 
-  // Auto-read
+  // Auto-read — fire-and-forget (never block command processing)
   if (settings.autoread) {
-    try { await sock.readMessages([msg.key]); } catch {}
+    sock.readMessages([msg.key]).catch(() => {});
   }
 
   // ── Anti-link: delete messages with URLs in groups ────────────────────────
@@ -1513,8 +1542,8 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     const LINK_RE = /https?:\/\/\S+|www\.\S+\.\S+|wa\.me\/\S+|chat\.whatsapp\.com\/\S+|bit\.ly\/\S+|t\.me\/\S+|youtu\.be\/\S+|discord\.gg\/\S+|tiktok\.com\/\S+|instagram\.com\/\S+/i;
     if (LINK_RE.test(body)) {
       try {
-        // Fetch metadata to exempt group admins & bot admins
-        const meta = await sock.groupMetadata(from).catch(() => null);
+        // Use cached metadata — avoids a blocking network call here
+        const meta = await getCachedGroupMeta(sock, from);
         const adminJids = (meta?.participants ?? [])
           .filter((p: any) => p.admin === "admin" || p.admin === "superadmin")
           .map((p: any) => p.id);
@@ -1534,29 +1563,22 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
 
   // ── Anti-badword: delete messages with bad words in groups ────────────────
   if (isGroup && !msg.key.fromMe && body) {
-    try {
-      const grpSettingsFile = path.join(WORKSPACE_ROOT, "group_settings.json");
-      const bwFile = path.join(WORKSPACE_ROOT, "badwords.json");
-      if (fs.existsSync(grpSettingsFile) && fs.existsSync(bwFile)) {
-        const grpSettings: Record<string, any> = JSON.parse(fs.readFileSync(grpSettingsFile, "utf8") || "{}");
-        if (grpSettings[from]?.antibadword) {
-          const badwords: string[] = JSON.parse(fs.readFileSync(bwFile, "utf8") || "[]");
-          const lower = body.toLowerCase();
-          const matched = badwords.find((w) => lower.includes(w.toLowerCase()));
-          if (matched) {
-            try {
-              await sock.sendMessage(from, { delete: msg.key });
-              const senderTag = `@${sender.replace("@s.whatsapp.net", "")}`;
-              await sock.sendMessage(from, {
-                text: `🚫 *Anti-Badword*\n\n${senderTag} your message was removed for using inappropriate language!`,
-                mentions: [sender],
-              });
-            } catch {}
-            return;
-          }
-        }
+    const bwData = getBadwordCache();
+    if (bwData?.settings[from]?.antibadword && bwData.words.length > 0) {
+      const lower = body.toLowerCase();
+      const matched = bwData.words.find((w) => lower.includes(w.toLowerCase()));
+      if (matched) {
+        try {
+          await sock.sendMessage(from, { delete: msg.key });
+          const senderTag = `@${sender.replace("@s.whatsapp.net", "")}`;
+          await sock.sendMessage(from, {
+            text: `🚫 *Anti-Badword*\n\n${senderTag} your message was removed for using inappropriate language!`,
+            mentions: [sender],
+          });
+        } catch {}
+        return;
       }
-    } catch { /* ignore read errors */ }
+    }
   }
 
   // ── Auto-antiviewonce — intercept incoming view-once before it expires ───────
@@ -1754,7 +1776,7 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
   }
 
   if (command.adminOnly && isGroup) {
-    const meta = await sock.groupMetadata(from).catch(() => null);
+    const meta = await getCachedGroupMeta(sock, from);
     const isGroupAdmin = meta?.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
     if (!isGroupAdmin) {
       await sock.sendMessage(from, { text: "⛔ Only group admins can use this command!" }, { quoted: msg });
@@ -1789,10 +1811,10 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     }).catch(() => {});
   }
 
-  // Fetch group metadata in parallel with command execution (non-blocking)
+  // Fetch group metadata — uses 5-min cache so it never hits the network twice per group
   let groupMetadata: any = null;
   const groupMetaPromise = isGroup
-    ? sock.groupMetadata(from).then(m => { groupMetadata = m; }).catch(() => {})
+    ? getCachedGroupMeta(sock, from).then(m => { groupMetadata = m; })
     : Promise.resolve();
 
   // Reply helper — auto-appends a randomly chosen MAXX XMD footer to every text response
