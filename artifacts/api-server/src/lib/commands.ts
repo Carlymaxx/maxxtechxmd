@@ -5,6 +5,27 @@ import { logger } from "./logger.js";
 import fs from "fs";
 import path from "path";
 
+/** Convert raw yt-dlp / fetch errors into a short, friendly message */
+function friendlyDownloadError(e: any): string {
+  const raw: string = (e?.message || "Unknown error").toLowerCase();
+  if (raw.includes("sign in") || raw.includes("age") || raw.includes("confirm your age") || raw.includes("mature"))
+    return "This video is age-restricted and cannot be downloaded.";
+  if (raw.includes("private video") || raw.includes("private"))
+    return "This video is private.";
+  if (raw.includes("not available") || raw.includes("unavailable"))
+    return "This video is not available.";
+  if (raw.includes("copyright") || raw.includes("removed") || raw.includes("blocked"))
+    return "This video has been blocked or removed.";
+  if (raw.includes("too large") || raw.includes("exceeds"))
+    return "File is too large to send via WhatsApp.";
+  if (raw.includes("timeout") || raw.includes("timed out"))
+    return "Download timed out. Try again.";
+  if (raw.includes("rate limit") || raw.includes("429"))
+    return "Download limit reached. Try again in a minute.";
+  // Generic fallback — never dump raw yt-dlp output
+  return "Could not download. The video may be restricted or unavailable.";
+}
+
 // ── Active user tracker ───────────────────────────────────────────────────────
 export interface ActiveUserEntry {
   jid: string;
@@ -499,7 +520,7 @@ registerCommand({
       } as any, { quoted: msg });
 
     } catch (e: any) {
-      await reply(`❌ *Download Failed*\n\n${e.message || "Unknown error"}\n\nTry with a direct YouTube or Spotify link.`);
+      await reply(`❌ *Download Failed*\n${friendlyDownloadError(e)}\n\n> _MAXX-XMD_ 💫`);
     }
   },
 });
@@ -616,7 +637,7 @@ registerCommand({
       } as any, { quoted: msg });
 
     } catch (e: any) {
-      await reply(`❌ *Download Failed*\n\n${e.message?.slice(0, 150) || "Try again later"}`);
+      await reply(`❌ *Download Failed*\n${friendlyDownloadError(e)}\n\n> _MAXX-XMD_ 💫`);
     }
   },
 });
@@ -1574,6 +1595,10 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
   // sudoOnly restriction removed — all users on their own bot can access all commands
   if (command.groupOnly && !isGroup) {
     await sock.sendMessage(from, { text: "⛔ This command can only be used in groups!" }, { quoted: msg });
+    return;
+  }
+  if (command.dmOnly && isGroup) {
+    await sock.sendMessage(from, { text: "⛔ This command can only be used in private DMs!" }, { quoted: msg });
     return;
   }
 

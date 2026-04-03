@@ -28,6 +28,7 @@ export interface BotCommand {
   description: string;
   usage?: string;
   groupOnly?: boolean;
+  dmOnly?: boolean;
   adminOnly?: boolean;
   ownerOnly?: boolean;
   sudoOnly?: boolean;

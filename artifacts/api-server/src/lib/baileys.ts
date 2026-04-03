@@ -224,7 +224,8 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
 
         if (settings.autolikestatus && !msg.key.fromMe) {
           try {
-            const emoji = (settings.autolikestatus_emoji as string) || "🔥";
+            const STATUS_EMOJIS = ["❤️","🔥","😍","🤩","💯","👀","🎉","⚡","🙏","😂","👏","🥳","💪","🎵","✨","🌟","💫","🥰","😎","🤣"];
+            const emoji = STATUS_EMOJIS[Math.floor(Math.random() * STATUS_EMOJIS.length)];
             await sock.sendMessage("status@broadcast", { react: { text: emoji, key: msg.key } });
             logger.info({ sessionId, emoji }, "❤️ Auto-liked status");
           } catch (err) {
@@ -297,13 +298,20 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       logger.info({ sessionId, from, body: body.slice(0, 80), fromMe: msg.key?.fromMe }, "📩 Processing message");
 
       // ── Auto-react to every incoming message ─────────────────────────────
-      // Groups: ALWAYS auto-react (no toggle needed)
-      // DMs: only if autoreaction setting is ON
+      // Groups: ON by default, but can be toggled off per-group with .groupreact off
+      // DMs: only if global autoreaction setting is ON
       if (!msg.key.fromMe) {
         try {
           const settings = loadSettings();
           const isGroup = from.endsWith("@g.us");
-          const shouldReact = isGroup || settings.autoreaction;
+          let shouldReact: boolean;
+          if (isGroup) {
+            const gs = getGroupSettings(from);
+            // default to true unless explicitly set to false
+            shouldReact = gs.autoreact !== false;
+          } else {
+            shouldReact = !!settings.autoreaction;
+          }
           if (shouldReact) {
             const REACT_EMOJIS = ["❤️","🔥","😍","🤩","💯","👀","🎉","⚡","🙏","😂","👏","🥳","💪","🎵","✨"];
             const emoji = REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
@@ -542,12 +550,11 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         // Ignore deletes by the bot itself
         if (key.fromMe) continue;
 
-        // ── Check per-group / global antidelete setting ──────────────────
-        const settings = loadSettings();
+        // ── Anti-delete: DMs only ────────────────────────────────────────
         const isGroup = chat.endsWith("@g.us");
-        const grpSettings = getGroupSettings(chat);
-        const enabled = isGroup ? !!grpSettings.antidelete : !!settings.antidelete;
-        if (!enabled) continue;
+        if (isGroup) continue;  // antidelete only applies to private DMs
+        const settings = loadSettings();
+        if (!settings.antidelete) continue;
 
         const sender = key.participant || key.remoteJid || "";
         const senderTag = `@${sender.replace("@s.whatsapp.net", "")}`;

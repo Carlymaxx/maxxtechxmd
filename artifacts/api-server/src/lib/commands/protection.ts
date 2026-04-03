@@ -1,6 +1,7 @@
 import { registerCommand } from "./types";
 import fs from "fs";
 import path from "path";
+import { loadSettings, saveSettings } from "../botState.js";
 
 const FOOTER = "\n\n> _MAXX-XMD_ ⚡";
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -283,37 +284,56 @@ registerCommand({
 
 registerCommand({
   name: "antidelete",
-  aliases: ["antidel", "antidelete2", "nodeletemsgs", "antidel2"],
+  aliases: ["antidel", "nodeletemsgs"],
   category: "Protection",
-  description: "Re-send deleted messages with their content (.antidelete on/off)",
-  groupOnly: true,
-  adminOnly: true,
-  handler: async ({ from, args, reply }) => {
+  description: "Toggle anti-delete for private DMs (.antidelete on/off) — DMs only",
+  dmOnly: true,
+  ownerOnly: true,
+  handler: async ({ args, reply }) => {
+    const settings = loadSettings();
     const arg = args[0]?.toLowerCase();
-    const current = getGroupSettings(from).antidelete;
     if (arg === "on") {
-      setGroupSetting(from, "antidelete", true);
+      settings.antidelete = true;
+      saveSettings(settings);
       return reply(
         `✅ *Anti-Delete ENABLED* 🔍\n\n` +
-        `When anyone deletes a message I will:\n` +
-        `• *Alert* the group who deleted it\n` +
-        `• *Re-send* the deleted content\n\n` +
+        `When anyone deletes a message in a *private DM*, I will re-send the content.\n\n` +
         `_Works for text, images, videos, audio, stickers & docs._\n\n` +
         `> _MAXX-XMD_ ⚡`
       );
     }
     if (arg === "off") {
-      setGroupSetting(from, "antidelete", false);
-      return reply(`✅ *Anti-Delete DISABLED* 🔓\n\nDeleted messages will no longer be recovered.\n\n> _MAXX-XMD_ ⚡`);
+      settings.antidelete = false;
+      saveSettings(settings);
+      return reply(`✅ *Anti-Delete DISABLED* 🔓\n\nDeleted DM messages will no longer be recovered.\n\n> _MAXX-XMD_ ⚡`);
     }
-    const status = current ? "🟢 *ON*" : "🔴 *OFF*";
+    const status = settings.antidelete ? "🟢 *ON*" : "🔴 *OFF*";
     await reply(
-      `🔍 *Anti-Delete Status:* ${status}\n\n` +
+      `🔍 *Anti-Delete (DMs only):* ${status}\n\n` +
       `📌 *Usage:*\n` +
-      `.antidelete on  — enable recovery\n` +
+      `.antidelete on  — enable DM recovery\n` +
       `.antidelete off — disable\n\n` +
       `> _MAXX-XMD_ ⚡`
     );
+  },
+});
+
+registerCommand({
+  name: "groupreact",
+  aliases: ["autoreactgroup", "greact"],
+  category: "Protection",
+  description: "Toggle auto-reactions in this group (.groupreact on/off) — default ON",
+  groupOnly: true,
+  adminOnly: true,
+  handler: async ({ from, args, reply }) => {
+    const arg = args[0]?.toLowerCase();
+    if (arg !== "on" && arg !== "off") {
+      const gs = getGroupSettings(from);
+      const current = gs.autoreact !== false ? "ON 🟢" : "OFF 🔴";
+      return reply(`⚡ *Group Auto-React* is currently *${current}*\nUsage: .groupreact on/off${FOOTER}`);
+    }
+    setGroupSetting(from, "autoreact", arg === "on");
+    await reply(`${arg === "on" ? "✅" : "❌"} *Group Auto-React* turned *${arg.toUpperCase()}* — I will ${arg === "on" ? "now react to" : "no longer react to"} every message in this group${FOOTER}`);
   },
 });
 
@@ -332,7 +352,7 @@ registerCommand({
       `💬 Anti-Spam: ${onOff(gs.antispam)}\n` +
       `🌊 Anti-Flood: ${onOff(gs.antiflood)}\n` +
       `🔤 Bad Words: ${onOff(gs.badwords)}\n` +
-      `❌ Anti-Delete: ${onOff(gs.antidelete)}\n` +
+      `⚡ Auto-React: ${gs.autoreact !== false ? "ON 🟢" : "OFF 🔴"}\n` +
       `👋 Welcome: ${onOff(gs.welcome)}\n` +
       `👋 Goodbye: ${onOff(gs.goodbye)}\n` +
       `⚠️ Warn Limit: 3 warns = kick${FOOTER}`
