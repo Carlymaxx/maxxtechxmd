@@ -1488,14 +1488,22 @@ function loadSudo(): string[] {
 function extractText(msg: WAMessage): string {
   const m = msg.message;
   if (!m) return "";
+  // Unwrap linked-device containers: owner's own messages arrive inside
+  // deviceSentMessage on any linked (secondary) device; ephemeral/viewOnce
+  // messages have their own wrapper too.
+  const inner: any =
+    (m as any).deviceSentMessage?.message   // owner's own msg on linked device
+    ?? (m as any).ephemeralMessage?.message  // disappearing messages
+    ?? (m as any).viewOnceMessage?.message   // view-once messages
+    ?? m;
   return (
-    m.conversation ||
-    m.extendedTextMessage?.text ||
-    m.imageMessage?.caption ||
-    m.videoMessage?.caption ||
-    m.documentMessage?.caption ||
-    m.buttonsResponseMessage?.selectedDisplayText ||
-    m.listResponseMessage?.title ||
+    inner.conversation ||
+    inner.extendedTextMessage?.text ||
+    inner.imageMessage?.caption ||
+    inner.videoMessage?.caption ||
+    inner.documentMessage?.caption ||
+    inner.buttonsResponseMessage?.selectedDisplayText ||
+    inner.listResponseMessage?.title ||
     ""
   );
 }
