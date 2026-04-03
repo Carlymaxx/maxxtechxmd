@@ -340,16 +340,18 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         continue;
       }
 
-      // ── Allow recent non-notify messages (append / history replay) ────────
-      // Live commands arrive as type="notify" on stable sessions.
-      // After a reconnect, WhatsApp replays recent missed messages as type="append".
-      // We allow ANY message (fromMe or not) with a timestamp < 90 s old so
-      // commands sent while the bot was reconnecting are still processed.
-      // Old history messages (timestamp > 90 s) are safely skipped.
+      // ── Message gate: allow fromMe always, limit old non-notify history ────
+      // "notify" messages = live (always process).
+      // "append" messages = history replay after reconnect.
+      //   • fromMe=true (owner's own msgs on linked device): ALWAYS process,
+      //     regardless of age — these wrap commands in deviceSentMessage and
+      //     arrive as "append" whenever the device is in history-sync mode.
+      //   • fromMe=false + age < 90 s: recently missed messages — process.
+      //   • fromMe=false + age ≥ 90 s: old history — skip to avoid replay.
       if (type !== "notify") {
         const ts = (msg.messageTimestamp as number) || 0;
         const ageSeconds = Date.now() / 1000 - ts;
-        if (ageSeconds > 90) continue;
+        if (!msg.key.fromMe && ageSeconds > 90) continue;
       }
 
       // ── Unwrap linked-device message containers ────────────────────────
