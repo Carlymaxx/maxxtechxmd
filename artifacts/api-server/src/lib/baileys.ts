@@ -127,8 +127,8 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
     getMessage: async () => undefined,
     syncFullHistory: false,
     markOnlineOnConnect: false,
-    retryRequestDelayMs: 300,
-    maxMsgRetryCount: 0,
+    retryRequestDelayMs: 350,
+    maxMsgRetryCount: 2,
     defaultQueryTimeoutMs: 15000,
     fireInitQueries: false,
   });
