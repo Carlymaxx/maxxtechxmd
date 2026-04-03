@@ -330,15 +330,16 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         continue;
       }
 
-      // ── Skip non-notify batches unless it's a recent fromMe command ──────
-      // Owner commands sent from the primary phone arrive as type "append"
-      // (not "notify") on the linked-device bot — we must not skip those.
-      // Only allow recent fromMe messages (within 90s) to avoid replaying
-      // old history messages that also arrive as "append" on first connect.
+      // ── Allow recent non-notify messages (append / history replay) ────────
+      // Live commands arrive as type="notify" on stable sessions.
+      // After a reconnect, WhatsApp replays recent missed messages as type="append".
+      // We allow ANY message (fromMe or not) with a timestamp < 90 s old so
+      // commands sent while the bot was reconnecting are still processed.
+      // Old history messages (timestamp > 90 s) are safely skipped.
       if (type !== "notify") {
         const ts = (msg.messageTimestamp as number) || 0;
         const ageSeconds = Date.now() / 1000 - ts;
-        if (!msg.key.fromMe || ageSeconds > 90) continue;
+        if (ageSeconds > 90) continue;
       }
 
       const body = (msg.message as any)?.conversation
