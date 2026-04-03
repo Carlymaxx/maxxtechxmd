@@ -11,7 +11,40 @@ import { getGroupSettings } from "./commands/protection.js";
 import fs from "fs";
 import path from "path";
 import zlib from "zlib";
+import pino from "pino";
 import { logger } from "./logger.js";
+
+// Silent logger for Baileys socket internals — suppresses the verbose
+// Signal session dumps (SessionEntry / chain key rotation) that flood stdout.
+// We still get errors (level 50) so real problems surface.
+const baileysLogger = pino({ level: "silent" });
+
+// Also filter raw console.log noise from the @whiskeysockets/baileys signal library
+// which prints "Closing session: SessionEntry {…}" directly to stdout.
+const _origConsoleLog = console.log.bind(console);
+console.log = (...args: any[]) => {
+  const first = String(args[0] ?? "");
+  if (
+    first.startsWith("Closing session:") ||
+    first.startsWith("Removing old closed session:") ||
+    first.startsWith("  _chains:") ||
+    first.startsWith("  registrationId:") ||
+    first.startsWith("  currentRatchet:") ||
+    first.startsWith("  indexInfo:") ||
+    first.startsWith("  pendingPreKey:") ||
+    first.startsWith("SessionEntry {") ||
+    first.startsWith("    baseKey:") ||
+    first.startsWith("    preKeyId:") ||
+    first.startsWith("    closed:") ||
+    first.startsWith("    used:") ||
+    first.startsWith("    created:") ||
+    first.startsWith("    remoteIdentityKey:") ||
+    first.startsWith("    signedKeyId:") ||
+    (first.startsWith("  '") && first.includes("@s.whatsapp.net")) ||
+    (first.startsWith("    pubKey:") || first.startsWith("    privKey:") || first.startsWith("    rootKey:"))
+  ) return;
+  _origConsoleLog(...args);
+};
 import {
   AUTH_DIR,
   ensureAuthDir,
@@ -117,9 +150,10 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
 
   const sock = makeWASocket({
     version,
+    logger: baileysLogger as any,
     auth: {
       creds: state.creds,
-      keys: makeCacheableSignalKeyStore(state.keys, logger as any),
+      keys: makeCacheableSignalKeyStore(state.keys, baileysLogger as any),
     },
     printQRInTerminal: false,
     browser: [settings.botName || "MAXX-XMD", "Chrome", "114.0.5735.199"],
