@@ -19,31 +19,26 @@ import { logger } from "./logger.js";
 // We still get errors (level 50) so real problems surface.
 const baileysLogger = pino({ level: "silent" });
 
-// Also filter raw console.log noise from the @whiskeysockets/baileys signal library
-// which prints "Closing session: SessionEntry {…}" directly to stdout.
-const _origConsoleLog = console.log.bind(console);
-console.log = (...args: any[]) => {
-  const first = String(args[0] ?? "");
+// Suppress the verbose Signal session dumps that Baileys writes directly to
+// process.stdout (not through pino). These "Closing session: SessionEntry {…}"
+// blocks flood the rolling log buffer and hide real events.
+const _origStdoutWrite = process.stdout.write.bind(process.stdout);
+(process.stdout as any).write = (chunk: any, ...rest: any[]) => {
+  const str = typeof chunk === "string" ? chunk : chunk?.toString?.() ?? "";
   if (
-    first.startsWith("Closing session:") ||
-    first.startsWith("Removing old closed session:") ||
-    first.startsWith("  _chains:") ||
-    first.startsWith("  registrationId:") ||
-    first.startsWith("  currentRatchet:") ||
-    first.startsWith("  indexInfo:") ||
-    first.startsWith("  pendingPreKey:") ||
-    first.startsWith("SessionEntry {") ||
-    first.startsWith("    baseKey:") ||
-    first.startsWith("    preKeyId:") ||
-    first.startsWith("    closed:") ||
-    first.startsWith("    used:") ||
-    first.startsWith("    created:") ||
-    first.startsWith("    remoteIdentityKey:") ||
-    first.startsWith("    signedKeyId:") ||
-    (first.startsWith("  '") && first.includes("@s.whatsapp.net")) ||
-    (first.startsWith("    pubKey:") || first.startsWith("    privKey:") || first.startsWith("    rootKey:"))
-  ) return;
-  _origConsoleLog(...args);
+    str.includes("Closing session: SessionEntry") ||
+    str.includes("Removing old closed session: SessionEntry") ||
+    /^\s*_chains:\s*\{/.test(str) ||
+    /^\s*registrationId:\s*\d/.test(str) ||
+    /^\s*currentRatchet:\s*\{/.test(str) ||
+    /^\s*indexInfo:\s*\{/.test(str) ||
+    /^\s*pendingPreKey:\s*\{/.test(str) ||
+    /^\s*baseKey:\s*<Buffer/.test(str) ||
+    /^\s*preKeyId:\s*\d/.test(str) ||
+    /^\s*(closed|used|created):\s*-?\d/.test(str) ||
+    /^\s*(pubKey|privKey|rootKey):\s*<Buffer/.test(str)
+  ) return true;
+  return _origStdoutWrite(chunk, ...rest);
 };
 import {
   AUTH_DIR,
