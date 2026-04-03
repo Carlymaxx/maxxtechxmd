@@ -26,6 +26,74 @@ function friendlyDownloadError(e: any): string {
   return "Could not download. The video may be restricted or unavailable.";
 }
 
+// ── apiskeith.top fallback helper ─────────────────────────────────────────────
+// Response shape: { status: true, creator: "Keithkeizzah", result: "<url>" }
+const KEITH_BASE = "https://apiskeith.top";
+async function keithAudio(ytUrl: string): Promise<string | null> {
+  const endpoints = [
+    `/download/audio?url=${encodeURIComponent(ytUrl)}`,
+    `/download/ytmp3?url=${encodeURIComponent(ytUrl)}`,
+    `/download/yta?url=${encodeURIComponent(ytUrl)}`,
+  ];
+  for (const ep of endpoints) {
+    try {
+      const r = await fetch(KEITH_BASE + ep);
+      if (!r.ok) continue;
+      const d = await r.json() as any;
+      const url = d.result || d.url || d.data?.url || d.audio;
+      if (d.status === true && typeof url === "string" && url.startsWith("http")) return url;
+    } catch {}
+  }
+  return null;
+}
+async function keithVideo(ytUrl: string): Promise<string | null> {
+  const endpoints = [
+    `/download/video?url=${encodeURIComponent(ytUrl)}`,
+    `/download/ytmp4?url=${encodeURIComponent(ytUrl)}`,
+    `/download/ytv?url=${encodeURIComponent(ytUrl)}`,
+  ];
+  for (const ep of endpoints) {
+    try {
+      const r = await fetch(KEITH_BASE + ep);
+      if (!r.ok) continue;
+      const d = await r.json() as any;
+      const url = d.result || d.url || d.data?.url || d.video;
+      if (d.status === true && typeof url === "string" && url.startsWith("http")) return url;
+    } catch {}
+  }
+  return null;
+}
+async function keithTikTok(tikUrl: string): Promise<string | null> {
+  try {
+    const r = await fetch(`${KEITH_BASE}/download/tiktokdl3?url=${encodeURIComponent(tikUrl)}`);
+    if (!r.ok) return null;
+    const d = await r.json() as any;
+    const url = d.result || d.url || d.data?.play;
+    return (d.status === true && typeof url === "string" && url.startsWith("http")) ? url : null;
+  } catch { return null; }
+}
+async function keithInstagram(igUrl: string): Promise<string | null> {
+  try {
+    const r = await fetch(`${KEITH_BASE}/download/instadl?url=${encodeURIComponent(igUrl)}`);
+    if (!r.ok) return null;
+    const d = await r.json() as any;
+    const url = d.result || d.url || d.data?.url;
+    return (d.status === true && typeof url === "string" && url.startsWith("http")) ? url : null;
+  } catch { return null; }
+}
+async function keithSpotify(spUrl: string): Promise<{ url: string; title?: string; artist?: string } | null> {
+  try {
+    const r = await fetch(`${KEITH_BASE}/download/spotify?url=${encodeURIComponent(spUrl)}`);
+    if (!r.ok) return null;
+    const d = await r.json() as any;
+    const url = d.result || d.url || d.data?.download;
+    if (d.status === true && typeof url === "string" && url.startsWith("http")) {
+      return { url, title: d.title || d.data?.title, artist: d.artist || d.data?.artist };
+    }
+  } catch {}
+  return null;
+}
+
 // ── Active user tracker ───────────────────────────────────────────────────────
 export interface ActiveUserEntry {
   jid: string;
@@ -444,6 +512,14 @@ registerCommand({
           } catch {}
         }
 
+        // API 4: apiskeith.top (3 audio endpoint variants)
+        if (!apiData) {
+          try {
+            const keithUrl = await keithAudio(ytUrl);
+            if (keithUrl) apiData = { url: keithUrl, title: "Unknown", channel: "", thumbnail: "", duration: 0 };
+          } catch {}
+        }
+
         // Fallback: direct yt-dlp
         if (!apiData) {
           const { downloadAudio } = await import("./ytdlpUtil.js");
@@ -536,13 +612,34 @@ registerCommand({
       return reply(`❓ *Usage:* .spotifydl <Spotify URL>\n\n*Example:*\n.spotifydl https://open.spotify.com/track/...`);
     }
     try {
-      const res = await fetch(`https://eliteprotech-apis.zone.id/spotify?url=${encodeURIComponent(url)}`);
-      const data = await res.json() as any;
-      if (!data.success || !data.data?.download) throw new Error("Track not found or unavailable");
+      // Try eliteprotech spotify first
+      let spDownloadUrl = "";
+      let title = "Unknown", artist = "", duration = "", images = "";
+      try {
+        const res = await fetch(`https://eliteprotech-apis.zone.id/spotify?url=${encodeURIComponent(url)}`);
+        const data = await res.json() as any;
+        if (data.success && data.data?.download) {
+          spDownloadUrl = data.data.download;
+          title = data.data.metadata?.title || "Unknown";
+          artist = data.data.metadata?.artist || "";
+          duration = data.data.metadata?.duration || "";
+          images = data.data.metadata?.images || "";
+        }
+      } catch {}
 
-      const { title, artist, duration, images } = data.data.metadata;
+      // Fallback: apiskeith.top spotify
+      if (!spDownloadUrl) {
+        const keith = await keithSpotify(url);
+        if (keith) {
+          spDownloadUrl = keith.url;
+          title = keith.title || title;
+          artist = keith.artist || artist;
+        }
+      }
 
-      const audioRes2 = await fetch(data.data.download, { signal: AbortSignal.timeout(60000) });
+      if (!spDownloadUrl) throw new Error("Track not found or unavailable on any service");
+
+      const audioRes2 = await fetch(spDownloadUrl, { signal: AbortSignal.timeout(60000) });
       if (!audioRes2.ok) throw new Error("Download CDN unavailable");
       const buffer = Buffer.from(await audioRes2.arrayBuffer());
 
@@ -605,20 +702,35 @@ registerCommand({
         ytUrl = await searchYouTube(query);
       }
 
-      // Step 2: Use eliteprotech ytdown API to get MP4 download link
-      const apiRes = await fetch(
-        `https://eliteprotech-apis.zone.id/ytdown?url=${encodeURIComponent(ytUrl)}&format=mp4`,
-        { signal: AbortSignal.timeout(20000) }
-      );
-      const apiData = await apiRes.json() as any;
-      if (!apiData.success || !apiData.downloadURL) {
-        throw new Error("Could not get video download link");
+      // Step 2: Try eliteprotech first, then apiskeith as fallback
+      let videoDownloadUrl = "";
+      let videoTitle = "Video";
+
+      // Try eliteprotech /ytdown
+      try {
+        const apiRes = await fetch(
+          `https://eliteprotech-apis.zone.id/ytdown?url=${encodeURIComponent(ytUrl)}&format=mp4`,
+          { signal: AbortSignal.timeout(20000) }
+        );
+        const apiData = await apiRes.json() as any;
+        if (apiData.success && apiData.downloadURL) {
+          videoDownloadUrl = apiData.downloadURL;
+          videoTitle = apiData.title || "Video";
+        }
+      } catch {}
+
+      // Fallback: apiskeith.top (3 video endpoint variants)
+      if (!videoDownloadUrl) {
+        try {
+          const keithUrl = await keithVideo(ytUrl);
+          if (keithUrl) videoDownloadUrl = keithUrl;
+        } catch {}
       }
 
-      const videoTitle = apiData.title || "Video";
+      if (!videoDownloadUrl) throw new Error("Could not get video download link from any source");
 
       // Step 3: Download the MP4 buffer
-      const dlRes = await fetch(apiData.downloadURL, { signal: AbortSignal.timeout(90000) });
+      const dlRes = await fetch(videoDownloadUrl, { signal: AbortSignal.timeout(90000) });
       if (!dlRes.ok) throw new Error(`Download server returned ${dlRes.status}`);
       const buffer = Buffer.from(await dlRes.arrayBuffer());
 
@@ -651,16 +763,24 @@ registerCommand({
     const url = args[0];
     if (!url?.includes("tiktok")) return reply("❓ Usage: .tiktok <TikTok URL>");
     try {
-      const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
-      const res = await fetch(apiUrl);
-      const data = await res.json() as any;
-      if (!data.data?.play) throw new Error("No video found");
-      const videoUrl = data.data.play;
-      const desc = data.data.title || "TikTok Video";
-      await sock.sendMessage(from, {
-        video: { url: videoUrl },
-        caption: `🎵 *${desc}*\n\n> _MAXX XMD_ ⚡`,
-      });
+      let videoUrl = "";
+      let desc = "TikTok Video";
+
+      // Primary: tikwm.com
+      try {
+        const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
+        const data = await res.json() as any;
+        if (data.data?.play) { videoUrl = data.data.play; desc = data.data.title || desc; }
+      } catch {}
+
+      // Fallback: apiskeith.top
+      if (!videoUrl) {
+        const keithUrl = await keithTikTok(url);
+        if (keithUrl) videoUrl = keithUrl;
+      }
+
+      if (!videoUrl) throw new Error("No video found");
+      await sock.sendMessage(from, { video: { url: videoUrl }, caption: `🎵 *${desc}*\n\n> _MAXX XMD_ ⚡` });
     } catch (e: any) {
       await reply(`❌ TikTok download failed: ${e.message}`);
     }
@@ -692,11 +812,25 @@ registerCommand({
   name: "instagram",
   aliases: ["ig"],
   category: "Download",
-  description: "Download Instagram media",
-  handler: async ({ args, reply }) => {
+  description: "Download Instagram media (reel, post, story)",
+  handler: async ({ sock, from, args, reply }) => {
     const url = args[0];
     if (!url?.includes("instagram")) return reply("❓ Usage: .instagram <Instagram URL>");
-    await reply(`📸 *Instagram Downloader*\n\nTo download Instagram media:\n1. Copy the post link\n2. Visit: https://snapinsta.app\n3. Paste and download\n\n🔗 URL: ${url}`);
+    try {
+      await reply("⏳ Fetching Instagram media...");
+      const mediaUrl = await keithInstagram(url);
+      if (!mediaUrl) throw new Error("Could not extract media");
+
+      // Detect if it's a video or image by extension
+      const isVideo = mediaUrl.includes(".mp4") || mediaUrl.includes("video") || mediaUrl.includes("Video");
+      if (isVideo) {
+        await sock.sendMessage(from, { video: { url: mediaUrl }, caption: `📸 *Instagram Video*\n\n> _MAXX XMD_ ⚡` });
+      } else {
+        await sock.sendMessage(from, { image: { url: mediaUrl }, caption: `📸 *Instagram Post*\n\n> _MAXX XMD_ ⚡` });
+      }
+    } catch {
+      await reply(`📸 *Instagram Downloader*\n\nCould not auto-download. Try manually:\n• https://snapinsta.app\n\n🔗 ${url}`);
+    }
   },
 });
 
@@ -726,10 +860,27 @@ registerCommand({
   aliases: ["fb"],
   category: "Download",
   description: "Download Facebook video",
-  handler: async ({ args, reply }) => {
+  handler: async ({ sock, from, args, reply }) => {
     const url = args[0];
     if (!url?.includes("facebook") && !url?.includes("fb.watch")) return reply("❓ Usage: .facebook <Facebook video URL>");
-    await reply(`📘 *Facebook Downloader*\n\nTo download Facebook video:\n1. Visit: https://fdown.net\n2. Paste: ${url}\n\n> _MAXX XMD_ ⚡`);
+    try {
+      await reply("⏳ Fetching Facebook video...");
+      // Try apiskeith fbdown (working) then fbdl (fallback)
+      let videoUrl = "";
+      for (const ep of [`/download/fbdown`, `/download/fbdl`]) {
+        try {
+          const r = await fetch(`${KEITH_BASE}${ep}?url=${encodeURIComponent(url)}`);
+          if (!r.ok) continue;
+          const d = await r.json() as any;
+          const u = d.result || d.url || d.data?.url || d.download;
+          if (d.status === true && typeof u === "string" && u.startsWith("http")) { videoUrl = u; break; }
+        } catch {}
+      }
+      if (!videoUrl) throw new Error("Could not extract video");
+      await sock.sendMessage(from, { video: { url: videoUrl }, caption: `📘 *Facebook Video*\n\n> _MAXX XMD_ ⚡` });
+    } catch {
+      await reply(`📘 *Facebook Downloader*\n\nCould not auto-download. Try manually:\n• https://fdown.net\n\n🔗 ${url}`);
+    }
   },
 });
 
