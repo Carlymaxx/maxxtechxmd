@@ -1,2 +1,24 @@
 packages:
-  - artifacts/api-server
+    - artifacts/api-server
+
+  catalog:
+    drizzle-orm: ^0.45.1
+    '@types/node': ^25.3.3
+
+  onlyBuiltDependencies:
+    - '@whiskeysockets/baileys'
+    - esbuild
+    - protobufjs
+    - sharp
+    - youtube-dl-exec
+
+  overrides:
+    esbuild: "0.27.3"
+    "esbuild>@esbuild/darwin-arm64": "-"
+    "esbuild>@esbuild/darwin-x64": "-"
+    "esbuild>@esbuild/linux-arm": "-"
+    "esbuild>@esbuild/linux-arm64": "-"
+    "esbuild>@esbuild/win32-arm64": "-"
+    "esbuild>@esbuild/win32-ia32": "-"
+    "esbuild>@esbuild/win32-x64": "-"
+  
