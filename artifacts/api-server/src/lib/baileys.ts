@@ -196,7 +196,20 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       !(globalThis as any)._sigtermBackupRegistered) {
     (globalThis as any)._sigtermBackupRegistered = true;
     process.on("SIGTERM", async () => {
-      logger.info("🔴 SIGTERM — saving session to Heroku before shutdown...");
+      // ── Anti-cascade guard ────────────────────────────────────────────────
+      // Updating a Heroku config var restarts the dyno, which sends another
+      // SIGTERM, which would update the var again → infinite loop.
+      // Solution: skip the save if the dyno was born < 3 minutes ago.
+      // The restored SESSION_ID is already fresh in that case (we just read
+      // it), so skipping loses nothing.
+      const uptimeMs = Date.now() - ((globalThis as any)._sessionRestoreTime || Date.now());
+      const THREE_MIN = 3 * 60 * 1000;
+      if (uptimeMs < THREE_MIN) {
+        logger.info({ uptimeSec: Math.round(uptimeMs / 1000) }, "⏭️ SIGTERM — dyno too young, skipping save (anti-cascade)");
+        process.exit(0);
+        return;
+      }
+      logger.info({ uptimeSec: Math.round(uptimeMs / 1000) }, "🔴 SIGTERM — saving session to Heroku before shutdown...");
       try {
         await backupSessionToHeroku("main");
         logger.info("✅ Session saved on shutdown");
@@ -1781,6 +1794,10 @@ export function restoreSessionFromEnv(): void {
         (globalThis as any)._postSyncBackupDone = true;
         logger.info({ ageMin: Math.round(backupAge / 60000) }, "⏭️ Recent backup detected — skipping next post-sync backup (anti-loop)");
       }
+      // Record when this session was restored so the SIGTERM handler can
+      // detect if the dyno is too young (< 3 min) and skip the save to
+      // prevent the config-var-update → restart → SIGTERM cascade.
+      (globalThis as any)._sessionRestoreTime = Date.now();
 
       let fileCount = 0;
       for (const [filename, data] of Object.entries(parsed)) {
