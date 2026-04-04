@@ -615,12 +615,19 @@ registerCommand({
     try {
       const { generatePairingCode } = await import("../baileys.js");
       pairingCode = await generatePairingCode(phone);
-    } catch (e: any) {
+    } catch {
       try { await sock.sendPresenceUpdate("paused", sendTo); } catch {}
+      // Direct the user to the web pairing page with their number pre-filled
       return safeReply(
-        `❌ *Failed to generate pairing code*\n\n` +
-        `_${(e?.message || "Unknown error").slice(0, 150)}_\n\n` +
-        `Try again in a few seconds.\n\n` +
+        `🔑 *Get Your Pairing Code*\n\n` +
+        `📱 *Number:* +${phone}\n\n` +
+        `Open the link below to get your code instantly:\n` +
+        `🌐 https://pair.maxxtech.co.ke\n\n` +
+        `📋 *Steps:*\n` +
+        `1️⃣ Enter *${phone}* on the site\n` +
+        `2️⃣ Copy the 8-digit code shown\n` +
+        `3️⃣ WhatsApp → Linked Devices → Link with phone number\n` +
+        `4️⃣ Enter the code\n\n` +
         `> _MAXX-XMD_ ⚡`
       );
     }
