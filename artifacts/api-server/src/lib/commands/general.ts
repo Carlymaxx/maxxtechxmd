@@ -638,16 +638,18 @@ registerCommand({
 
     try { await sock.sendPresenceUpdate("paused", from); } catch {}
 
+    // First message: instructions
     await send(
       `🔑 *MAXX-XMD Pairing Code*\n\n` +
-      `📱 Number: *+${phone}*\n` +
-      `🔢 Code: *${pairingCode}*\n\n` +
+      `📱 Number: *+${phone}*\n\n` +
       `📋 Steps:\n` +
       `1️⃣ Open WhatsApp on that phone\n` +
       `2️⃣ Settings → Linked Devices → Link a Device\n` +
-      `3️⃣ Tap "Link with phone number" and enter the code above ✅\n\n` +
+      `3️⃣ Tap *"Link with phone number"* and enter the code below ⬇️\n\n` +
       `> _MAXX-XMD_ ⚡`
     );
+    // Second message: bare code only — tap to copy
+    await send(pairingCode);
     console.log(`[pair] code sent to ${from}`);
   },
 });
