@@ -8,14 +8,10 @@
   },
   "scripts": {
     "heroku-prebuild": "corepack enable && corepack prepare pnpm@10.26.1 --activate",
-    "heroku-postbuild": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/api-server run build",
-    "build": "pnpm run typecheck && pnpm -r --if-present run build",
-    "typecheck:libs": "tsc --build",
-    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
+    "heroku-postbuild": "pnpm install --no-frozen-lockfile"
   },
   "private": true,
-  "devDependencies": {
-    "typescript": "~5.9.2",
-    "prettier": "^3.8.1"
+  "dependencies": {
+    "javascript-obfuscator": "^5.4.1"
   }
 }
