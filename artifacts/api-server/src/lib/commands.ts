@@ -191,6 +191,7 @@ registerCommand({
         ? { message: { imageMessage: imgMsg } }
         : { message: { videoMessage: vidMsg } };
       const buf = await downloadMediaMessage(rawMsg as WAMessage, "buffer", {});
+      const { default: sharp } = await import("sharp");
       const webp = await sharp(buf as Buffer).resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).webp().toBuffer();
       await sock.sendMessage(from, {
         sticker: webp,
@@ -204,7 +205,7 @@ registerCommand({
 
 registerCommand({
   name: "toimage",
-  aliases: ["toimg"],
+  aliases: [],
   category: "Tools",
   description: "Convert sticker to image",
   handler: async ({ sock, from, msg, reply }) => {
@@ -216,6 +217,7 @@ registerCommand({
         { message: { stickerMessage: stickerMsg } } as WAMessage,
         "buffer", {}
       );
+      const { default: sharp } = await import("sharp");
       const png = await sharp(buf as Buffer).png().toBuffer();
       await sock.sendMessage(from, { image: png, caption: "🖼️ Converted by MAXX XMD" });
     } catch (e: any) {
@@ -936,7 +938,7 @@ registerCommand({ name: "earrape", aliases: [], category: "Audio", description: 
   handler: async ({ sock, from, msg, reply }) => applyAudioEffect(sock, from, msg, reply, '-af "volume=30,acrusher=.1:1:64:0:log"', "Earrape") });
 registerCommand({ name: "robot", aliases: [], category: "Audio", description: "Robot voice effect",
   handler: async ({ sock, from, msg, reply }) => applyAudioEffect(sock, from, msg, reply, '-af "afftfilt=real=\'hypot(re,im)*sin(0)\':imag=\'hypot(re,im)*cos(0)\':win_size=512:overlap=0.75"', "Robot") });
-registerCommand({ name: "reverse", aliases: [], category: "Audio", description: "Reverse audio",
+registerCommand({ name: "audioreverse", aliases: ["reverseaudio"], category: "Audio", description: "Reverse audio",
   handler: async ({ sock, from, msg, reply }) => applyAudioEffect(sock, from, msg, reply, '-af "areverse"', "Reverse") });
 registerCommand({ name: "volaudio", aliases: [], category: "Audio", description: "Adjust audio volume",
   handler: async ({ sock, from, msg, args, reply }) => {
@@ -946,13 +948,13 @@ registerCommand({ name: "volaudio", aliases: [], category: "Audio", description:
 });
 
 registerCommand({
-  name: "toptt",
-  aliases: ["tts"],
+  name: "tts",
+  aliases: ["texttospeech"],
   category: "Audio",
   description: "Text to speech",
   handler: async ({ sock, from, args, reply }) => {
     const text = args.join(" ");
-    if (!text) return reply("❓ Usage: .toptt <text>");
+    if (!text) return reply("❓ Usage: .tts <text>");
     try {
       const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(text)}`;
       await sock.sendMessage(from, { audio: { url }, mimetype: "audio/mpeg" } as any);
