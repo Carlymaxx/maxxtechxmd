@@ -1788,12 +1788,18 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     }
   }
 
+  // Commands that must always work regardless of mode (so mode can always be changed back)
+  const modeExemptCmds = new Set(["mode", "modestatus", "autoreact", "autoreaction", "groupreact", "autoreactgroup", "greact"]);
+
   // Mode check — silent when bot is private or inbox-only (no reply, just ignore)
-  if (settings.mode === "private" && !isOwner && !isSudo) {
-    return; // silent — no message, just drop it
-  }
-  if (settings.mode === "inbox" && isGroup && !isOwner) {
-    return; // silent — DM-only mode, no reply in groups
+  // Mode-exempt commands always bypass this — anyone in DM can flip mode back to public
+  if (!modeExemptCmds.has(commandName)) {
+    if (settings.mode === "private" && !isOwner && !isSudo) {
+      return; // silent — no message, just drop it
+    }
+    if (settings.mode === "inbox" && isGroup && !isOwner) {
+      return; // silent — DM-only mode, no reply in groups
+    }
   }
 
   // React with a random emoji — fire-and-forget (never delays the command)
