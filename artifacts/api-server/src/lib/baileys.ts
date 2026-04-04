@@ -1146,9 +1146,17 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       }
 
       if (reason === DisconnectReason.connectionReplaced || errorMsg.includes("conflict")) {
-        logger.warn({ sessionId }, "Connection replaced, not reconnecting");
+        // Another instance took the connection. Wait 8 s — if that instance
+        // survives it will keep the connection; if it gets killed by a rolling
+        // restart we need to take over, so reconnect after the grace period.
+        logger.warn({ sessionId }, "Connection replaced — will retry in 8 s in case replacer dies");
         delete activeSessions[sessionId];
-        saveSessionMeta(sessionId, { autoRestart: false });
+        setTimeout(() => {
+          if (!activeSessions[sessionId]) {
+            logger.info({ sessionId }, "Replacer gone — reconnecting after conflict grace period");
+            startBotSession(sessionId);
+          }
+        }, 8000);
         return;
       }
 
