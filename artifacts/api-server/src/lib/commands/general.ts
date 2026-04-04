@@ -579,11 +579,9 @@ registerCommand({
   aliases: ["getid", "session", "pairdevice"],
   category: "General",
   description: "Generate a WhatsApp pairing code for a phone number",
-  handler: async ({ sock, from, msg, args }) => {
+  handler: async ({ sock, from, args }) => {
     const phone = args[0]?.replace(/\D/g, "");
 
-    // Direct sendMessage to from — never use { quoted: msg } here because
-    // after generatePairingCode's 3s+ wait, msg may be stale with @lid from
     const send = (text: string) =>
       sock.sendMessage(from, { text }).catch((e: any) =>
         console.error(`[pair] sendMessage failed: ${(e as any)?.message}`)
@@ -602,15 +600,27 @@ registerCommand({
     }
 
     try { await sock.sendPresenceUpdate("composing", from); } catch {}
-    console.log(`[pair] generating code for ${phone} from=${from}`);
+    console.log(`[pair] requesting code for ${phone} via internal API`);
 
     let pairingCode = "";
     try {
-      const { generatePairingCode } = await import("../baileys.js");
-      pairingCode = await generatePairingCode(phone);
-      console.log(`[pair] code obtained: ${pairingCode}`);
+      // Call the same /api/pair endpoint the web page uses — this creates a
+      // proper persistent session AND keeps it alive so the code is usable.
+      const port = process.env.PORT || "3000";
+      const res = await fetch(`http://localhost:${port}/api/pair`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: phone }),
+        signal: AbortSignal.timeout(25000),
+      });
+      const data: any = await res.json();
+      if (!res.ok || !data.pairingCode) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      pairingCode = data.pairingCode;
+      console.log(`[pair] got code: ${pairingCode}`);
     } catch (e: any) {
-      console.error(`[pair] generatePairingCode failed: ${(e as any)?.message}`);
+      console.error(`[pair] API call failed: ${(e as any)?.message}`);
       try { await sock.sendPresenceUpdate("paused", from); } catch {}
       return send(
         `🔑 *Get Your Pairing Code*\n\n` +
@@ -628,15 +638,17 @@ registerCommand({
 
     try { await sock.sendPresenceUpdate("paused", from); } catch {}
 
-    // Send the code — plain text first (always works), then try the fancy button
     await send(
       `🔑 *MAXX-XMD Pairing Code*\n\n` +
-      `📱 Number: *${phone}*\n` +
+      `📱 Number: *+${phone}*\n` +
       `🔢 Code: *${pairingCode}*\n\n` +
-      `Copy the code above ↑ and paste it in WhatsApp → Linked Devices → Link with phone number\n\n` +
+      `📋 Steps:\n` +
+      `1️⃣ Open WhatsApp on that phone\n` +
+      `2️⃣ Settings → Linked Devices → Link a Device\n` +
+      `3️⃣ Tap "Link with phone number" and enter the code above ✅\n\n` +
       `> _MAXX-XMD_ ⚡`
     );
-    console.log(`[pair] code message sent to ${from}`);
+    console.log(`[pair] code sent to ${from}`);
   },
 });
 
