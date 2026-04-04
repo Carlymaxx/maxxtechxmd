@@ -894,8 +894,8 @@ registerCommand({
   aliases: ["luckynumber"],
   category: "Fun",
   description: "Get your lucky number for today",
-  handler: async ({ msg, reply }) => {
-    const name = (msg as any).pushName || "User";
+  handler: async ({ senderName, msg, reply }) => {
+    const name = senderName;
     const today = new Date().toDateString();
     const seed = (name + today).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
     const lucky = (seed % 100) + 1;
@@ -989,8 +989,8 @@ registerCommand({
   aliases: ["pep", "boost"],
   category: "Fun",
   description: "Get a personalized motivational message",
-  handler: async ({ msg, reply }) => {
-    const name = (msg as any).pushName || "Champion";
+  handler: async ({ senderName, msg, reply }) => {
+    const name = senderName;
     const messages = [
       `Hey ${name}! You are more capable than you think. Every step you take, no matter how small, is progress. Keep pushing!`,
       `${name}, greatness doesn't come overnight. But you show up every day, and that's what separates winners from the rest. Stay consistent!`,

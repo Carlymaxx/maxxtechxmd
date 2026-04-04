@@ -69,16 +69,15 @@ registerCommand({
   aliases: ["ping2", "latency"],
   category: "General",
   description: "Check bot response speed",
-  handler: async ({ msg, reply }) => {
+  handler: async ({ senderName, reply }) => {
     const start = Date.now();
-    const user = (msg as any).pushName || "User";
     await reply("⏳ Checking ping... 🔍");
     const ms = Date.now() - start;
     await reply(`╔══════════════════════╗
 ║  *🌈 MAXX-XMD STATUS* 🌈
 ╚══════════════════════╝
 
-👋 Hello, *${user}*!
+👋 Hello, *${senderName}*!
 🚀 Bot is *ONLINE!*
 🟢 *Status:* Active & Running
 
@@ -664,7 +663,7 @@ registerCommand({
   aliases: ["help", "commands", "list"],
   category: "General",
   description: "Show all bot commands",
-  handler: async ({ sock, from, msg, args, settings, reply }) => {
+  handler: async ({ sock, from, msg, args, settings, senderName, reply }) => {
     const cat = args[0]?.toLowerCase();
     const p = settings.prefix;
 
@@ -718,7 +717,6 @@ registerCommand({
       else if (hour >= 18 && hour < 22) greeting = "🌙 Good evening";
       else greeting = "🌌 Good night";
 
-      const senderName = (msg as any).pushName || "User";
       const botName = settings.botName || "MAXX-XMD";
       const ownerName = settings.ownerName || "MAXX";
       const totalCmds = uniqueCmds.length;

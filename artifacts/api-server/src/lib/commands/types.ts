@@ -6,6 +6,7 @@ export interface CommandContext {
   msg: WAMessage;
   from: string;
   sender: string;
+  senderName: string;
   isGroup: boolean;
   isOwner: boolean;
   isSudo: boolean;

@@ -622,8 +622,8 @@ registerCommand({
   aliases: ["iqtest", "myiq"],
   category: "Games",
   description: "Get a fun (random) IQ score",
-  handler: async ({ msg, reply }) => {
-    const name = (msg as any).pushName || "User";
+  handler: async ({ senderName, msg, reply }) => {
+    const name = senderName;
     const seed = (name + new Date().toDateString()).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
     const iq = (seed % 80) + 90; // 90 to 169
     let cat = "";
@@ -660,8 +660,8 @@ registerCommand({
   aliases: ["vibecheck", "myvibes"],
   category: "Games",
   description: "Check your vibe for today",
-  handler: async ({ msg, reply }) => {
-    const name = (msg as any).pushName || "User";
+  handler: async ({ senderName, msg, reply }) => {
+    const name = senderName;
     const vibes = [
       { v: "IMMACULATE ✨", d: "You are absolutely radiating today. Stay on this frequency!", c: "🟢" },
       { v: "CHAOTIC 🌪️", d: "Energy is all over the place — embrace the madness!", c: "🟡" },
@@ -682,8 +682,8 @@ registerCommand({
   aliases: ["myaura", "auracolor"],
   category: "Games",
   description: "Find out your aura color",
-  handler: async ({ msg, reply }) => {
-    const name = (msg as any).pushName || "User";
+  handler: async ({ senderName, msg, reply }) => {
+    const name = senderName;
     const auras = [
       { color: "Red 🔴", meaning: "Passion, strength, and intense energy. You are a natural leader." },
       { color: "Orange 🟠", meaning: "Creativity and enthusiasm. You have vibrant, adventurous energy." },
@@ -705,8 +705,8 @@ registerCommand({
   aliases: ["mytype", "mbti"],
   category: "Games",
   description: "Get a fun personality type reading",
-  handler: async ({ msg, reply }) => {
-    const name = (msg as any).pushName || "User";
+  handler: async ({ senderName, msg, reply }) => {
+    const name = senderName;
     const types = [
       { type: "ENFJ — The Protagonist", desc: "Charismatic and inspiring leader who captivates those around them." },
       { type: "INTJ — The Architect", desc: "Imaginative and strategic thinker with a plan for everything." },
@@ -877,8 +877,8 @@ registerCommand({
   aliases: ["selfroast", "roastyourself"],
   category: "AI",
   description: "Get an AI to roast your WhatsApp display name",
-  handler: async ({ msg, reply }) => {
-    const name = (msg as any).pushName || "mystery person";
+  handler: async ({ senderName, msg, reply }) => {
+    const name = senderName;
     try {
       const res = await fetch(`https://api.eliteprotech.com/copilot?q=${encodeURIComponent(`Give a short (2-3 sentence) funny savage roast to someone whose WhatsApp name is: "${name}". Be creative, playful, and not offensive.`)}`);
       const data = await res.json() as any;
