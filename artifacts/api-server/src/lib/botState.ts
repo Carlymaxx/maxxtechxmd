@@ -83,13 +83,34 @@ const defaultSettings: BotSettings = {
 };
 
 export function loadSettings(): BotSettings {
+  let settings: BotSettings;
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
       const raw = fs.readFileSync(SETTINGS_FILE, "utf8");
-      return { ...defaultSettings, ...JSON.parse(raw) };
+      settings = { ...defaultSettings, ...JSON.parse(raw) };
+    } else {
+      settings = { ...defaultSettings };
     }
-  } catch {}
-  return { ...defaultSettings };
+  } catch {
+    settings = { ...defaultSettings };
+  }
+
+  // ── Env-var overrides — Heroku config vars always win over the settings file ──
+  // This makes every variable advertised in app.json actually work on fresh deploys
+  // where settings.json does not yet exist.
+  if (process.env.OWNER_NUMBER)      settings.ownerNumber      = process.env.OWNER_NUMBER.replace(/[^0-9]/g, "");
+  if (process.env.BOT_NAME)          settings.botName          = process.env.BOT_NAME;
+  if (process.env.PREFIX)            settings.prefix           = process.env.PREFIX;
+  if (process.env.WORK_MODE)         settings.mode             = process.env.WORK_MODE;
+  if (process.env.AUTO_READ         !== undefined) settings.autoread        = process.env.AUTO_READ         === "true";
+  if (process.env.AUTO_TYPING       !== undefined) settings.autotyping      = process.env.AUTO_TYPING       === "true";
+  if (process.env.AUTO_VIEW_STATUS  !== undefined) settings.autoviewstatus  = process.env.AUTO_VIEW_STATUS  === "true";
+  if (process.env.AUTO_LIKE_STATUS  !== undefined) settings.autolikestatus  = process.env.AUTO_LIKE_STATUS  === "true";
+  if (process.env.AUTOREACT_STATUS  !== undefined) settings.autoreaction    = process.env.AUTOREACT_STATUS  === "true";
+  if (process.env.ANTICALL          !== undefined) settings.anticall        = process.env.ANTICALL          === "true";
+  if (process.env.WELCOME_MSG       !== undefined) settings.welcomeMessage  = process.env.WELCOME_MSG       === "true";
+
+  return settings;
 }
 
 export function saveSettings(settings: BotSettings): void {
