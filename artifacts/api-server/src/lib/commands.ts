@@ -1759,14 +1759,25 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
   const command = commandRegistry.get(commandName);
   if (!command) return;
 
-  // Owner check — reads from env var first, falls back to saved settings number
+  // Owner detection — three layered checks (most reliable to least):
+  // 1. msg.key.fromMe — message literally sent from the bot's own WhatsApp account (owner using own phone)
+  // 2. sock.user       — compare sender to the bot's live connected JID (e.g. 256765188052:5@s.whatsapp.net)
+  // 3. OWNER_NUMBER / settings.ownerNumber — env var / dashboard config fallback
+  const senderNum = sender.replace("@s.whatsapp.net", "").replace(/[^0-9]/g, "");
+
+  // sock.user JID looks like "256765188052:5@s.whatsapp.net" — extract just digits before ":"
+  const sockUserNum = sock.user?.id?.split(":")[0]?.replace(/[^0-9]/g, "") || "";
+
   const envOwner = process.env.OWNER_NUMBER?.replace(/[^0-9]/g, "");
   const settingsOwner = settings.ownerNumber?.replace(/[^0-9]/g, "");
-  const ownerNum = envOwner || settingsOwner || "";
+  const ownerNum = envOwner || settingsOwner || sockUserNum || "";
   const ownerJid = ownerNum ? ownerNum + "@s.whatsapp.net" : "";
-  const senderNum = sender.replace("@s.whatsapp.net", "").replace(/[^0-9]/g, "");
+
   const sudo = loadSudo();
-  const isOwner = !!ownerNum && (senderNum === ownerNum || sender === ownerJid || from === ownerJid);
+  const isOwner =
+    msg.key.fromMe === true ||                                                    // own phone sent it
+    (!!sockUserNum && senderNum === sockUserNum) ||                               // matches connected JID
+    (!!ownerNum && (senderNum === ownerNum || sender === ownerJid || from === ownerJid)); // config match
   const isSudo = sudo.includes(sender) || isOwner;
 
   // sudoOnly restriction removed — all users on their own bot can access all commands
