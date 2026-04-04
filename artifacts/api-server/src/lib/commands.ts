@@ -617,9 +617,9 @@ registerCommand({
             thumbnailUrl: thumbnail || "",
             thumbnail: thumbBuf,
             mediaType: 1,
-            renderLargerThumbnail: false,
+            renderLargerThumbnail: true,
             showAdAttribution: false,
-            sourceUrl: "https://pair.maxxtech.co.ke",
+            sourceUrl: "https://www.maxxtech.co.ke",
           },
         },
       } as any, { quoted: msg });
@@ -694,9 +694,9 @@ registerCommand({
             thumbnailUrl: images || "",
             thumbnail: spThumbBuf,
             mediaType: 1,
-            renderLargerThumbnail: false,
+            renderLargerThumbnail: true,
             showAdAttribution: false,
-            sourceUrl: "",
+            sourceUrl: "https://www.maxxtech.co.ke",
           },
         },
       } as any);
