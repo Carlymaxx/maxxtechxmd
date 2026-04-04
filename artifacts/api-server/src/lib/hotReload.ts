@@ -36,7 +36,7 @@ const COMMAND_FILES = [
   "artifacts/api-server/src/lib/commands/converters2.ts",
   "artifacts/api-server/src/lib/commands/country.ts",
   "artifacts/api-server/src/lib/commands/creative2.ts",
-  "artifacts/api-server/src/lib/commands/economy.ts",
+  // economy.ts intentionally excluded — writes disk on every command call
   "artifacts/api-server/src/lib/commands/education.ts",
   "artifacts/api-server/src/lib/commands/extra.ts",
   "artifacts/api-server/src/lib/commands/lifestyle.ts",
