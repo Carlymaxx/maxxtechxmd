@@ -186,19 +186,26 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
     fireInitQueries: false,
   });
 
-  // Throttled Heroku backup — fires after each session key change (pre-key exchange).
-  // Delay 30s so multiple rapid key updates are coalesced into one backup call.
-  let _herokuBackupTimer: ReturnType<typeof setTimeout> | null = null;
-  sock.ev.on("creds.update", () => {
-    saveCreds();
-    if (sessionId === "main" && process.env.HEROKU_API_KEY && process.env.HEROKU_APP_NAME) {
-      if (_herokuBackupTimer) clearTimeout(_herokuBackupTimer);
-      _herokuBackupTimer = setTimeout(() => {
-        _herokuBackupTimer = null;
-        backupSessionToHeroku("main").catch(() => {});
-      }, 30_000);
-    }
-  });
+  sock.ev.on("creds.update", () => { saveCreds(); });
+
+  // ── SIGTERM backup: save session once on graceful shutdown ────────────────
+  // Heroku sends SIGTERM before every restart (deploy, manual restart, cycling).
+  // We back up HERE so the session is always current when the dyno starts again.
+  // This causes ZERO extra restarts — the dyno is already dying when we save.
+  if (sessionId === "main" && process.env.HEROKU_API_KEY && process.env.HEROKU_APP_NAME &&
+      !(globalThis as any)._sigtermBackupRegistered) {
+    (globalThis as any)._sigtermBackupRegistered = true;
+    process.on("SIGTERM", async () => {
+      logger.info("🔴 SIGTERM — saving session to Heroku before shutdown...");
+      try {
+        await backupSessionToHeroku("main");
+        logger.info("✅ Session saved on shutdown");
+      } catch (err) {
+        logger.error({ err }, "❌ Failed to save session on shutdown");
+      }
+      process.exit(0);
+    });
+  }
 
   // ── Newsletter server_id interceptor ─────────────────────────────────────
   // Baileys handleNewsletterNotification maps key.id = message_id (UUID) and
@@ -257,22 +264,6 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
     // Exception: we still need to cache these messages for anti-delete (the
     // cache is populated below, which is safe). We just skip command dispatch.
     const isHistorySync = type === "append";
-
-    // ── Post-sync backup: fire once on the FIRST "notify" batch ─────────────
-    // "notify" type only appears AFTER WhatsApp finishes replaying all history.
-    // At that point creds.json has an up-to-date processedHistoryMessages cursor,
-    // so backing up NOW means future deploys only sync the brief restart gap.
-    if (
-      type === "notify" &&
-      sessionId === "main" &&
-      process.env.HEROKU_API_KEY &&
-      process.env.HEROKU_APP_NAME &&
-      !(globalThis as any)._postSyncBackupDone
-    ) {
-      (globalThis as any)._postSyncBackupDone = true;
-      logger.info({ sessionId }, "🔄 First notify batch — triggering post-sync Heroku backup");
-      backupSessionToHeroku("main").catch(() => {});
-    }
 
     for (const msg of messages) {
       const from = msg.key?.remoteJid || "unknown";
