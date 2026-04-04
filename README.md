@@ -56,7 +56,7 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO🫠
 
 ## ✨ Maxx Tech Banner
 
-[![Maxx Tech](https:/maxxtech.co.ke/badge/Maxx%20Tech-ALIVE-brightgreen?style=for-the-badge)]()
+[![Maxx Tech](https:/maxxtech.co.ke.io/badge/Maxx%20Tech-ALIVE-brightgreen?style=for-the-badge)]()
 
 ## 🚀 Deployment Options
 
