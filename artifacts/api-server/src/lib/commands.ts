@@ -133,28 +133,6 @@ export interface ActiveUserEntry {
 }
 export const activeUsersMap = new Map<string, ActiveUserEntry>();
 
-// ── Sticker cache — built once, reused for every auto-react ──────────────────
-const BOT_STICKER_URL = "https://i.postimg.cc/YSXgK0Wb/Whats-App-Image-2025-11-22-at-08-20-26.jpg";
-let _cachedSticker: Buffer | null = null;
-async function getAutoSticker(): Promise<Buffer | null> {
-  if (_cachedSticker) return _cachedSticker;
-  try {
-    const settings = loadSettings();
-    const url: string = (settings as any).botpic || BOT_STICKER_URL;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const raw = Buffer.from(await res.arrayBuffer());
-    const sharp = (await import("sharp")).default;
-    _cachedSticker = await sharp(raw)
-      .resize(512, 512, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-      .webp({ quality: 80 })
-      .toBuffer();
-    return _cachedSticker;
-  } catch (e) {
-    logger.warn({ err: String(e) }, "Could not build auto-sticker");
-    return null;
-  }
-}
 
 // ── Load all command modules (self-registering) ───────────────────────────────
 import { commandRegistry } from "./commands/types.js";
@@ -322,42 +300,6 @@ registerCommand({
   },
 });
 
-registerCommand({
-  name: "tinyurl",
-  aliases: ["shorten", "short"],
-  category: "Tools",
-  description: "Shorten a URL",
-  handler: async ({ args, reply }) => {
-    const url = args[0];
-    if (!url) return reply("❓ Usage: .tinyurl <URL>");
-    try {
-      const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
-      const short = await res.text();
-      await reply(`🔗 *URL Shortened!*\n\n📎 Original: ${url}\n✂️ Short: *${short.trim()}*`);
-    } catch {
-      await reply("❌ Could not shorten URL. Make sure it's a valid URL.");
-    }
-  },
-});
-
-registerCommand({
-  name: "calculate",
-  aliases: ["calc", "math"],
-  category: "Tools",
-  description: "Calculate a math expression",
-  handler: async ({ args, reply }) => {
-    const expr = args.join(" ");
-    if (!expr) return reply("❓ Usage: .calculate <expression>\nExample: .calculate 2 + 2 * 10");
-    try {
-      const safe = expr.replace(/[^0-9+\-*/().^%\s]/g, "");
-      if (!safe.trim()) return reply("❌ Invalid expression.");
-      const result = Function(`"use strict"; return (${safe})`)();
-      await reply(`🧮 *Calculator*\n\n📝 ${expr}\n✅ = *${result}*`);
-    } catch {
-      await reply(`❌ Could not calculate: *${expr}*`);
-    }
-  },
-});
 
 registerCommand({
   name: "genpass",
