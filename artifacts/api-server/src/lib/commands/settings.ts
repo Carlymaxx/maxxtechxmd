@@ -38,38 +38,6 @@ registerCommand({
   },
 });
 
-registerCommand({
-  name: "setbotname",
-  aliases: ["botname"],
-  category: "Settings",
-  sudoOnly: true,
-  description: "Change the bot name",
-  handler: async ({ reply }) => {
-    await reply("🔒 *Bot name is locked by the developer and cannot be changed.*\n\n> _MAXX-XMD_ ⚡");
-  },
-});
-
-registerCommand({
-  name: "setownername",
-  aliases: ["ownername"],
-  category: "Settings",
-  sudoOnly: true,
-  description: "Set owner name",
-  handler: async ({ reply }) => {
-    await reply("🔒 *Owner name is locked by the developer and cannot be changed.*\n\n> _MAXX-XMD_ ⚡");
-  },
-});
-
-registerCommand({
-  name: "setownernumber",
-  aliases: ["ownernumber"],
-  category: "Settings",
-  sudoOnly: true,
-  description: "Set owner number",
-  handler: async ({ reply }) => {
-    await reply("🔒 *Owner number is locked by the developer and cannot be changed.*\n\n> _MAXX-XMD_ ⚡");
-  },
-});
 
 registerCommand({
   name: "setjid",
