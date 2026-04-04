@@ -16,11 +16,6 @@
       "description": "Your WhatsApp number with country code (e.g. 254700000000). Optional — if not set, the bot treats itself as the owner.",
       "required": false
     },
-    "BOT_NAME": {
-      "description": "Name for your bot",
-      "value": "MAXX-XMD",
-      "required": false
-    },
     "PREFIX": {
       "description": "Command prefix (e.g. . or ! or /)",
       "value": ".",
