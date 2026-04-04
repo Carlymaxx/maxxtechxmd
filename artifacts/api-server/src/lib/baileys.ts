@@ -737,19 +737,13 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       sessionReady.add(sessionId);
       logger.info({ sessionId }, "✅ Session ready — now processing incoming commands");
 
-      // ── Persist full auth state to Heroku so sessions survive deploys ─────
-      // Signal sessions (pre-key, sender-key, session files) are in the ephemeral
-      // filesystem. We back them up into the SESSION_ID config var immediately on
-      // connection so the next deploy restores everything.
-      // We also run a periodic backup every 10 min to capture any new sessions.
+      // ── Persist auth state to Heroku once on connect ──────────────────────
+      // SESSION_ID config-var updates trigger a Heroku dyno restart — we must
+      // NOT do this periodically or commands will stop working every 10 min.
+      // One backup per connect is enough: the SESSION_ID captures creds +
+      // sender-keys right after connection, which is what matters most.
       if (sessionId === "main" && process.env.HEROKU_API_KEY && process.env.HEROKU_APP_NAME) {
         backupSessionToHeroku("main").catch(() => {});
-        const _periodicBackup = setInterval(() => {
-          backupSessionToHeroku("main").catch(() => {});
-        }, 10 * 60 * 1000); // every 10 min
-        sock.ev.on("connection.update", (u) => {
-          if (u.connection === "close") clearInterval(_periodicBackup);
-        });
       }
 
       // ── Channel subscription + startup react ─────────────────────────────
