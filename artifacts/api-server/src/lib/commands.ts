@@ -1,6 +1,6 @@
 import type { WASocket, WAMessage, proto } from "@whiskeysockets/baileys";
 import { downloadMediaMessage } from "@whiskeysockets/baileys";
-import { loadSettings, saveSettings, WORKSPACE_ROOT, incrementCmdUsage } from "./botState.js";
+import { loadSettings, saveSettings, WORKSPACE_ROOT, incrementCmdUsage, loadSudoList } from "./botState.js";
 import { logger } from "./logger.js";
 import fs from "fs";
 import path from "path";
@@ -1477,12 +1477,8 @@ registerCommand({
   },
 });
 
-// ── SUDO helpers ──────────────────────────────────────────────────────────────
-const SUDO_FILE = path.join(WORKSPACE_ROOT, "sudo.json");
-function loadSudo(): string[] {
-  try { if (fs.existsSync(SUDO_FILE)) return JSON.parse(fs.readFileSync(SUDO_FILE, "utf8")); } catch {}
-  return [];
-}
+// ── SUDO helpers — backed by shared in-memory cache in botState.ts ────────────
+function loadSudo(): string[] { return loadSudoList(); }
 
 // ── Text extractor ────────────────────────────────────────────────────────────
 function extractText(msg: WAMessage): string {
@@ -1819,11 +1815,11 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     }).catch(() => {});
   }
 
-  // Fetch group metadata — uses 5-min cache so it never hits the network twice per group
+  // Group metadata — fetched lazily inside each command via getCachedGroupMeta().
+  // We do NOT preload it here: awaiting a network call before every command added
+  // 1-5 seconds of delay. Commands that need metadata already call getCachedGroupMeta
+  // themselves (with null-guards that show "❌ Could not fetch group info").
   let groupMetadata: any = null;
-  const groupMetaPromise = isGroup
-    ? getCachedGroupMeta(sock, from).then(m => { groupMetadata = m; })
-    : Promise.resolve();
 
   // Reply helper — auto-appends a randomly chosen MAXX XMD footer to every text response
   const FOOTERS = [
@@ -1857,10 +1853,6 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
   const reactFn = async (emoji: string) => {
     try { await sock.sendMessage(from, { react: { text: emoji, key: msg.key } }); } catch {}
   };
-
-  // Await group metadata now (was launched in parallel with react/sticker) — ensures
-  // admin checks work while still not blocking the react/sticker sends
-  await groupMetaPromise;
 
   // Build context
   const ctx = {
