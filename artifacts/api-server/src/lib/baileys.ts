@@ -1681,8 +1681,24 @@ export async function backupSessionToHeroku(folderName = "main"): Promise<void> 
       f === "creds.json" ||
       f.startsWith("pre-key-");            // pre-key bundles — enables session setup
 
-    const filesToBackup = allFiles.filter(ESSENTIAL);
+    let filesToBackup = allFiles.filter(ESSENTIAL);
     if (filesToBackup.length === 0) return;
+
+    // ── Trim pre-keys to the 50 most recent ────────────────────────────────
+    // Baileys generates hundreds of pre-key files over time.  Storing all of
+    // them blows past Heroku's 32 KB config-var limit.  We only need the most
+    // recent 50 — WhatsApp uses pre-keys in order, so old ones are already spent.
+    const preKeyFiles = filesToBackup
+      .filter(f => f.startsWith("pre-key-"))
+      .sort((a, b) => {
+        const numA = parseInt(a.replace("pre-key-", "").replace(".json", ""), 10);
+        const numB = parseInt(b.replace("pre-key-", "").replace(".json", ""), 10);
+        return numA - numB;
+      });
+    const recentPreKeys = new Set(preKeyFiles.slice(-50));
+    filesToBackup = filesToBackup.filter(f =>
+      !f.startsWith("pre-key-") || recentPreKeys.has(f)
+    );
 
     const allData: Record<string, unknown> = {};
     for (const file of filesToBackup) {
