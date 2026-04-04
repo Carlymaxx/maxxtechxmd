@@ -1,16 +1,15 @@
 packages:
-    - artifacts/api-server
+  - artifacts/api-server
 
-  catalog:
-    drizzle-orm: ^0.45.1
+catalog:
+  drizzle-orm: ^0.45.1
 
-  onlyBuiltDependencies:
-    - '@whiskeysockets/baileys'
-    - esbuild
-    - protobufjs
-    - sharp
-    - youtube-dl-exec
+onlyBuiltDependencies:
+  - '@whiskeysockets/baileys'
+  - esbuild
+  - protobufjs
+  - sharp
+  - youtube-dl-exec
 
-  overrides:
-    esbuild: "0.27.3"
-  
+overrides:
+  esbuild: "0.27.3"
