@@ -757,24 +757,6 @@ registerCommand({
 // ── Group extras ──────────────────────────────────────────────────────────────
 
 registerCommand({
-  name: "everyone",
-  aliases: ["all", "tageveryone"],
-  category: "Group",
-  description: "Mention all group members with a message",
-  groupOnly: true,
-  handler: async ({ sock, from, msg, args, groupMetadata, reply }) => {
-    if (!groupMetadata) return reply("❌ Group info not available.");
-    const text = args.join(" ") || "📢 Attention everyone!";
-    const members = groupMetadata.participants.map(p => p.id);
-    const mentions = members.map(id => `@${id.split("@")[0]}`).join(" ");
-    await sock.sendMessage(from, {
-      text: `${text}\n\n${mentions}\n\n> _MAXX-XMD_ ⚡`,
-      mentions: members,
-    }, { quoted: msg });
-  },
-});
-
-registerCommand({
   name: "listadmins",
   aliases: ["admins", "getadmins", "showadmins"],
   category: "Group",
