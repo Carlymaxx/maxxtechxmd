@@ -609,7 +609,7 @@ registerCommand({
       const port = process.env.PORT || "3000";
       const res = await fetch(`http://localhost:${port}/api/pair`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Internal-Bot": "1" },
         body: JSON.stringify({ number: phone }),
         signal: AbortSignal.timeout(25000),
       });

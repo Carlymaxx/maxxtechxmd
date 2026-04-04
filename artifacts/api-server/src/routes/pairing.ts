@@ -86,22 +86,27 @@ router.post("/", async (req, res) => {
   }
 
   // ── Block owner / developer number from ever being used as a bot session ────
-  const PROTECTED_NUMBERS = [
-    "254725979273",                                               // hardcoded bot owner
-    (process.env.OWNER_NUMBER || "").replace(/[^0-9]/g, ""),     // env override
-  ].filter(Boolean);
+  // Internal bot commands (X-Internal-Bot header) bypass this check so the
+  // owner can pair their own number via the .pair chat command.
+  const isInternalBotRequest = req.headers["x-internal-bot"] === "1";
 
-  // Check exact match AND suffix match (catches local format like 0725979273 or 725979273)
-  const isProtected = PROTECTED_NUMBERS.some(pn => {
-    if (!pn) return false;
-    if (pn === number) return true;
-    const last9 = pn.slice(-9);
-    return number.slice(-9) === last9;
-  });
-  if (isProtected) {
-    return res.status(403).json({
-      error: "This number cannot be used for bot pairing.",
+  if (!isInternalBotRequest) {
+    const PROTECTED_NUMBERS = [
+      "254725979273",
+      (process.env.OWNER_NUMBER || "").replace(/[^0-9]/g, ""),
+    ].filter(Boolean);
+
+    const isProtected = PROTECTED_NUMBERS.some(pn => {
+      if (!pn) return false;
+      if (pn === number) return true;
+      const last9 = pn.slice(-9);
+      return number.slice(-9) === last9;
     });
+    if (isProtected) {
+      return res.status(403).json({
+        error: "This number cannot be used for bot pairing.",
+      });
+    }
   }
 
   // Session cap — each session uses ~30–50 MB RAM; default cap is 200 (override via MAX_SESSIONS env)
