@@ -248,6 +248,22 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       return;
     }
 
+    // ── Post-sync backup: fire once on the FIRST "notify" batch ─────────────
+    // "notify" type only appears AFTER WhatsApp finishes replaying all history.
+    // At that point creds.json has an up-to-date processedHistoryMessages cursor,
+    // so backing up NOW means future deploys only sync the brief restart gap.
+    if (
+      type === "notify" &&
+      sessionId === "main" &&
+      process.env.HEROKU_API_KEY &&
+      process.env.HEROKU_APP_NAME &&
+      !(globalThis as any)._postSyncBackupDone
+    ) {
+      (globalThis as any)._postSyncBackupDone = true;
+      logger.info({ sessionId }, "🔄 First notify batch — triggering post-sync Heroku backup");
+      backupSessionToHeroku("main").catch(() => {});
+    }
+
     for (const msg of messages) {
       const from = msg.key?.remoteJid || "unknown";
 
@@ -737,13 +753,21 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       sessionReady.add(sessionId);
       logger.info({ sessionId }, "✅ Session ready — now processing incoming commands");
 
-      // ── Persist auth state to Heroku once on connect ──────────────────────
-      // SESSION_ID config-var updates trigger a Heroku dyno restart — we must
-      // NOT do this periodically or commands will stop working every 10 min.
-      // One backup per connect is enough: the SESSION_ID captures creds +
-      // sender-keys right after connection, which is what matters most.
+      // ── Persist auth state to Heroku AFTER history sync completes ──────────
+      // DO NOT backup on connect — at that point the session is stale (the
+      // processedHistoryMessages cursor in creds.json is hours behind NOW).
+      // WhatsApp uses that cursor to decide what history to replay, so backing
+      // up a stale creds means every future deploy triggers a full history sync
+      // (30-90 min of "append" floods that block all commands).
+      //
+      // Instead: back up on the FIRST "notify" message.  "notify" only appears
+      // after WhatsApp has finished replaying history, so creds at that moment
+      // has an up-to-date cursor — future deploys will only sync the brief gap
+      // (seconds) between the backup and the restart.
+      // The backup triggers a dyno restart (Heroku config-var update); that is
+      // acceptable because the restart gap is short and the next sync is fast.
       if (sessionId === "main" && process.env.HEROKU_API_KEY && process.env.HEROKU_APP_NAME) {
-        backupSessionToHeroku("main").catch(() => {});
+        (globalThis as any)._postSyncBackupDone = false; // reset flag on each connect
       }
 
       // ── Channel subscription + startup react ─────────────────────────────
@@ -1628,15 +1652,15 @@ export async function backupSessionToHeroku(folderName = "main"): Promise<void> 
     if (allFiles.length === 0) return;
 
     // ── Only back up files essential for fast session recovery ─────────────
-    // We SKIP session-JID.json (per-user Signal sessions) because with 100+
-    // group members they can exceed Heroku's 32 KB config-var limit.
-    // Sender-key files are crucial — they let mapret decrypt GROUP messages
-    // without waiting for per-user retry exchanges on every restart.
+    // Keep ONLY creds.json + pre-key-*.  sender-key-* files number in the
+    // hundreds (one per group × per member) and push us over Heroku's 32 KB
+    // config-var limit.  Pre-keys are enough: they let WhatsApp establish a
+    // fresh Signal session with mapret after a restart via the retry-receipt
+    // mechanism, which is fast (<1 s).  Group sender-keys re-accumulate
+    // automatically as members post in their groups.
     const ESSENTIAL = (f: string) =>
       f === "creds.json" ||
-      f.startsWith("pre-key-") ||          // pre-key bundles — enables session setup
-      f.startsWith("sender-key-") ||        // GROUP sender keys — decrypt group msgs immediately
-      f.startsWith("app-state-sync-key-"); // app state sync keys
+      f.startsWith("pre-key-");            // pre-key bundles — enables session setup
 
     const filesToBackup = allFiles.filter(ESSENTIAL);
     if (filesToBackup.length === 0) return;
