@@ -213,8 +213,8 @@ for (const r of REACTIONS) {
     aliases: r.aliases,
     category: r.category,
     description: `Send a ${r.name} reaction`,
-    handler: async ({ sock, from, msg, args, reply }) => {
-      const name = (msg as any).pushName || "User";
+    handler: async ({ sock, from, msg, args, senderName, reply }) => {
+      const name = senderName;
       const target = args.join(" ") || "everyone";
       const action = r.action.replace("{name}", name);
       await sendReactionGif(r.nekos || r.name, `${action} *${target}*`, "", sock, from, msg);

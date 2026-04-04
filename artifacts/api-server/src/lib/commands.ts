@@ -1868,9 +1868,14 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     try { await sock.sendMessage(from, { react: { text: emoji, key: msg.key } }); } catch {}
   };
 
+  // Sender's display name — WhatsApp pushName first, then phone number as fallback
+  const senderName = (msg.pushName as string | undefined)?.trim() ||
+    sender.replace("@s.whatsapp.net", "").replace(/[^0-9]/g, "") ||
+    "there";
+
   // Build context
   const ctx = {
-    sock, msg, from, sender, isGroup, isOwner, isSudo,
+    sock, msg, from, sender, senderName, isGroup, isOwner, isSudo,
     body, args, text, prefix, commandName, settings,
     quoted: msg.message?.extendedTextMessage?.contextInfo?.quotedMessage as any,
     groupMetadata, reply, react: reactFn,

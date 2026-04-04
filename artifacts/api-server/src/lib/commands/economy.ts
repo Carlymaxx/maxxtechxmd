@@ -68,9 +68,9 @@ registerCommand({
   aliases: ["bal", "wallet", "coins"],
   category: "Economy",
   description: "Check your coin balance",
-  handler: async ({ sender, msg, reply }) => {
+  handler: async ({ sender, senderName, msg, reply }) => {
     const u = getUser(sender);
-    const name = (msg as any).pushName || "User";
+    const name = senderName;
     await reply(`${COIN} *${name}'s Wallet*\n\n💵 *Cash:* ${u.coins} coins\n🏦 *Bank:* ${u.bank} coins\n💎 *Total:* ${u.coins + u.bank} coins\n⭐ *Level:* ${u.level} (${u.xp} XP)\n🎒 *Items:* ${u.inventory.length}${FOOTER}`);
   },
 });
@@ -309,9 +309,9 @@ registerCommand({
   aliases: ["inv", "items", "bag"],
   category: "Economy",
   description: "View your item inventory",
-  handler: async ({ sender, msg, reply }) => {
+  handler: async ({ sender, senderName, msg, reply }) => {
     const u = getUser(sender);
-    const name = (msg as any).pushName || "User";
+    const name = senderName;
     if (!u.inventory.length) return reply(`🎒 *${name}'s Inventory*\n\n_Empty — visit *.shop* to buy items!_${FOOTER}`);
     const list = u.inventory.map((item, i) => `${i + 1}. *${item}* — ${SHOP_ITEMS[item]?.desc || "Unknown item"}`).join("\n");
     await reply(`🎒 *${name}'s Inventory* (${u.inventory.length} items)\n\n${list}${FOOTER}`);
@@ -323,9 +323,9 @@ registerCommand({
   aliases: ["xp", "rank"],
   category: "Economy",
   description: "Check your level and XP",
-  handler: async ({ sender, msg, reply }) => {
+  handler: async ({ sender, senderName, msg, reply }) => {
     const u = getUser(sender);
-    const name = (msg as any).pushName || "User";
+    const name = senderName;
     const nextXP = u.level * 100;
     const pct = Math.round((u.xp / nextXP) * 100);
     const bar = "█".repeat(Math.round(pct / 10)) + "░".repeat(10 - Math.round(pct / 10));
