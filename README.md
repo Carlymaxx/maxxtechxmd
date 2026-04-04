@@ -13,7 +13,7 @@ A WhatsApp bot with rich and multiple features created by carlymaxx.
 
 <div align="center"> 
   <a href=""> 
-    <img src="https://files.catbox.moe/8jx0q3.jpg" alt="MAXX~XMD" height="300"> 
+    <img src="https://files.catbox.moe/9r47nb.jpg" alt="MAXX-XMD ⚡" height="300"> 
   </a> 
 </div>
 
@@ -66,11 +66,35 @@ You can deploy this project on **Railway**, **Heroku**, **Render**, **Termux**, 
 
 ### 🪐 Deploy MAXX~XMD Bot
 
-[![Render Deploy](https://img.shields.io/badge/RENDER-DEPLOY-1f1f1f?style=for-the-badge&logo=render)](https://render.com/deploy?repo=https://github.com/Carlymaxx/maxxtechxmd)  
-[![Heroku Deploy](https://img.shields.io/badge/HEROKU-DEPLOY-430098?style=for-the-badge&logo=heroku)](https://heroku.com/deploy?template=https://github.com/Carlymaxx/maxxtechxmd)  
-[![Vercel Deploy](https://img.shields.io/badge/VERCEL-DEPLOY-000000?style=for-the-badge&logo=vercel)](https://vercel.com/new/clone?repository-url=https://github.com/Carlymaxx/maxxtechxmd)  
-[![Railway Deploy](https://img.shields.io/badge/RAILWAY-DEPLOY-ec4c2d?style=for-the-badge&logo=railway)](https://railway.app/new/template?template=https://github.com/Carlymaxx/maxxtechxmd)  
-[![Run on Termux](https://img.shields.io/badge/TERMUX-RUN-00ff00?style=for-the-badge&logo=android)](https://termux.dev)
+<p align="center">
+  <a href="https://render.com/deploy?repo=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20RENDER-1f1f1f?style=for-the-badge&logo=render&logoColor=white" height="55" alt="Deploy on Render"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://heroku.com/deploy?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20HEROKU-430098?style=for-the-badge&logo=heroku&logoColor=white" height="55" alt="Deploy on Heroku"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://vercel.com/new/clone?repository-url=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20VERCEL-000000?style=for-the-badge&logo=vercel&logoColor=white" height="55" alt="Deploy on Vercel"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://railway.app/new/template?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20RAILWAY-ec4c2d?style=for-the-badge&logo=railway&logoColor=white" height="55" alt="Deploy on Railway"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://termux.dev" target="_blank">
+    <img src="https://img.shields.io/badge/📱%20RUN%20ON%20TERMUX-00ff00?style=for-the-badge&logo=android&logoColor=black" height="55" alt="Run on Termux"/>
+  </a>
+</p>
 
 ---
 
