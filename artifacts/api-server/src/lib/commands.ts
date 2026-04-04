@@ -1859,13 +1859,6 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
   const emoji = REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
   sock.sendMessage(from, { react: { text: emoji, key: msg.key } }).catch(() => {});
 
-  // Auto-sticker reaction if enabled — also fire-and-forget
-  if (settings.autoreaction) {
-    getAutoSticker().then(stickerBuf => {
-      if (stickerBuf) sock.sendMessage(from, { sticker: stickerBuf }, { quoted: msg }).catch(() => {});
-    }).catch(() => {});
-  }
-
   // Group metadata — fetch from cache (or WhatsApp) when in a group.
   // Cache TTL is 5 min so repeated calls are instant.
   let groupMetadata: any = null;
