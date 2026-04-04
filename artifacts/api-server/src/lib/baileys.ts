@@ -1712,6 +1712,12 @@ export async function backupSessionToHeroku(folderName = "main"): Promise<void> 
         // future restarts only sync the brief gap since the backup was taken.
         if (file === "creds.json" && parsed && typeof parsed === "object") {
           (parsed as any).processedHistoryMessages = [];
+          // ── Anti-restart-loop: stamp backup time in creds ─────────────────
+          // restoreSessionFromEnv() reads this and, if the backup is recent
+          // (<30 min), sets _postSyncBackupDone=true so the first "notify"
+          // batch does NOT trigger another backup → breaks the infinite
+          // backup→restart→backup→restart loop.
+          (parsed as any)._lastBackupTime = Date.now();
         }
         allData[file] = parsed;
       } catch { /* skip unreadable files */ }
@@ -1786,6 +1792,15 @@ export function restoreSessionFromEnv(): void {
     // ── New format: { "creds.json": {...}, "pre-key-1.json": {...}, ... } ──
     // All auth files are packed together so Signal sessions survive deploys.
     if (parsed["creds.json"] && typeof parsed["creds.json"] === "object") {
+      // ── Anti-restart-loop: if this backup was taken recently, skip the next
+      // backup so we don't trigger another config-var update → restart cycle.
+      const backupAge = Date.now() - (parsed["creds.json"]._lastBackupTime || 0);
+      const THIRTY_MIN = 30 * 60 * 1000;
+      if (backupAge < THIRTY_MIN) {
+        (globalThis as any)._postSyncBackupDone = true;
+        logger.info({ ageMin: Math.round(backupAge / 60000) }, "⏭️ Recent backup detected — skipping next post-sync backup (anti-loop)");
+      }
+
       let fileCount = 0;
       for (const [filename, data] of Object.entries(parsed)) {
         if (!filename.endsWith(".json")) continue;
