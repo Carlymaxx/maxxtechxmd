@@ -575,7 +575,9 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
   }, 30000); // every 30 seconds
 
   // ── Welcome / Goodbye messages ────────────────────────────────────────────
-  sock.ev.on("group-participants.update", async ({ id, participants, action }) => {
+  sock.ev.on("group-participants.update", async (evt) => {
+    const { id, participants, action } = evt;
+    const removedBy: string | null = (evt as any).actor || (evt as any).by || null;
     try {
       const settings = loadSettings();
       const gs = getGroupSettings(id);
@@ -619,8 +621,7 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
               `• Be respectful to all members\n` +
               `• Have fun! 🔥\n\n` +
               `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-              `🤖 *Get this bot:* https://pair.maxxtech.co.ke\n` +
-              `📢 *Our channel:* https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
+              `📞 *Reach us on:* WhatsApp group & channel\n\n` +
               `> _${botName}_ ⚡`;
 
           try {
@@ -676,24 +677,47 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
           }
         }
 
-        // ── GOODBYE ────────────────────────────────────────────────────────
-        if (action === "remove" && goodbyeOn) {
-          const rawCustom = gs.goodbyeMsg || (settings as any).goodbyeText || "";
+        // ── GOODBYE / KICKED ───────────────────────────────────────────────
+        if (action === "remove") {
+          // Detect if removed by an admin or left voluntarily
+          const kickedBy: string | null = removedBy && removedBy !== participant ? removedBy : null;
+          const isKick = !!kickedBy;
+
+          // Custom goodbye text (only used for voluntary leave if set)
+          const rawCustom = !isKick ? (gs.goodbyeMsg || (settings as any).goodbyeText || "") : "";
+          const kickedByTag = kickedBy ? `@${kickedBy.replace("@s.whatsapp.net", "")}` : "an admin";
+
           const text = rawCustom
             ? rawCustom
                 .replace(/\{user\}|@user/g, tag)
                 .replace(/\{group\}|@group/g, `*${groupName}*`)
                 .replace(/\{count\}|@count/g, String(memberCount))
-            :
-              `╔══════════════════════════╗\n` +
-              `║  👋 *FAREWELL* 👋\n` +
-              `╚══════════════════════════╝\n\n` +
-              `😢 ${tag} has left *${groupName}*\n\n` +
-              `👥 Members remaining: *${memberCount}*\n` +
-              `📅 Left: *${dateStr}* at *${timeStr}*\n\n` +
-              `_We'll miss you! Come back anytime_ 💙\n\n` +
-              `> _${botName}_ ⚡`;
+            : isKick
+              ? // ── Admin kicked someone ──
+                `╔══════════════════════════╗\n` +
+                `║  🚫 *MEMBER REMOVED* 🚫\n` +
+                `╚══════════════════════════╝\n\n` +
+                `👮 ${tag} has been *removed* from *${groupName}*\n\n` +
+                `🔨 *Removed by:* ${kickedByTag}\n` +
+                `👥 *Members remaining:* ${memberCount}\n` +
+                `📅 *Date:* ${dateStr} at ${timeStr}\n\n` +
+                `> _${botName}_ ⚡`
+              : // ── Left voluntarily (only send if goodbye is ON) ──
+                goodbyeOn
+                ? `╔══════════════════════════╗\n` +
+                  `║  👋 *FAREWELL* 👋\n` +
+                  `╚══════════════════════════╝\n\n` +
+                  `😢 ${tag} has left *${groupName}*\n\n` +
+                  `👥 *Members remaining:* ${memberCount}\n` +
+                  `📅 *Left:* ${dateStr} at ${timeStr}\n\n` +
+                  `_We'll miss you! Come back anytime_ 💙\n\n` +
+                  `> _${botName}_ ⚡`
+                : "";
 
+          // Only send if there's something to say
+          if (!text) continue;
+
+          // Build image card
           try {
             const ppUrl = await sock.profilePictureUrl(participant, "image") as string;
             const ppBuf = await fetch(ppUrl as string).then(r => r.arrayBuffer());
@@ -711,6 +735,11 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
               .toBuffer();
             const bannerY2 = H - BANNER;
             const safeGroup2 = groupName.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").slice(0, 40);
+            // Kicked = red banner; Goodbye = orange/gold banner
+            const bannerStart = isKick ? "#c0392b" : "#f7971e";
+            const bannerEnd = isKick ? "#e74c3c" : "#ffd200";
+            const titleText = isKick ? "REMOVED 🚫" : "GOODBYE 👋";
+            const titleColor = isKick ? "#ff6b6b" : "#ffd200";
             const svg =
               `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">` +
               `<defs>` +
@@ -720,16 +749,16 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
               `<stop offset="100%" style="stop-color:#1a1a2e"/>` +
               `</linearGradient>` +
               `<linearGradient id="bn" x1="0%" y1="0%" x2="100%" y2="0%">` +
-              `<stop offset="0%" style="stop-color:#f7971e"/>` +
-              `<stop offset="100%" style="stop-color:#ffd200"/>` +
+              `<stop offset="0%" style="stop-color:${bannerStart}"/>` +
+              `<stop offset="100%" style="stop-color:${bannerEnd}"/>` +
               `</linearGradient>` +
               `</defs>` +
               `<rect width="${W}" height="${H}" fill="url(#bg)" rx="20"/>` +
               `<rect y="${bannerY2}" width="${W}" height="${BANNER}" fill="url(#bn)"/>` +
               `<rect y="${bannerY2}" width="${W}" height="4" fill="white" opacity="0.3"/>` +
-              `<text x="${W/2}" y="50" text-anchor="middle" fill="#ffd200" font-family="Arial" font-size="22" font-weight="bold">GOODBYE</text>` +
+              `<text x="${W/2}" y="50" text-anchor="middle" fill="${titleColor}" font-family="Arial" font-size="22" font-weight="bold">${titleText}</text>` +
               `<text x="${W/2}" y="${bannerY2 + 38}" text-anchor="middle" fill="white" font-family="Arial" font-size="18" font-weight="bold">${safeGroup2}</text>` +
-              `<text x="${W/2}" y="${bannerY2 + 65}" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-family="Arial" font-size="14">${memberCount} members remaining - ${dateStr}</text>` +
+              `<text x="${W/2}" y="${bannerY2 + 65}" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-family="Arial" font-size="14">${memberCount} members remaining · ${dateStr}</text>` +
               `<text x="${W/2}" y="${bannerY2 + 90}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="Arial" font-size="12">Powered by ${botName}</text>` +
               `</svg>`;
             const ppTop2 = Math.floor((H - BANNER) / 2 - SIZE / 2);
@@ -738,7 +767,8 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
               .composite([{ input: ppCircle, top: ppTop2, left: ppLeft2 }])
               .jpeg({ quality: 90 })
               .toBuffer();
-            await sock.sendMessage(id, { image: card, caption: text, mentions: [participant] });
+            const mentionList = kickedBy ? [participant, kickedBy] : [participant];
+            await sock.sendMessage(id, { image: card, caption: text, mentions: mentionList });
           } catch {
             await sock.sendMessage(id, { text, mentions: [participant] });
           }
