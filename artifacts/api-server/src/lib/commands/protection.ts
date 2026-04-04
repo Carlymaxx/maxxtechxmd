@@ -63,48 +63,81 @@ registerCommand({
 
 registerCommand({
   name: "welcome",
-  aliases: ["welcomeon", "setwelcome"],
+  aliases: ["welcomeon", "setwelcome", "welcomemessage", "welcomeoff"],
   category: "Protection",
-  description: "Welcome new members (.welcome on/off or .welcome on Welcome to {group}!)",
+  description: "Toggle welcome image card for new members (.welcome on/off)",
   groupOnly: true,
   handler: async ({ from, args, reply }) => {
     const val = args[0]?.toLowerCase();
     if (val !== "on" && val !== "off") {
       const current = getGroupSettings(from).welcome ? "ON 🟢" : "OFF 🔴";
-      const msg = getGroupSettings(from).welcomeMsg || "Not set";
-      return reply(`ℹ️ *Welcome* is *${current}*\n📝 Message: ${msg}\n\nUsage: .welcome on [custom message]\nVariables: {user} {group} {count}${FOOTER}`);
+      const msg = getGroupSettings(from).welcomeMsg || "Default card (profile pic + message)";
+      return reply(
+        `╔══════════════════════════╗\n` +
+        `║  🎉 *WELCOME SETTINGS*\n` +
+        `╚══════════════════════════╝\n\n` +
+        `📌 *Status:* ${current}\n` +
+        `📝 *Message:* _${msg}_\n\n` +
+        `*Usage:*\n` +
+        `.welcome on — enable (shows profile pic card)\n` +
+        `.welcome off — disable\n` +
+        `.welcome on Custom text here\n\n` +
+        `_Placeholders: {user} {group} {count} {desc}_${FOOTER}`
+      );
     }
     if (val === "on") {
-      const customMsg = args.slice(1).join(" ") || "Welcome to *{group}*, {user}! 🎉\nYou are member #{count}.";
+      const customMsg = args.slice(1).join(" ") || "";
       setGroupSetting(from, "welcome", true);
-      setGroupSetting(from, "welcomeMsg", customMsg);
-      return reply(`✅ *Welcome messages* enabled!\n\n📝 Message:\n${customMsg}${FOOTER}`);
+      if (customMsg) setGroupSetting(from, "welcomeMsg", customMsg);
+      return reply(
+        `✅ *Welcome messages ENABLED!* 🎉\n\n` +
+        `New members will receive a welcome image card with their profile picture.\n\n` +
+        (customMsg ? `📝 *Custom text:*\n_${customMsg}_\n\n` : `📝 _Using default welcome card_\n\n`) +
+        `_Placeholders: {user} {group} {count} {desc}_${FOOTER}`
+      );
     }
     setGroupSetting(from, "welcome", false);
-    await reply(`❌ *Welcome messages* disabled.${FOOTER}`);
+    await reply(`✅ *Welcome messages* disabled.${FOOTER}`);
   },
 });
 
 registerCommand({
   name: "goodbye",
-  aliases: ["byemsg", "setgoodbye"],
+  aliases: ["byemsg", "setgoodbye", "goodbyemessage", "goodbyeon", "goodbyeoff"],
   category: "Protection",
-  description: "Goodbye message when members leave (.goodbye on/off)",
+  description: "Toggle goodbye image card when members leave (.goodbye on/off)",
   groupOnly: true,
   handler: async ({ from, args, reply }) => {
     const val = args[0]?.toLowerCase();
     if (val !== "on" && val !== "off") {
       const current = getGroupSettings(from).goodbye ? "ON 🟢" : "OFF 🔴";
-      return reply(`ℹ️ *Goodbye* is *${current}*\nUsage: .goodbye on [custom message]${FOOTER}`);
+      const msg = getGroupSettings(from).goodbyeMsg || "Default card (profile pic + message)";
+      return reply(
+        `╔══════════════════════════╗\n` +
+        `║  👋 *GOODBYE SETTINGS*\n` +
+        `╚══════════════════════════╝\n\n` +
+        `📌 *Status:* ${current}\n` +
+        `📝 *Message:* _${msg}_\n\n` +
+        `*Usage:*\n` +
+        `.goodbye on — enable\n` +
+        `.goodbye off — disable\n` +
+        `.goodbye on Custom text here\n\n` +
+        `_Placeholders: {user} {group} {count}_${FOOTER}`
+      );
     }
     if (val === "on") {
-      const customMsg = args.slice(1).join(" ") || "Goodbye, {user}! 👋 Thanks for being with us.";
+      const customMsg = args.slice(1).join(" ") || "";
       setGroupSetting(from, "goodbye", true);
-      setGroupSetting(from, "goodbyeMsg", customMsg);
-      return reply(`✅ *Goodbye messages* enabled!\n📝 ${customMsg}${FOOTER}`);
+      if (customMsg) setGroupSetting(from, "goodbyeMsg", customMsg);
+      return reply(
+        `✅ *Goodbye messages ENABLED!* 👋\n\n` +
+        `Members who leave will receive a farewell image card.\n\n` +
+        (customMsg ? `📝 *Custom text:*\n_${customMsg}_\n\n` : `📝 _Using default goodbye card_\n\n`) +
+        `_Placeholders: {user} {group} {count}_${FOOTER}`
+      );
     }
     setGroupSetting(from, "goodbye", false);
-    await reply(`❌ *Goodbye messages* disabled.${FOOTER}`);
+    await reply(`✅ *Goodbye messages* disabled.${FOOTER}`);
   },
 });
 

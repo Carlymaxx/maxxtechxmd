@@ -21,7 +21,7 @@ export function setGroupSetting(jid: string, key: string, val: any) {
 
 registerCommand({
   name: "tagall",
-  aliases: ["everyone", "all"],
+  aliases: ["mentionall"],
   category: "Group",
   description: "Mention all group members in a numbered list",
   groupOnly: true,
@@ -98,7 +98,7 @@ registerCommand({
 
 registerCommand({
   name: "tagadmin",
-  aliases: ["admins", "tagadmins"],
+  aliases: ["tagadmins", "alladmins"],
   category: "Group",
   description: "Mention all group admins in a numbered list",
   groupOnly: true,
@@ -366,14 +366,87 @@ registerCommand({
 });
 
 registerCommand({
-  name: "userid",
-  aliases: ["whois"],
+  name: "whois",
+  aliases: ["userid", "userinfo", "profile"],
   category: "Group",
-  description: "Get user's WhatsApp ID",
-  handler: async ({ sender, msg, reply }) => {
-    const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+  description: "Get detailed info about a mentioned user (or yourself)",
+  handler: async ({ sock, from, sender, msg, groupMetadata, reply }) => {
+    const ctx = msg.message?.extendedTextMessage?.contextInfo;
+    const mentioned = ctx?.mentionedJid?.[0] || ctx?.participant;
     const target = mentioned || sender;
-    await reply(`🔍 *User ID*\n\n📱 JID: \`${target}\`\n📞 Number: \`${target.split("@")[0]}\``);
+    const num = target.split("@")[0];
+
+    const role = (() => {
+      if (!groupMetadata) return "DM";
+      const p = groupMetadata.participants.find((x: any) => x.id === target);
+      if (!p) return "Not in group";
+      return p.admin === "superadmin" ? "Super Admin 👑" : p.admin ? "Admin ⭐" : "Member 👤";
+    })();
+
+    let about = "Hidden / Not set";
+    try {
+      const info = await (sock as any).fetchStatus(target);
+      if (info?.status) about = info.status;
+    } catch {}
+
+    const text =
+      `╔══════════════════════════╗\n` +
+      `║  🔍 *WHO IS THIS?*\n` +
+      `╚══════════════════════════╝\n\n` +
+      `📞 *Number:* +${num}\n` +
+      `🆔 *JID:* \`${target}\`\n` +
+      `🏷️ *Role:* ${role}\n` +
+      `💬 *About:* _${about}_\n\n` +
+      `> _MAXX-XMD_ ⚡`;
+
+    try {
+      const ppUrl = await sock.profilePictureUrl(target, "image");
+      await sock.sendMessage(from, { image: { url: ppUrl }, caption: text, mentions: [target] }, { quoted: msg });
+    } catch {
+      await sock.sendMessage(from, { text, mentions: [target] }, { quoted: msg });
+    }
+  },
+});
+
+registerCommand({
+  name: "listall",
+  aliases: ["members", "listmembers"],
+  category: "Group",
+  description: "List all group members in pages of 80 (.listall 2 for next page)",
+  groupOnly: true,
+  handler: async ({ sock, from, msg, args, groupMetadata, reply }) => {
+    if (!groupMetadata) return reply("❌ Could not fetch group info.");
+    const participants = groupMetadata.participants;
+    const total = participants.length;
+    const chunkSize = 80;
+    const totalPages = Math.ceil(total / chunkSize);
+    const page = Math.max(1, Math.min(parseInt(args[0] || "1", 10), totalPages));
+    const start = (page - 1) * chunkSize;
+    const chunk = participants.slice(start, start + chunkSize);
+    const mentions = chunk.map((p: any) => p.id);
+
+    const lines = chunk.map((p: any, i: number) => {
+      const num = p.id.split("@")[0];
+      const role = p.admin === "superadmin" ? " 👑" : p.admin ? " ⭐" : "";
+      return `${start + i + 1}. @${num}${role}`;
+    });
+
+    const header =
+      `╔══════════════════════════╗\n` +
+      `║  👥 *MEMBER LIST — Page ${page}/${totalPages}*\n` +
+      `╚══════════════════════════╝\n\n` +
+      `📊 *Total:* ${total} members\n` +
+      `📄 *Showing:* ${start + 1}–${start + chunk.length}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+    const footer = page < totalPages
+      ? `\n\n📌 _Type *.listall ${page + 1}* to see the next page_`
+      : `\n\n✅ _That's everyone!_`;
+
+    await sock.sendMessage(from, {
+      text: header + lines.join("\n") + footer + `\n\n> _MAXX-XMD_ ⚡`,
+      mentions,
+    }, { quoted: msg });
   },
 });
 
@@ -395,33 +468,6 @@ registerCommand({
     } catch {
       await reply(`📊 *Poll: ${question}*\n\n${options.map((o, i) => `${i + 1}. ${o}`).join("\n")}\n\n_Reply with the number of your choice!_`);
     }
-  },
-});
-
-registerCommand({
-  name: "welcome",
-  aliases: ["setwelcome", "welcomemessage", "welcomeon", "welcomeoff"],
-  category: "Group",
-  description: "Toggle or set welcome message (admins only)",
-  groupOnly: true,
-  adminOnly: true,
-  handler: async ({ from, args, reply }) => {
-    const arg = args[0]?.toLowerCase();
-    if (arg === "on") {
-      setGroupSetting(from, "welcome", true);
-      return reply("✅ Welcome messages *enabled*!");
-    }
-    if (arg === "off") {
-      setGroupSetting(from, "welcome", false);
-      return reply("✅ Welcome messages *disabled*!");
-    }
-    const text = args.join(" ");
-    if (text) {
-      setGroupSetting(from, "welcomeText", text);
-      return reply(`✅ Welcome message set to:\n\n_${text}_`);
-    }
-    const current = getGroupSetting(from, "welcome", false);
-    await reply(`ℹ️ Welcome messages are *${current ? "on" : "off"}*.\n\nUse: .welcome on/off\nOr: .welcome Your message here`);
   },
 });
 

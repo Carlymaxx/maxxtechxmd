@@ -578,80 +578,164 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
   sock.ev.on("group-participants.update", async ({ id, participants, action }) => {
     try {
       const settings = loadSettings();
+      const gs = getGroupSettings(id);
       const meta = await sock.groupMetadata(id).catch(() => null);
       const groupName = meta?.subject || "the group";
       const memberCount = meta?.participants?.length || 0;
-      const groupDesc = meta?.desc ? `\n📋 _${meta.desc.slice(0, 80)}_` : "";
+      const groupDesc = meta?.desc?.slice(0, 80) || "";
       const now = new Date();
       const dateStr = now.toLocaleDateString("en-KE", { day: "2-digit", month: "short", year: "numeric" });
       const timeStr = now.toLocaleTimeString("en-KE", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Africa/Nairobi" });
       const botName = settings.botName || "MAXX-XMD";
 
-      for (const participant of participants) {
-        const tag = `@${participant.replace("@s.whatsapp.net", "")}`;
+      // Check: per-group setting takes priority, then global toggle
+      const welcomeOn = gs.welcome ?? settings.welcomeMessage ?? false;
+      const goodbyeOn = gs.goodbye ?? settings.goodbyeMessage ?? false;
+
+      for (const _p of participants) {
+        const participant: string = typeof _p === "string" ? _p : (_p as any).id ?? String(_p);
+        const num = participant.replace("@s.whatsapp.net", "");
+        const tag = `@${num}`;
 
         // ── WELCOME ────────────────────────────────────────────────────────
-        if (action === "add" && settings.welcomeMessage) {
-          const customText = (settings as any).welcomeText;
-          const text = customText
-            ? customText
-                .replace(/@user/g, tag)
-                .replace(/@group/g, `*${groupName}*`)
-                .replace(/@desc/g, meta?.desc || "")
-                .replace(/@count/g, String(memberCount))
+        if (action === "add" && welcomeOn) {
+          const rawCustom = gs.welcomeMsg || (settings as any).welcomeText || "";
+          const text = rawCustom
+            ? rawCustom
+                .replace(/\{user\}|@user/g, tag)
+                .replace(/\{group\}|@group/g, `*${groupName}*`)
+                .replace(/\{desc\}|@desc/g, groupDesc)
+                .replace(/\{count\}|@count/g, String(memberCount))
             :
               `╔══════════════════════════╗\n` +
-              `║  🎉 *WELCOME TO THE GROUP!* 🎉\n` +
+              `║  🎉 *WELCOME!* 🎉\n` +
               `╚══════════════════════════╝\n\n` +
-              `👋 Hey ${tag}!\n\n` +
-              `You're now member *#${memberCount}* of *${groupName}* 🏆\n` +
-              groupDesc + `\n\n` +
+              `👋 Hey ${tag}! Welcome to *${groupName}* 🏆\n\n` +
+              (groupDesc ? `📋 _${groupDesc}_\n\n` : "") +
+              `👥 You are member *#${memberCount}*\n` +
               `📅 Joined: *${dateStr}* at *${timeStr}*\n\n` +
               `✅ *Quick tips:*\n` +
-              `• Type *.menu* to explore ${memberCount > 1 ? "580+" : ""} commands\n` +
+              `• Type *.menu* to see all commands\n` +
               `• Be respectful to all members\n` +
               `• Have fun! 🔥\n\n` +
               `> _${botName}_ ⚡`;
 
-          // Try to fetch profile picture and send as image
           try {
-            const ppUrl = await sock.profilePictureUrl(participant, "image");
-            await sock.sendMessage(id, {
-              image: { url: ppUrl },
-              caption: text,
-              mentions: [participant],
-            });
+            const ppUrl = await sock.profilePictureUrl(participant, "image") as string;
+            const ppBuf = await fetch(ppUrl as string).then(r => r.arrayBuffer());
+            const sharp = (await import("sharp")).default;
+            // Build a welcome card: circular profile pic + colored banner
+            const SIZE = 400;
+            const BANNER = 120;
+            const circleClip = Buffer.from(
+              `<svg width="${SIZE}" height="${SIZE}"><circle cx="${SIZE/2}" cy="${SIZE/2}" r="${SIZE/2}" fill="white"/></svg>`
+            );
+            const ppCircle = await sharp(Buffer.from(ppBuf))
+              .resize(SIZE, SIZE, { fit: "cover" })
+              .composite([{ input: circleClip, blend: "dest-in" }])
+              .png()
+              .toBuffer();
+            // Final card: dark background 600x700
+            const W = 600, H = 700;
+            const bannerY = H - BANNER;
+            const safeGroup = groupName.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").slice(0, 40);
+            const svg =
+              `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">` +
+              `<defs>` +
+              `<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">` +
+              `<stop offset="0%" style="stop-color:#0f2027"/>` +
+              `<stop offset="50%" style="stop-color:#203a43"/>` +
+              `<stop offset="100%" style="stop-color:#2c5364"/>` +
+              `</linearGradient>` +
+              `<linearGradient id="bn" x1="0%" y1="0%" x2="100%" y2="0%">` +
+              `<stop offset="0%" style="stop-color:#00b09b"/>` +
+              `<stop offset="100%" style="stop-color:#96c93d"/>` +
+              `</linearGradient>` +
+              `</defs>` +
+              `<rect width="${W}" height="${H}" fill="url(#bg)" rx="20"/>` +
+              `<rect y="${bannerY}" width="${W}" height="${BANNER}" fill="url(#bn)"/>` +
+              `<rect y="${bannerY}" width="${W}" height="4" fill="white" opacity="0.3"/>` +
+              `<text x="${W/2}" y="50" text-anchor="middle" fill="#00ffcc" font-family="Arial" font-size="22" font-weight="bold">WELCOME!</text>` +
+              `<text x="${W/2}" y="${bannerY + 38}" text-anchor="middle" fill="white" font-family="Arial" font-size="18" font-weight="bold">${safeGroup}</text>` +
+              `<text x="${W/2}" y="${bannerY + 65}" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-family="Arial" font-size="14">Member #${memberCount} - ${dateStr}</text>` +
+              `<text x="${W/2}" y="${bannerY + 90}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="Arial" font-size="12">Powered by ${botName}</text>` +
+              `</svg>`;
+            const ppTop = Math.floor((H - BANNER) / 2 - SIZE / 2);
+            const ppLeft = Math.floor((W - SIZE) / 2);
+            const card = await sharp(Buffer.from(svg))
+              .composite([{ input: ppCircle, top: ppTop, left: ppLeft }])
+              .jpeg({ quality: 90 })
+              .toBuffer();
+            await sock.sendMessage(id, { image: card, caption: text, mentions: [participant] });
           } catch {
-            // No profile pic — send text only
+            // Fallback: send text only
             await sock.sendMessage(id, { text, mentions: [participant] });
           }
         }
 
         // ── GOODBYE ────────────────────────────────────────────────────────
-        if (action === "remove" && settings.goodbyeMessage) {
-          const customText = (settings as any).goodbyeText;
-          const text = customText
-            ? customText
-                .replace(/@user/g, tag)
-                .replace(/@group/g, `*${groupName}*`)
-                .replace(/@count/g, String(memberCount))
+        if (action === "remove" && goodbyeOn) {
+          const rawCustom = gs.goodbyeMsg || (settings as any).goodbyeText || "";
+          const text = rawCustom
+            ? rawCustom
+                .replace(/\{user\}|@user/g, tag)
+                .replace(/\{group\}|@group/g, `*${groupName}*`)
+                .replace(/\{count\}|@count/g, String(memberCount))
             :
               `╔══════════════════════════╗\n` +
-              `║  👋 *FAREWELL MESSAGE* 👋\n` +
+              `║  👋 *FAREWELL* 👋\n` +
               `╚══════════════════════════╝\n\n` +
               `😢 ${tag} has left *${groupName}*\n\n` +
               `👥 Members remaining: *${memberCount}*\n` +
-              `📅 Left on: *${dateStr}* at *${timeStr}*\n\n` +
+              `📅 Left: *${dateStr}* at *${timeStr}*\n\n` +
               `_We'll miss you! Come back anytime_ 💙\n\n` +
               `> _${botName}_ ⚡`;
 
           try {
-            const ppUrl = await sock.profilePictureUrl(participant, "image");
-            await sock.sendMessage(id, {
-              image: { url: ppUrl },
-              caption: text,
-              mentions: [participant],
-            });
+            const ppUrl = await sock.profilePictureUrl(participant, "image") as string;
+            const ppBuf = await fetch(ppUrl as string).then(r => r.arrayBuffer());
+            const sharp = (await import("sharp")).default;
+            const SIZE = 400;
+            const BANNER = 120;
+            const W = 600, H = 700;
+            const circleClip = Buffer.from(
+              `<svg width="${SIZE}" height="${SIZE}"><circle cx="${SIZE/2}" cy="${SIZE/2}" r="${SIZE/2}" fill="white"/></svg>`
+            );
+            const ppCircle = await sharp(Buffer.from(ppBuf))
+              .resize(SIZE, SIZE, { fit: "cover" })
+              .composite([{ input: circleClip, blend: "dest-in" }])
+              .png()
+              .toBuffer();
+            const bannerY2 = H - BANNER;
+            const safeGroup2 = groupName.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").slice(0, 40);
+            const svg =
+              `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">` +
+              `<defs>` +
+              `<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">` +
+              `<stop offset="0%" style="stop-color:#1c1c2e"/>` +
+              `<stop offset="50%" style="stop-color:#2d2d44"/>` +
+              `<stop offset="100%" style="stop-color:#1a1a2e"/>` +
+              `</linearGradient>` +
+              `<linearGradient id="bn" x1="0%" y1="0%" x2="100%" y2="0%">` +
+              `<stop offset="0%" style="stop-color:#f7971e"/>` +
+              `<stop offset="100%" style="stop-color:#ffd200"/>` +
+              `</linearGradient>` +
+              `</defs>` +
+              `<rect width="${W}" height="${H}" fill="url(#bg)" rx="20"/>` +
+              `<rect y="${bannerY2}" width="${W}" height="${BANNER}" fill="url(#bn)"/>` +
+              `<rect y="${bannerY2}" width="${W}" height="4" fill="white" opacity="0.3"/>` +
+              `<text x="${W/2}" y="50" text-anchor="middle" fill="#ffd200" font-family="Arial" font-size="22" font-weight="bold">GOODBYE</text>` +
+              `<text x="${W/2}" y="${bannerY2 + 38}" text-anchor="middle" fill="white" font-family="Arial" font-size="18" font-weight="bold">${safeGroup2}</text>` +
+              `<text x="${W/2}" y="${bannerY2 + 65}" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-family="Arial" font-size="14">${memberCount} members remaining - ${dateStr}</text>` +
+              `<text x="${W/2}" y="${bannerY2 + 90}" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-family="Arial" font-size="12">Powered by ${botName}</text>` +
+              `</svg>`;
+            const ppTop2 = Math.floor((H - BANNER) / 2 - SIZE / 2);
+            const ppLeft2 = Math.floor((W - SIZE) / 2);
+            const card = await sharp(Buffer.from(svg))
+              .composite([{ input: ppCircle, top: ppTop2, left: ppLeft2 }])
+              .jpeg({ quality: 90 })
+              .toBuffer();
+            await sock.sendMessage(id, { image: card, caption: text, mentions: [participant] });
           } catch {
             await sock.sendMessage(id, { text, mentions: [participant] });
           }

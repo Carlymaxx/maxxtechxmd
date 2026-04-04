@@ -758,7 +758,7 @@ registerCommand({
 
 registerCommand({
   name: "everyone",
-  aliases: ["all", "mentionall"],
+  aliases: ["all", "tageveryone"],
   category: "Group",
   description: "Mention all group members with a message",
   groupOnly: true,
@@ -776,7 +776,7 @@ registerCommand({
 
 registerCommand({
   name: "listadmins",
-  aliases: ["admins", "getadmins"],
+  aliases: ["admins", "getadmins", "showadmins"],
   category: "Group",
   description: "List all group admins",
   groupOnly: true,
