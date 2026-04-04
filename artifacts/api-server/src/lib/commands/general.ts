@@ -603,24 +603,24 @@ registerCommand({
       // Stop typing
       try { await sock.sendPresenceUpdate("paused", from); } catch {}
 
+      // Message 1: instructions only
       await sock.sendMessage(from, {
         text:
           `┌─────────────────────────┐\n` +
           `│  🔑 *YOUR PAIRING CODE*  │\n` +
           `└─────────────────────────┘\n\n` +
           `📱 *Number:* +${phone}\n\n` +
-          `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-          `        *${pairingCode}*\n` +
-          `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-          `👆 *Long-press the code above to copy it*\n\n` +
           `📋 *How to link:*\n` +
           `1️⃣ WhatsApp → Settings\n` +
           `2️⃣ Linked Devices → Link a Device\n` +
           `3️⃣ Link with phone number\n` +
-          `4️⃣ Enter the code above\n\n` +
-          `⏱️ _Code expires in ~60 seconds_\n\n` +
+          `4️⃣ Copy & enter the code below 👇\n\n` +
+          `⏱️ _Expires in ~60 seconds_\n\n` +
           `> _MAXX-XMD_ ⚡`,
       }, { quoted: msg });
+
+      // Message 2: ONLY the code — long-press this to copy just the code
+      await sock.sendMessage(from, { text: pairingCode });
 
     } catch (e: any) {
       try { await sock.sendPresenceUpdate("paused", from); } catch {}
