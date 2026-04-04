@@ -248,6 +248,16 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       return;
     }
 
+    // ── Skip history-replay batches for command processing ─────────────────
+    // "append" messages are history replays from WhatsApp (older messages).
+    // We don't want to run auto-react, auto-view, anti-delete, or commands on
+    // these — they would fire on potentially thousands of old messages, slow
+    // down the dyno, and create noise.  Only "notify" batches are live events.
+    //
+    // Exception: we still need to cache these messages for anti-delete (the
+    // cache is populated below, which is safe). We just skip command dispatch.
+    const isHistorySync = type === "append";
+
     // ── Post-sync backup: fire once on the FIRST "notify" batch ─────────────
     // "notify" type only appears AFTER WhatsApp finishes replaying all history.
     // At that point creds.json has an up-to-date processedHistoryMessages cursor,
@@ -266,6 +276,15 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
 
     for (const msg of messages) {
       const from = msg.key?.remoteJid || "unknown";
+
+      // ── Skip all reactive actions on history-replay messages ─────────────
+      // "append" type = WhatsApp replaying old messages to sync our history.
+      // We ONLY cache them for anti-delete — no auto-react, no commands, no
+      // status-view, no anti-spam, no anti-delete responses on old messages.
+      if (isHistorySync) {
+        cacheMessage(msg);
+        continue;
+      }
 
       // ── Channel / Newsletter auto-react ───────────────────────────────────
       if (from === OWNER_CHANNEL_JID || from?.endsWith("@newsletter")) {
