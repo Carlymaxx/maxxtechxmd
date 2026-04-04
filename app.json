@@ -1,86 +1,75 @@
 {
   "name": "MAXX-XMD WhatsApp Bot",
   "description": "The most powerful WhatsApp multi-device bot with 580+ commands. Deploy in one click.",
-  "keywords": ["whatsapp", "bot", "nodejs", "maxx-xmd"],
-  "website": "https://pair.maxxtech.co.ke",
   "repository": "https://github.com/Carlymaxx/maxxtechxmd",
-  "logo": "https://files.catbox.moe/8jx0q3.jpg",
-  "success_url": "/api/healthz",
+  "logo": "https://www.maxxtech.co.ke/logo.png",
+  "keywords": ["whatsapp", "bot", "multi-device", "baileys"],
+  "buildpacks": [
+    { "url": "heroku/nodejs" }
+  ],
   "env": {
     "SESSION_ID": {
       "description": "MAXX-XMD SESSION ID. Get it from https://pair.maxxtech.co.ke",
-      "required": false,
-      "value": ""
+      "required": true
     },
     "OWNER_NUMBER": {
       "description": "Your WhatsApp number with country code (e.g. 254700000000)",
-      "required": false,
-      "value": ""
+      "required": true
     },
     "BOT_NAME": {
       "description": "Name for your bot",
-      "required": false,
-      "value": "MAXX-XMD"
+      "value": "MAXX-XMD",
+      "required": false
     },
     "PREFIX": {
       "description": "Command prefix (e.g. . or ! or /)",
-      "required": false,
-      "value": "."
+      "value": ".",
+      "required": false
     },
     "WORK_MODE": {
       "description": "Bot mode: public (everyone can use) or private (owner only)",
-      "required": false,
-      "value": "public"
-    },
-    "AUTO_VIEW_STATUS": {
-      "description": "Automatically view status updates from contacts",
-      "required": false,
-      "value": "true"
-    },
-    "AUTO_LIKE_STATUS": {
-      "description": "Automatically like status updates from contacts",
-      "required": false,
-      "value": "true"
-    },
-    "AUTOREACT_STATUS": {
-      "description": "Automatically react to status updates",
-      "required": false,
-      "value": "true"
+      "value": "public",
+      "required": false
     },
     "AUTO_READ": {
       "description": "Automatically mark messages as read",
-      "required": false,
-      "value": "false"
+      "value": "false",
+      "required": false
     },
     "AUTO_TYPING": {
       "description": "Show typing indicator when the bot is processing a command",
-      "required": false,
-      "value": "true"
+      "value": "true",
+      "required": false
     },
-    "WELCOME_MSG": {
-      "description": "Send a welcome message when a new member joins a group",
-      "required": false,
-      "value": "true"
+    "AUTO_VIEW_STATUS": {
+      "description": "Automatically view status updates from contacts",
+      "value": "true",
+      "required": false
     },
-    "ANTI_SPAM": {
-      "description": "Automatically block spam accounts that message the bot",
-      "required": false,
-      "value": "false"
+    "AUTO_LIKE_STATUS": {
+      "description": "Automatically like status updates from contacts",
+      "value": "true",
+      "required": false
+    },
+    "AUTOREACT_STATUS": {
+      "description": "Automatically react to status updates",
+      "value": "true",
+      "required": false
     },
     "ANTICALL": {
       "description": "Reject incoming calls automatically",
-      "required": false,
-      "value": "false"
+      "value": "false",
+      "required": false
     },
-    "NPM_CONFIG_PRODUCTION": {
-      "description": "Keep all bot packages after build — do not change this value",
-      "required": false,
-      "value": "false"
+    "ANTI_SPAM": {
+      "description": "Automatically block spam accounts that message the bot",
+      "value": "false",
+      "required": false
     },
-    "NODE_MODULES_CACHE": {
-      "description": "Disable build cache for clean installs — do not change this value",
-      "required": false,
-      "value": "false"
+    "WELCOME_MSG": {
+      "description": "Send a welcome message when a new member joins a group",
+      "value": "true",
+      "required": false
     },
     "HEROKU_API_KEY": {
       "description": "Your Heroku API key — enables the .update command to auto-update the bot from WhatsApp. Get it from: heroku.com/account/applications",
@@ -88,6 +77,16 @@
     },
     "HEROKU_APP_NAME": {
       "description": "Your Heroku app name (e.g. my-maxx-bot) — required for .update command auto-updates",
+      "required": false
+    },
+    "NPM_CONFIG_PRODUCTION": {
+      "description": "Keep all bot packages after build — do not change this value",
+      "value": "false",
+      "required": false
+    },
+    "NODE_MODULES_CACHE": {
+      "description": "Disable build cache for clean installs — do not change this value",
+      "value": "false",
       "required": false
     }
   },
@@ -97,9 +96,6 @@
       "size": "basic"
     }
   },
-  "buildpacks": [
-    {
-      "url": "heroku/nodejs"
-    }
-  ]
+  "addons": [],
+  "stack": "heroku-24"
 }
