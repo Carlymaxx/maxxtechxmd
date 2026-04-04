@@ -586,7 +586,7 @@ registerCommand({
     // after generatePairingCode's 3s+ wait, msg may be stale with @lid from
     const send = (text: string) =>
       sock.sendMessage(from, { text }).catch((e: any) =>
-        logger.error({ err: e, from }, "⚠️ pair: sendMessage failed")
+        console.error(`[pair] sendMessage failed: ${(e as any)?.message}`)
       );
 
     if (!phone || phone.length < 7) {
@@ -602,15 +602,15 @@ registerCommand({
     }
 
     try { await sock.sendPresenceUpdate("composing", from); } catch {}
-    logger.info({ phone, from }, "🔑 pair: generating code");
+    console.log(`[pair] generating code for ${phone} from=${from}`);
 
     let pairingCode = "";
     try {
       const { generatePairingCode } = await import("../baileys.js");
       pairingCode = await generatePairingCode(phone);
-      logger.info({ phone, code: pairingCode }, "🔑 pair: code obtained");
+      console.log(`[pair] code obtained: ${pairingCode}`);
     } catch (e: any) {
-      logger.error({ err: e, phone }, "🔑 pair: generatePairingCode failed — sending fallback");
+      console.error(`[pair] generatePairingCode failed: ${(e as any)?.message}`);
       try { await sock.sendPresenceUpdate("paused", from); } catch {}
       return send(
         `🔑 *Get Your Pairing Code*\n\n` +
@@ -636,7 +636,7 @@ registerCommand({
       `Copy the code above ↑ and paste it in WhatsApp → Linked Devices → Link with phone number\n\n` +
       `> _MAXX-XMD_ ⚡`
     );
-    logger.info({ phone, from }, "🔑 pair: code message sent");
+    console.log(`[pair] code message sent to ${from}`);
   },
 });
 
