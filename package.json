@@ -7,7 +7,7 @@
     "node": "20.x"
   },
   "scripts": {
-    "heroku-prebuild": "npm install -g pnpm@10.26.1",
+    "heroku-prebuild": "corepack enable && corepack prepare pnpm@10.26.1 --activate",
     "heroku-postbuild": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/api-server run build",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "typecheck:libs": "tsc --build",
