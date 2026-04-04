@@ -54,6 +54,7 @@ const COMMAND_FILES = [
   "artifacts/api-server/src/lib/commands/sticker.ts",
   "artifacts/api-server/src/lib/commands/tools.ts",
   "artifacts/api-server/src/lib/commands/uploader.ts",
+  "artifacts/api-server/src/lib/commands/kenya.ts",
   "artifacts/api-server/src/lib/commands.ts",
 ];
 
