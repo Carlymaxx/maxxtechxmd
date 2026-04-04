@@ -1,14 +1,11 @@
 import { registerCommand } from "./types";
-import { loadSettings, saveSettings, WORKSPACE_ROOT } from "../botState";
+import { loadSettings, saveSettings, WORKSPACE_ROOT, loadSudoList, saveSudoList } from "../botState";
 import fs from "fs";
 import path from "path";
 
-const SUDO_FILE = path.join(WORKSPACE_ROOT, "sudo.json");
-function loadSudo(): string[] {
-  try { if (fs.existsSync(SUDO_FILE)) return JSON.parse(fs.readFileSync(SUDO_FILE, "utf8")); } catch {}
-  return [];
-}
-function saveSudo(list: string[]) { fs.writeFileSync(SUDO_FILE, JSON.stringify(list, null, 2)); }
+// Sudo helpers — backed by shared in-memory cache in botState.ts
+function loadSudo(): string[] { return loadSudoList(); }
+function saveSudo(list: string[]) { saveSudoList(list); }
 
 const BADWORD_FILE = path.join(WORKSPACE_ROOT, "badwords.json");
 function loadBadwords(): string[] {
