@@ -48,5 +48,13 @@ Thumbs.db
 .cache/
 .local/
 
-# pnpm lockfile — excluded so Heroku buildpack uses npm (postbuild installs pnpm)
-pnpm-lock.yaml
+# Runtime-generated bot state (recreated from env vars on each deploy)
+auth_info_baileys/
+settings.json
+sudo.json
+badwords.json
+confessions.json
+
+# Log files
+*.log
+logs/
