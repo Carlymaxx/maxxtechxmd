@@ -171,21 +171,27 @@ export function getLiveSessions(): { sessionId: string; jid: string }[] {
   return [..._liveSessionJids.entries()].map(([sessionId, jid]) => ({ sessionId, jid }));
 }
 
-// ── Command usage counter ─────────────────────────────────────────────────────
-const USAGE_FILE = path.join(WORKSPACE_ROOT, "usage.json");
-function loadUsage(): { total: number } {
-  try { return JSON.parse(fs.readFileSync(USAGE_FILE, "utf8")); } catch { return { total: 0 }; }
+// ── Sudo list — shared cache so settings.ts and commands.ts stay in sync ──────
+const SUDO_FILE_PATH = path.join(WORKSPACE_ROOT, "sudo.json");
+let _sudoList: string[] | null = null;
+export function loadSudoList(): string[] {
+  if (_sudoList !== null) return _sudoList;
+  try { if (fs.existsSync(SUDO_FILE_PATH)) _sudoList = JSON.parse(fs.readFileSync(SUDO_FILE_PATH, "utf8")); }
+  catch {}
+  if (_sudoList === null) _sudoList = [];
+  return _sudoList;
 }
-export function incrementCmdUsage(): void {
-  try {
-    const u = loadUsage();
-    u.total = (u.total || 0) + 1;
-    fs.writeFileSync(USAGE_FILE, JSON.stringify(u));
-  } catch {}
+export function saveSudoList(list: string[]): void {
+  _sudoList = list; // update cache immediately
+  try { fs.writeFileSync(SUDO_FILE_PATH, JSON.stringify(list, null, 2)); } catch {}
 }
-export function getCmdUsageCount(): number {
-  return loadUsage().total;
-}
+
+// ── Command usage counter — in-memory only (no disk write per command) ───────
+// Disk writes on every command add 50-200ms latency on Heroku's network FS.
+// Count is lost on restart (acceptable — it's a dashboard stat, not critical).
+let _cmdUsageCount = 0;
+export function incrementCmdUsage(): void { _cmdUsageCount++; }
+export function getCmdUsageCount(): number { return _cmdUsageCount; }
 
 export function ensureAuthDir(): void {
   if (!fs.existsSync(AUTH_DIR)) {
