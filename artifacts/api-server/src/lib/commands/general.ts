@@ -71,30 +71,29 @@ registerCommand({
   description: "Check bot response speed",
   handler: async ({ senderName, reply }) => {
     const start = Date.now();
-    await reply("⏳ Checking ping... 🔍");
+    await reply("⏳ _Pinging..._");
     const ms = Date.now() - start;
-    await reply(`╔══════════════════════╗
-║  *🌈 MAXX-XMD STATUS* 🌈
-╚══════════════════════╝
+    const speed = ms < 100 ? "🚀 Lightning Fast" : ms < 300 ? "⚡ Very Fast" : ms < 600 ? "✅ Good" : ms < 1000 ? "🟡 Average" : "🔴 Slow";
+    const bar = "█".repeat(Math.min(10, Math.ceil(ms / 100))).padEnd(10, "░");
+    await reply(
+`┌─────────────────────────┐
+│   ⚡ *MAXX-XMD PING* ⚡   │
+└─────────────────────────┘
 
-👋 Hello, *${senderName}*!
-🚀 Bot is *ONLINE!*
-🟢 *Status:* Active & Running
+👋 Hey *${senderName}*!
 
-⚡ *Ping:* ${ms}ms
-📡 *Network:* Stable 🔥
+🟢 *Status* ────── ONLINE
+🤖 *Bot* ─────── MAXX-XMD
+📡 *Server* ────── ACTIVE
 
-━━━━━━━━━━━━━━━━━━━━━━
-🤖 *Get this bot:*
-https://pair.maxxtech.co.ke
+━━━━━━━━━━━━━━━━━━━━━━━━━
+⏱️ *Response Time*
+   [${bar}] ${ms}ms
+   ${speed}
+━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 *Support group:*
-https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ
-
-📢 *Our channel:*
-https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J
-
-💖 Thanks for using *MAXX-XMD*!`);
+> _Powered by MAXX-XMD_ ⚡`
+    );
   },
 });
 
