@@ -23,7 +23,7 @@ registerCommand({
   name: "tagall",
   aliases: ["everyone", "all", "listall", "members", "listmembers", "mentionall", "tageveryone"],
   category: "Group",
-  description: "Tag/list all group members — admins first, paginated 80 per page. Use .tagall 2 for next page",
+  description: "Tag all group members in one message — admins first",
   groupOnly: true,
   handler: async ({ sock, from, msg, args, groupMetadata, reply }) => {
     if (!groupMetadata) return reply("❌ Could not fetch group info.");
@@ -38,55 +38,31 @@ registerCommand({
     });
 
     const adminCount = sorted.filter((p: any) => p.admin).length;
+    const caption = args.join(" ") || "👋 Hey everyone!";
 
-    // Detect page number vs caption
-    const firstArg = args[0];
-    const isPageNum = firstArg && /^\d+$/.test(firstArg);
-    const pageNum = isPageNum ? parseInt(firstArg) : 1;
-    const caption = (isPageNum ? args.slice(1) : args).join(" ") || "👋 Hey everyone!";
-
-    const chunkSize = 80;
-    const totalPages = Math.ceil(total / chunkSize);
-    const page = Math.max(1, Math.min(pageNum, totalPages));
-    const start = (page - 1) * chunkSize;
-
-    // Build fully-sorted numbered lines
-    const allLines = sorted.map((p: any, i: number) => {
+    const lines = sorted.map((p: any, i: number) => {
       const num = p.id.split("@")[0];
       const badge = p.admin === "superadmin"
         ? " 👑 *SUPER ADMIN*"
         : p.admin
           ? " ⭐ *ADMIN*"
           : "";
-      return { jid: p.id, line: `${i + 1}. @${num}${badge}` };
-    });
+      return `${i + 1}. @${num}${badge}`;
+    }).join("\n");
 
-    const pageItems = allLines.slice(start, start + chunkSize);
-    const mentions = pageItems.map((x: any) => x.jid);
-    const lines = pageItems.map((x: any) => x.line).join("\n");
+    const mentions = sorted.map((p: any) => p.id);
 
-    const header = page === 1
-      ? `╔══════════════════════════╗\n` +
-        `║  👥 *GROUP MEMBERS*\n` +
-        `╚══════════════════════════╝\n\n` +
-        `📢 ${caption}\n\n` +
-        `👤 *Total Members:* ${total}\n` +
-        `👑 *Admins:* ${adminCount}\n` +
-        `📄 *Page:* ${page}/${totalPages}\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`
-      : `╔══════════════════════════╗\n` +
-        `║  👥 *MEMBERS — Page ${page}/${totalPages}*\n` +
-        `╚══════════════════════════╝\n\n` +
-        `📄 *Showing:* ${start + 1}–${start + pageItems.length} of ${total}\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-
-    const remaining = total - start - pageItems.length;
-    const footer = page < totalPages
-      ? `\n\n📌 _Type *.tagall ${page + 1}* to see the next ${Math.min(chunkSize, remaining)} members_`
-      : `\n\n✅ _That's all ${total} members!_`;
+    const header =
+      `╔══════════════════════════╗\n` +
+      `║  👥 *GROUP MEMBERS*\n` +
+      `╚══════════════════════════╝\n\n` +
+      `📢 ${caption}\n\n` +
+      `👤 *Total Members:* ${total}\n` +
+      `👑 *Admins:* ${adminCount}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
     await sock.sendMessage(from, {
-      text: header + lines + footer + `\n\n> _MAXX-XMD_ ⚡`,
+      text: header + lines + `\n\n✅ _That's all ${total} members!_\n\n> _MAXX-XMD_ ⚡`,
       mentions,
     }, { quoted: msg });
   },
