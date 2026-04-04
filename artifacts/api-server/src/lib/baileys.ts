@@ -391,7 +391,11 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       // ── Auto-react to every incoming message ─────────────────────────────
       // Groups: ON by default, but can be toggled off per-group with .groupreact off
       // DMs: only if global autoreaction setting is ON
-      if (!msg.key.fromMe) {
+      // CRITICAL: Only react when the message actually decrypted (body is non-empty).
+      // Reacting to undecrypted messages sends mapret's sender-key to the group —
+      // but if that key hasn't been distributed yet, group members see an infinite
+      // "Waiting for this message" loop for every reaction mapret sends.
+      if (!msg.key.fromMe && body.trim()) {
         try {
           const settings = loadSettings();
           const isGroup = from.endsWith("@g.us");
