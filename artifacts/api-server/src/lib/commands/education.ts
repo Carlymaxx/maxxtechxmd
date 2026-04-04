@@ -453,6 +453,37 @@ registerCommand({
 });
 
 registerCommand({
+  name: "topography",
+  aliases: ["topo", "terrain", "elevation"],
+  category: "Education",
+  description: "Get a random topography / Earth terrain fact",
+  handler: async ({ reply }) => {
+    const facts = [
+      "Mount Everest (8,848 m) is the highest point on Earth above sea level, but Mauna Kea in Hawaii is the tallest mountain from base to peak at over 10,000 m — most of it underwater.",
+      "The Mariana Trench is the deepest point on Earth at ~11,034 m below sea level. Mount Everest could fit inside it with over 2 km to spare.",
+      "The Dead Sea shoreline is 430 m below sea level — the lowest exposed land surface on Earth.",
+      "Earth's longest mountain range is the Mid-Ocean Ridge, stretching ~65,000 km beneath the oceans.",
+      "The Tibetan Plateau, often called 'the Roof of the World', has an average elevation of over 4,500 m across an area twice the size of France.",
+      "Challenger Deep in the Pacific Ocean is so deep that light cannot penetrate it — pressure there is over 1,000 times that at the surface.",
+      "The Andes is the world's longest above-water mountain range, running ~7,000 km along South America's west coast.",
+      "Africa's Great Rift Valley is a 6,000 km crack in the Earth's crust where the continent is slowly splitting apart — in ~10 million years it will form a new ocean.",
+      "Olympus Mons on Mars is the tallest volcano in the solar system at 21 km — nearly 2.5× the height of Mount Everest.",
+      "Erosion by the Colorado River carved the Grand Canyon to depths of over 1,800 m in just ~5–6 million years.",
+      "Iceland sits on the Mid-Atlantic Ridge — one of the few places on Earth where a tectonic plate boundary is visible above sea level.",
+      "The Amazon Basin is so flat that over 5 million km² of rainforest sits at an elevation below 200 m.",
+      "Over 70% of Earth's surface is covered by ocean, with an average ocean depth of 3,688 m.",
+      "The Ethiopian Highlands contain 70% of Africa's land above 2,000 m elevation, earning the name 'Water Tower of Africa'.",
+      "New Zealand's Southern Alps were formed by the collision of the Pacific and Australian tectonic plates and continue to rise ~7 mm per year.",
+      "Saharan sand dunes can reach 180 m in height — taller than many skyscrapers.",
+      "Earth's crust is thinnest under the oceans (~5–10 km) and thickest under mountain ranges (~70 km).",
+      "The Congo Basin is the world's second-largest tropical rainforest and sits in a giant depression that was once an inland sea.",
+    ];
+    const fact = facts[Math.floor(Math.random() * facts.length)];
+    await reply(`🏔️ *Topography Fact*\n\n${fact}${FOOTER}`);
+  },
+});
+
+registerCommand({
   name: "bodyfact",
   aliases: ["humanfact", "anatomy"],
   category: "Education",
