@@ -4,6 +4,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import https from "https";
+import http from "http";
 
 const execFileAsync = promisify(execFile);
 
@@ -43,7 +44,7 @@ async function downloadBinary(dest: string): Promise<void> {
         reject(new Error("Too many redirects downloading yt-dlp"));
         return;
       }
-      const mod = url.startsWith("https") ? https : require("http");
+      const mod = url.startsWith("https") ? https : http;
       mod.get(url, { headers: { "User-Agent": "yt-dlp-downloader/1.0" } }, (res: any) => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           res.resume(); // drain
