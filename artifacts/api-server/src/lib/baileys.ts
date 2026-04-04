@@ -434,24 +434,14 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       // Reacting to undecrypted messages sends mapret's sender-key to the group —
       // but if that key hasn't been distributed yet, group members see an infinite
       // "Waiting for this message" loop for every reaction mapret sends.
-      if (!msg.key.fromMe && body.trim()) {
+      // Auto-react — DMs only (groups removed completely)
+      if (!msg.key.fromMe && body.trim() && !from.endsWith("@g.us")) {
         try {
           const settings = loadSettings();
-          const isGroup = from.endsWith("@g.us");
-          let shouldReact: boolean;
-          if (isGroup) {
-            const gs = getGroupSettings(from);
-            // default to true unless explicitly set to false
-            shouldReact = gs.autoreact !== false;
-          } else {
-            shouldReact = !!settings.autoreaction;
-          }
-          if (shouldReact) {
-            const REACT_EMOJIS = ["❤️","🔥","😍","🤩","💯","👀","🎉","⚡","🙏","😂","👏","🥳","💪","🎵","✨"];
+          if (settings.autoreaction) {
+            const REACT_EMOJIS = ["❤️","🔥","😍","🤩","💯","👀","🎉","⚡","🙏","😂","👏","🥳","💪","🎵","✨","🌟","💫","🥰","😎","🤣","🎊","🏆","👑","💎","🚀"];
             const emoji = REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
-            // Fire-and-forget — never block message processing for a react
             sock.sendMessage(from, { react: { text: emoji, key: msg.key } }).catch(() => {});
-            logger.info({ sessionId, from, emoji, isGroup }, "✅ Auto-reacted to message");
           }
         } catch { /* silently skip react errors */ }
       }

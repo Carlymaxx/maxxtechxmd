@@ -319,24 +319,6 @@ registerCommand({
 });
 
 registerCommand({
-  name: "groupreact",
-  aliases: ["autoreactgroup", "greact"],
-  category: "Protection",
-  description: "Toggle auto-reactions in groups — DM only",
-  handler: async ({ from, args, reply, isGroup }) => {
-    if (isGroup) return; // silent — only works in DMs
-    const arg = args[0]?.toLowerCase();
-    if (arg !== "on" && arg !== "off") {
-      const gs = getGroupSettings(from);
-      const current = gs.autoreact !== false ? "ON 🟢" : "OFF 🔴";
-      return reply(`⚡ *Group Auto-React* is currently *${current}*\nUsage: .groupreact on/off${FOOTER}`);
-    }
-    setGroupSetting(from, "autoreact", arg === "on");
-    await reply(`${arg === "on" ? "✅" : "❌"} *Group Auto-React* turned *${arg.toUpperCase()}*${FOOTER}`);
-  },
-});
-
-registerCommand({
   name: "groupsettings",
   aliases: ["gsettings", "gstatus"],
   category: "Protection",
