@@ -1,4 +1,5 @@
 import os from "os";
+import { proto } from "@whiskeysockets/baileys";
 import { registerCommand, commandRegistry } from "./types";
 import { getLiveSessions, getCmdUsageCount } from "../botState";
 
@@ -603,24 +604,41 @@ registerCommand({
       // Stop typing
       try { await sock.sendPresenceUpdate("paused", from); } catch {}
 
-      // Send as a WhatsApp button message — the button tap sends back just the code
-      await (sock as any).sendMessage(from, {
-        text:
-          `🔑 *Pairing Code Generated*\n\n` +
-          `• Number: ${phone}\n` +
-          `• Code: *${pairingCode}*\n\n` +
-          `📋 Copy the code above and paste in WhatsApp pairing.\n\n` +
-          `_Tap button to copy._`,
-        footer: "MAXX-XMD",
-        buttons: [
-          {
-            buttonId: `pair_copy:${pairingCode}`,
-            buttonText: { displayText: "📋 Copy Pairing Code" },
-            type: 1,
+      // Send using native WhatsApp cta_copy interactive message — tapping the button
+      // copies the code directly to the user's clipboard (no bot round-trip needed)
+      const bodyText =
+        `🔑 *Pairing Code Generated*\n\n` +
+        `• Number: ${phone}\n` +
+        `• Code: *${pairingCode}*\n\n` +
+        `📋 Copy the code above and paste in WhatsApp pairing.\n\n` +
+        `_Tap button to copy._`;
+
+      await sock.relayMessage(
+        from,
+        {
+          viewOnceMessage: {
+            message: {
+              interactiveMessage: proto.Message.InteractiveMessage.create({
+                body: { text: bodyText },
+                footer: { text: "MAXX~XMD CODE" },
+                nativeFlowMessage: {
+                  buttons: [
+                    {
+                      name: "cta_copy",
+                      buttonParamsJson: JSON.stringify({
+                        display_text: "📋 Copy Pairing Code",
+                        id: "copy_code",
+                        copy_code: pairingCode,
+                      }),
+                    },
+                  ],
+                },
+              }),
+            },
           },
-        ],
-        headerType: 1,
-      } as any, { quoted: msg });
+        },
+        {}
+      );
 
     } catch (e: any) {
       try { await sock.sendPresenceUpdate("paused", from); } catch {}
