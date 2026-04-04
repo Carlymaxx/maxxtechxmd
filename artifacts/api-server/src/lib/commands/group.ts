@@ -436,31 +436,45 @@ registerCommand({
 
 registerCommand({
   name: "antilink",
-  aliases: ["antilinkmode", "setantilink"],
+  aliases: ["nolink", "linkblock", "antilinkmode", "setantilink"],
   category: "Group",
   description: "Toggle anti-link protection for this group (admin only)",
   groupOnly: true,
   adminOnly: true,
-  handler: async ({ from, args, reply }) => {
+  handler: async ({ sock, from, args, reply }) => {
     const arg = args[0]?.toLowerCase();
     const current = getGroupSetting(from, "antilink", false);
+
+    // Check bot is admin — antilink can't work without it
+    let botIsAdmin = false;
+    try {
+      const meta = await sock.groupMetadata(from);
+      const botJid = sock.user?.id?.replace(/:.*@/, "@") ?? "";
+      botIsAdmin = meta.participants.some(
+        (p: any) => (p.id === botJid || p.id.split(":")[0] + "@s.whatsapp.net" === botJid) && p.admin
+      );
+    } catch {}
+
     if (arg === "on") {
       setGroupSetting(from, "antilink", true);
+      const warning = botIsAdmin ? "" : `\n\n⚠️ *Note:* Make the bot a *group admin* so it can delete links!`;
       return reply(
         `✅ *Anti-Link ENABLED* 🔒\n\n` +
         `Any link sent by a non-admin will be:\n` +
-        `• Automatically *deleted*\n` +
-        `• Sender will be *warned*\n\n` +
-        `_Admins can still share links freely._\n\n> _MAXX-XMD_ ⚡`
+        `• Automatically *deleted* 🗑️\n` +
+        `• Sender will be *warned* ⚠️\n\n` +
+        `_Admins can still share links freely._${warning}\n\n> _MAXX-XMD_ ⚡`
       );
     }
     if (arg === "off") {
       setGroupSetting(from, "antilink", false);
       return reply(`✅ *Anti-Link DISABLED* 🔓\n\nMembers can now share links freely.\n\n> _MAXX-XMD_ ⚡`);
     }
-    const status = current ? "🟢 *ON*" : "🔴 *OFF*";
+    const status = current ? "🟢 *ENABLED*" : "🔴 *DISABLED*";
+    const botStatus = botIsAdmin ? "✅ Bot is admin — can delete links" : "⚠️ Bot needs admin rights to delete links";
     await reply(
-      `🔗 *Anti-Link Status:* ${status}\n\n` +
+      `🔗 *Anti-Link Status:* ${status}\n` +
+      `🤖 *Bot Admin:* ${botStatus}\n\n` +
       `📌 *Usage:*\n` +
       `.antilink on  — enable protection\n` +
       `.antilink off — disable protection\n\n` +

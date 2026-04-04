@@ -41,16 +41,7 @@ async function toggle(args: string[], groupJid: string, key: string, label: stri
   await reply(`${val === "on" ? "✅" : "❌"} *${label}* turned *${val.toUpperCase()}* for this group${FOOTER}`);
 }
 
-// ── Anti-link ─────────────────────────────────────────────────────────────────
-
-registerCommand({
-  name: "antilink",
-  aliases: ["nolink", "linkblock"],
-  category: "Protection",
-  description: "Auto-delete links sent by non-admins (.antilink on/off)",
-  groupOnly: true,
-  handler: async ({ from, args, reply }) => toggle(args, from, "antilink", "Anti-Link", reply),
-});
+// ── Anti-link handled in group.ts (single source of truth) ───────────────────
 
 registerCommand({
   name: "antispam",

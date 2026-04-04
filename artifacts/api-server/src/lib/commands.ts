@@ -1543,20 +1543,49 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
 
   // ── Anti-link: delete messages with URLs in groups ────────────────────────
   if (isGroup && !msg.key.fromMe && body && getGroupSetting(from, "antilink")) {
-    const LINK_RE = /https?:\/\/\S+|www\.\S+\.\S+|wa\.me\/\S+|chat\.whatsapp\.com\/\S+|bit\.ly\/\S+|t\.me\/\S+|youtu\.be\/\S+|discord\.gg\/\S+|tiktok\.com\/\S+|instagram\.com\/\S+/i;
+    const LINK_RE = /https?:\/\/\S+|www\.\S+\.\S+|wa\.me\/\S+|chat\.whatsapp\.com\/\S+|chat\.whatsapp\.com|bit\.ly\/\S+|t\.me\/\S+|youtu\.be\/\S+|discord\.gg\/\S+|tiktok\.com\/\S+|instagram\.com\/\S+|fb\.me\/\S+|twitter\.com\/\S+|x\.com\/\S+|t\.co\/\S+/i;
     if (LINK_RE.test(body)) {
       try {
-        // Use cached metadata — avoids a blocking network call here
         const meta = await getCachedGroupMeta(sock, from);
-        const adminJids = (meta?.participants ?? [])
-          .filter((p: any) => p.admin === "admin" || p.admin === "superadmin")
-          .map((p: any) => p.id);
-        const senderIsAdmin = adminJids.includes(sender);
-        if (!senderIsAdmin) {
+        const participants = meta?.participants ?? [];
+
+        // Check if sender is an admin — admins are exempt
+        const senderIsAdmin = participants.some(
+          (p: any) => p.id === sender && (p.admin === "admin" || p.admin === "superadmin")
+        );
+        if (senderIsAdmin) return; // admins can share links freely
+
+        // Check if bot is admin — needed to delete messages
+        const botJid = (sock.user?.id ?? "").replace(/:.*@/, "@");
+        const botIsAdmin = participants.some(
+          (p: any) =>
+            (p.id === botJid || p.id.replace(/:.*@/, "@") === botJid) &&
+            (p.admin === "admin" || p.admin === "superadmin")
+        );
+
+        const senderTag = `@${sender.replace("@s.whatsapp.net", "")}`;
+
+        if (botIsAdmin) {
+          // Delete the message first
           await sock.sendMessage(from, { delete: msg.key });
-          const senderTag = `@${sender.replace("@s.whatsapp.net", "")}`;
+          // Then warn
           await sock.sendMessage(from, {
-            text: `⛔ *Anti-Link Protection*\n\n${senderTag} links are not allowed in this group!\n\n_Only admins can share links._\n\n> _MAXX-XMD_ ⚡`,
+            text:
+              `⛔ *Anti-Link Protection* 🔒\n\n` +
+              `${senderTag} *links are not allowed* in this group!\n\n` +
+              `🗑️ Your message has been deleted.\n` +
+              `👮 Only admins can share links.\n\n` +
+              `> _MAXX-XMD_ ⚡`,
+            mentions: [sender],
+          });
+        } else {
+          // Bot isn't admin — can't delete, just warn
+          await sock.sendMessage(from, {
+            text:
+              `⚠️ *Anti-Link Warning*\n\n` +
+              `${senderTag} links are not allowed in this group!\n\n` +
+              `_Make the bot a group admin to enable auto-delete._\n\n` +
+              `> _MAXX-XMD_ ⚡`,
             mentions: [sender],
           });
         }
