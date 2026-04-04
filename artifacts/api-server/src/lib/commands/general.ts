@@ -583,21 +583,8 @@ registerCommand({
   handler: async ({ sock, from, msg, args, reply }) => {
     const phone = args[0]?.replace(/\D/g, "");
 
-    // Normalize @lid JIDs to @s.whatsapp.net so sendMessage works
-    const sendTo = from.endsWith("@lid")
-      ? (sock.user?.id?.replace(/:.*@/, "@") ?? from)
-      : from;
-
-    const safeReply = async (text: string) => {
-      try {
-        await sock.sendMessage(sendTo, { text }, { quoted: msg });
-      } catch {
-        try { await sock.sendMessage(sendTo, { text }); } catch { /* silently drop */ }
-      }
-    };
-
     if (!phone || phone.length < 7) {
-      return safeReply(
+      return reply(
         `┌─────────────────────────┐\n` +
         `│  🔗 *PAIR DEVICE*        │\n` +
         `└─────────────────────────┘\n\n` +
@@ -608,37 +595,29 @@ registerCommand({
       );
     }
 
-    // Typing indicator
-    try { await sock.sendPresenceUpdate("composing", sendTo); } catch {}
+    try { await sock.sendPresenceUpdate("composing", from); } catch {}
 
     let pairingCode = "";
     try {
       const { generatePairingCode } = await import("../baileys.js");
       pairingCode = await generatePairingCode(phone);
     } catch (e: any) {
-      try { await sock.sendPresenceUpdate("paused", sendTo); } catch {}
-      const errMsg = (e?.message || "").toLowerCase();
-      // If WhatsApp rejected the request, fall back to the web pairing link
-      if (errMsg.includes("time") || errMsg.includes("terminat") || errMsg.includes("closed") || errMsg.includes("connection")) {
-        return safeReply(
-          `🔑 *Get Your Pairing Code*\n\n` +
-          `📱 *Number:* +${phone}\n\n` +
-          `Open the link below and enter your number:\n` +
-          `🌐 https://pair.maxxtech.co.ke\n\n` +
-          `📋 *Steps:*\n` +
-          `1️⃣ Enter *${phone}* on the site\n` +
-          `2️⃣ Copy the 8-digit code shown\n` +
-          `3️⃣ WhatsApp → Linked Devices → Link with phone number\n` +
-          `4️⃣ Enter the code ✅\n\n` +
-          `> _MAXX-XMD_ ⚡`
-        );
-      }
-      return safeReply(
-        `❌ *Could not generate pairing code*\n\n_${(e?.message || "Unknown error").slice(0, 120)}_\n\nTry again.\n\n> _MAXX-XMD_ ⚡`
+      try { await sock.sendPresenceUpdate("paused", from); } catch {}
+      return reply(
+        `🔑 *Get Your Pairing Code*\n\n` +
+        `📱 *Number:* +${phone}\n\n` +
+        `Open the link below and enter your number:\n` +
+        `🌐 https://pair.maxxtech.co.ke\n\n` +
+        `📋 *Steps:*\n` +
+        `1️⃣ Enter *${phone}* on the site\n` +
+        `2️⃣ Copy the 8-digit code shown\n` +
+        `3️⃣ WhatsApp → Linked Devices → Link with phone number\n` +
+        `4️⃣ Enter the code ✅\n\n` +
+        `> _MAXX-XMD_ ⚡`
       );
     }
 
-    try { await sock.sendPresenceUpdate("paused", sendTo); } catch {}
+    try { await sock.sendPresenceUpdate("paused", from); } catch {}
 
     const bodyText =
       `🔑 *Pairing Code Generated*\n\n` +
@@ -647,11 +626,11 @@ registerCommand({
       `📋 Copy the code above and paste in WhatsApp pairing.\n\n` +
       `_Tap button to copy._`;
 
-    // Try native cta_copy interactive button first, fall back to plain sendMessage
+    // Try native cta_copy interactive button first
     let sent = false;
     try {
       await sock.relayMessage(
-        sendTo,
+        from,
         {
           viewOnceMessage: {
             message: {
@@ -680,9 +659,9 @@ registerCommand({
     } catch { /* fall through to plain text */ }
 
     if (!sent) {
-      // Fallback: two separate messages — instructions then bare code for easy copy
-      await safeReply(bodyText);
-      await sock.sendMessage(sendTo, { text: pairingCode }).catch(() => {});
+      // Fallback: instructions card + bare code on its own line for easy copy
+      await reply(bodyText);
+      await sock.sendMessage(from, { text: pairingCode }).catch(() => {});
     }
   },
 });
