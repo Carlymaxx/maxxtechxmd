@@ -1668,7 +1668,17 @@ export async function backupSessionToHeroku(folderName = "main"): Promise<void> 
     const allData: Record<string, unknown> = {};
     for (const file of filesToBackup) {
       try {
-        allData[file] = JSON.parse(fs.readFileSync(path.join(folder, file), "utf8"));
+        const parsed = JSON.parse(fs.readFileSync(path.join(folder, file), "utf8"));
+        // ── KEY FIX: zero out processedHistoryMessages in creds.json ────────
+        // When creds.json carries a non-empty processedHistoryMessages cursor,
+        // WhatsApp compares that cursor to its server log and replays everything
+        // after it — causing a 30-90 min "append" flood on every restart.
+        // Setting it to an empty array tells WhatsApp "start from now", so
+        // future restarts only sync the brief gap since the backup was taken.
+        if (file === "creds.json" && parsed && typeof parsed === "object") {
+          (parsed as any).processedHistoryMessages = [];
+        }
+        allData[file] = parsed;
       } catch { /* skip unreadable files */ }
     }
 
@@ -1676,8 +1686,9 @@ export async function backupSessionToHeroku(folderName = "main"): Promise<void> 
     const compressed = zlib.gzipSync(Buffer.from(payload, "utf8"));
     const encodedStr = compressed.toString("base64");
 
-    // Guard against Heroku's 32 KB per-var limit
-    if (encodedStr.length > 28_000) {
+    // Guard against Heroku's 32 KB per-var limit.
+    // With only creds.json + pre-key-* files this rarely exceeds 8 KB.
+    if (encodedStr.length > 31_000) {
       logger.warn({ app: appName, size: encodedStr.length }, "⚠️ Session backup too large for Heroku — skipping");
       return;
     }
@@ -1743,6 +1754,10 @@ export function restoreSessionFromEnv(): void {
       let fileCount = 0;
       for (const [filename, data] of Object.entries(parsed)) {
         if (!filename.endsWith(".json")) continue;
+        // Zero out history cursor on restore so we never replay old history
+        if (filename === "creds.json" && data && typeof data === "object") {
+          (data as any).processedHistoryMessages = [];
+        }
         fs.writeFileSync(path.join(mainFolder, filename), JSON.stringify(data), "utf8");
         fileCount++;
       }
@@ -1755,7 +1770,9 @@ export function restoreSessionFromEnv(): void {
       logger.error("SESSION_ID decoded but creds.json is missing required fields (noiseKey/signedIdentityKey) — invalid session");
       return;
     }
-    fs.writeFileSync(credsPath, decompressed, "utf8");
+    // Zero out history cursor in legacy format too
+    if (parsed.processedHistoryMessages) parsed.processedHistoryMessages = [];
+    fs.writeFileSync(credsPath, JSON.stringify(parsed), "utf8");
     logger.info({ mainFolder }, "✅ Session restored from SESSION_ID (legacy creds-only format) — Signal sessions will establish fresh");
   } catch (err: any) {
     logger.error({ err: err.message }, "❌ Failed to restore session from SESSION_ID — check that SESSION_ID was copied completely without spaces or line breaks");
