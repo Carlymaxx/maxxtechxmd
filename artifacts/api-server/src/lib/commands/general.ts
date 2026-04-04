@@ -582,8 +582,22 @@ registerCommand({
   description: "Generate a WhatsApp pairing code for a phone number",
   handler: async ({ sock, from, msg, args, reply }) => {
     const phone = args[0]?.replace(/\D/g, "");
+
+    // Normalize @lid JIDs to @s.whatsapp.net so sendMessage works
+    const sendTo = from.endsWith("@lid")
+      ? (sock.user?.id?.replace(/:.*@/, "@") ?? from)
+      : from;
+
+    const safeReply = async (text: string) => {
+      try {
+        await sock.sendMessage(sendTo, { text }, { quoted: msg });
+      } catch {
+        try { await sock.sendMessage(sendTo, { text }); } catch { /* silently drop */ }
+      }
+    };
+
     if (!phone || phone.length < 7) {
-      return reply(
+      return safeReply(
         `┌─────────────────────────┐\n` +
         `│  🔗 *PAIR DEVICE*        │\n` +
         `└─────────────────────────┘\n\n` +
@@ -594,27 +608,37 @@ registerCommand({
       );
     }
 
-    // Show typing indicator while generating
-    try { await sock.sendPresenceUpdate("composing", from); } catch {}
+    // Typing indicator
+    try { await sock.sendPresenceUpdate("composing", sendTo); } catch {}
 
+    let pairingCode = "";
     try {
       const { generatePairingCode } = await import("../baileys.js");
-      const pairingCode = await generatePairingCode(phone);
+      pairingCode = await generatePairingCode(phone);
+    } catch (e: any) {
+      try { await sock.sendPresenceUpdate("paused", sendTo); } catch {}
+      return safeReply(
+        `❌ *Failed to generate pairing code*\n\n` +
+        `_${(e?.message || "Unknown error").slice(0, 150)}_\n\n` +
+        `Try again in a few seconds.\n\n` +
+        `> _MAXX-XMD_ ⚡`
+      );
+    }
 
-      // Stop typing
-      try { await sock.sendPresenceUpdate("paused", from); } catch {}
+    try { await sock.sendPresenceUpdate("paused", sendTo); } catch {}
 
-      // Send using native WhatsApp cta_copy interactive message — tapping the button
-      // copies the code directly to the user's clipboard (no bot round-trip needed)
-      const bodyText =
-        `🔑 *Pairing Code Generated*\n\n` +
-        `• Number: ${phone}\n` +
-        `• Code: *${pairingCode}*\n\n` +
-        `📋 Copy the code above and paste in WhatsApp pairing.\n\n` +
-        `_Tap button to copy._`;
+    const bodyText =
+      `🔑 *Pairing Code Generated*\n\n` +
+      `• Number: ${phone}\n` +
+      `• Code: *${pairingCode}*\n\n` +
+      `📋 Copy the code above and paste in WhatsApp pairing.\n\n` +
+      `_Tap button to copy._`;
 
+    // Try native cta_copy interactive button first, fall back to plain sendMessage
+    let sent = false;
+    try {
       await sock.relayMessage(
-        from,
+        sendTo,
         {
           viewOnceMessage: {
             message: {
@@ -639,16 +663,13 @@ registerCommand({
         },
         {}
       );
+      sent = true;
+    } catch { /* fall through to plain text */ }
 
-    } catch (e: any) {
-      try { await sock.sendPresenceUpdate("paused", from); } catch {}
-      const errMsg = (e as any).message?.slice(0, 150) || "Unknown error";
-      await reply(
-        `❌ *Failed to generate pairing code*\n\n` +
-        `_${errMsg}_\n\n` +
-        `Try again in a few seconds.\n\n` +
-        `> _MAXX-XMD_ ⚡`
-      );
+    if (!sent) {
+      // Fallback: two separate messages — instructions then bare code for easy copy
+      await safeReply(bodyText);
+      await sock.sendMessage(sendTo, { text: pairingCode }).catch(() => {});
     }
   },
 });
