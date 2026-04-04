@@ -1829,11 +1829,12 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
     }).catch(() => {});
   }
 
-  // Group metadata — fetched lazily inside each command via getCachedGroupMeta().
-  // We do NOT preload it here: awaiting a network call before every command added
-  // 1-5 seconds of delay. Commands that need metadata already call getCachedGroupMeta
-  // themselves (with null-guards that show "❌ Could not fetch group info").
+  // Group metadata — fetch from cache (or WhatsApp) when in a group.
+  // Cache TTL is 5 min so repeated calls are instant.
   let groupMetadata: any = null;
+  if (isGroup) {
+    groupMetadata = await getCachedGroupMeta(sock, from);
+  }
 
   // Reply helper — auto-appends a randomly chosen MAXX XMD footer to every text response
   const FOOTERS = [
