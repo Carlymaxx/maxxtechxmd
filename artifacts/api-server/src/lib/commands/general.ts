@@ -71,7 +71,6 @@ registerCommand({
   description: "Check bot response speed",
   handler: async ({ senderName, reply }) => {
     const start = Date.now();
-    await reply("⏳ _Pinging..._");
     const ms = Date.now() - start;
     const speed = ms < 100 ? "🚀 Lightning Fast" : ms < 300 ? "⚡ Very Fast" : ms < 600 ? "✅ Good" : ms < 1000 ? "🟡 Average" : "🔴 Slow";
     const bar = "█".repeat(Math.min(10, Math.ceil(ms / 100))).padEnd(10, "░");
@@ -786,14 +785,6 @@ registerCommand({
       } catch {
         await sock.sendMessage(from, { text }, { quoted: msg });
       }
-      await sock.sendMessage(from, {
-        text:
-          `🔗 *MAXX-XMD LINKS*\n\n` +
-          `🤖 *Get this bot (pair):*\nhttps://pair.maxxtech.co.ke\n\n` +
-          `👥 *Support group:*\nhttps://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ\n\n` +
-          `📢 *Follow our channel:*\nhttps://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
-          `🌐 *Website:* https://www.maxxtech.co.ke`
-      });
       return;
     }
 
