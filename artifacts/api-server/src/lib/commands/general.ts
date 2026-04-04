@@ -578,56 +578,58 @@ registerCommand({
   name: "pair",
   aliases: ["getid", "session", "pairdevice"],
   category: "General",
-  description: "Generate a WhatsApp pairing code for any device",
-  handler: async ({ sock, from, msg, args, settings, reply }) => {
+  description: "Generate a WhatsApp pairing code for a phone number",
+  handler: async ({ sock, from, msg, args, reply }) => {
     const phone = args[0]?.replace(/\D/g, "");
     if (!phone || phone.length < 7) {
-      return reply(`╔══════════════════════╗
-║ 🔗 *PAIR DEVICE* 🔗
-╚══════════════════════╝
-
-📌 *Usage:* .pair <phone number>
-📝 *Example:* .pair 254712345678
-
-Include country code, no + or spaces.
-
-🌐 *Or use web pairing:*
-https://pair.maxxtech.co.ke
-
-> _MAXX-XMD_ ⚡`);
+      return reply(
+        `┌─────────────────────────┐\n` +
+        `│  🔗 *PAIR DEVICE*        │\n` +
+        `└─────────────────────────┘\n\n` +
+        `📌 *Usage:* .pair <number>\n` +
+        `📝 *Example:* .pair 254712345678\n\n` +
+        `Include country code, no + or spaces.\n\n` +
+        `> _MAXX-XMD_ ⚡`
+      );
     }
 
-    await reply(`╔══════════════════════╗
-║ 🔗 *PAIR DEVICE* 🔗
-╚══════════════════════╝
-
-📱 *Number:* +${phone}
-`);
+    // Show typing indicator while generating
+    try { await sock.sendPresenceUpdate("composing", from); } catch {}
 
     try {
       const { generatePairingCode } = await import("../baileys.js");
       const pairingCode = await generatePairingCode(phone);
 
-      // Code in its own monospace code-block box, then instructions below
-      await reply(
-        `🔑 *YOUR PAIRING CODE*\n\n` +
-        `\`\`\`\n${pairingCode}\n\`\`\`\n\n` +
-        `📱 *Steps to link your device:*\n` +
-        `1️⃣ Open WhatsApp Settings\n` +
-        `2️⃣ Tap *Linked Devices*\n` +
-        `3️⃣ Tap *Link a Device*\n` +
-        `4️⃣ Choose *Link with phone number*\n` +
-        `5️⃣ Enter the code shown above\n\n` +
-        `⏱️ _Expires in ~60 seconds_\n\n` +
-        `> _MAXX-XMD_ ⚡`
-      );
+      // Stop typing
+      try { await sock.sendPresenceUpdate("paused", from); } catch {}
+
+      await sock.sendMessage(from, {
+        text:
+          `┌─────────────────────────┐\n` +
+          `│  🔑 *YOUR PAIRING CODE*  │\n` +
+          `└─────────────────────────┘\n\n` +
+          `📱 *Number:* +${phone}\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+          `        *${pairingCode}*\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+          `👆 *Long-press the code above to copy it*\n\n` +
+          `📋 *How to link:*\n` +
+          `1️⃣ WhatsApp → Settings\n` +
+          `2️⃣ Linked Devices → Link a Device\n` +
+          `3️⃣ Link with phone number\n` +
+          `4️⃣ Enter the code above\n\n` +
+          `⏱️ _Code expires in ~60 seconds_\n\n` +
+          `> _MAXX-XMD_ ⚡`,
+      }, { quoted: msg });
 
     } catch (e: any) {
+      try { await sock.sendPresenceUpdate("paused", from); } catch {}
+      const errMsg = (e as any).message?.slice(0, 150) || "Unknown error";
       await reply(
-        `❌ *Could not generate pairing code*\n\n` +
-        `${e.message?.slice(0, 120) || "Unknown error"}\n\n` +
-        `Use the web method instead:\n` +
-        `https://pair.maxxtech.co.ke`
+        `❌ *Failed to generate pairing code*\n\n` +
+        `_${errMsg}_\n\n` +
+        `Try again in a few seconds.\n\n` +
+        `> _MAXX-XMD_ ⚡`
       );
     }
   },
