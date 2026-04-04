@@ -24,7 +24,7 @@ A WhatsApp bot with rich and multiple features created by carlymaxx.
     <img src="https://img.shields.io/badge/🍴%20FORK%20THIS%20REPO-darkblue?style=for-the-badge&logo=github&logoColor=white" height="55" alt="Fork Repo"/>
   </a>
   &nbsp;&nbsp;
-  <a href="https://pairmaxxxmd.onrender.com/" target="_blank">
+  <a href="https:/pair.maxxtech.co.ke/" target="_blank">
     <img src="https://img.shields.io/badge/🔑%20GET%20SESSION%20ID-ffb703?style=for-the-badge&logo=whatsapp&logoColor=white" height="55" alt="Get Session ID"/>
   </a>
 </p>
