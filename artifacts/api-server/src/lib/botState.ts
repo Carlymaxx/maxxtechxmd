@@ -99,7 +99,7 @@ export function loadSettings(): BotSettings {
   // This makes every variable advertised in app.json actually work on fresh deploys
   // where settings.json does not yet exist.
   if (process.env.OWNER_NUMBER)      settings.ownerNumber      = process.env.OWNER_NUMBER.replace(/[^0-9]/g, "");
-  if (process.env.BOT_NAME)          settings.botName          = process.env.BOT_NAME;
+  settings.botName = "MAXX-XMD"; // locked — cannot be changed by anyone
   if (process.env.PREFIX)            settings.prefix           = process.env.PREFIX;
   if (process.env.WORK_MODE)         settings.mode             = process.env.WORK_MODE;
   if (process.env.AUTO_READ         !== undefined) settings.autoread        = process.env.AUTO_READ         === "true";
