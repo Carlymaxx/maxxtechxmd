@@ -1,5 +1,4 @@
 import os from "os";
-import { proto } from "@whiskeysockets/baileys";
 import { registerCommand, commandRegistry } from "./types";
 import { getLiveSessions, getCmdUsageCount } from "../botState";
 
@@ -580,11 +579,18 @@ registerCommand({
   aliases: ["getid", "session", "pairdevice"],
   category: "General",
   description: "Generate a WhatsApp pairing code for a phone number",
-  handler: async ({ sock, from, msg, args, reply }) => {
+  handler: async ({ sock, from, msg, args }) => {
     const phone = args[0]?.replace(/\D/g, "");
 
+    // Direct sendMessage to from — never use { quoted: msg } here because
+    // after generatePairingCode's 3s+ wait, msg may be stale with @lid from
+    const send = (text: string) =>
+      sock.sendMessage(from, { text }).catch((e: any) =>
+        logger.error({ err: e, from }, "⚠️ pair: sendMessage failed")
+      );
+
     if (!phone || phone.length < 7) {
-      return reply(
+      return send(
         `┌─────────────────────────┐\n` +
         `│  🔗 *PAIR DEVICE*        │\n` +
         `└─────────────────────────┘\n\n` +
@@ -596,14 +602,17 @@ registerCommand({
     }
 
     try { await sock.sendPresenceUpdate("composing", from); } catch {}
+    logger.info({ phone, from }, "🔑 pair: generating code");
 
     let pairingCode = "";
     try {
       const { generatePairingCode } = await import("../baileys.js");
       pairingCode = await generatePairingCode(phone);
+      logger.info({ phone, code: pairingCode }, "🔑 pair: code obtained");
     } catch (e: any) {
+      logger.error({ err: e, phone }, "🔑 pair: generatePairingCode failed — sending fallback");
       try { await sock.sendPresenceUpdate("paused", from); } catch {}
-      return reply(
+      return send(
         `🔑 *Get Your Pairing Code*\n\n` +
         `📱 *Number:* +${phone}\n\n` +
         `Open the link below and enter your number:\n` +
@@ -619,50 +628,15 @@ registerCommand({
 
     try { await sock.sendPresenceUpdate("paused", from); } catch {}
 
-    const bodyText =
-      `🔑 *Pairing Code Generated*\n\n` +
-      `• Number: ${phone}\n` +
-      `• Code: *${pairingCode}*\n\n` +
-      `📋 Copy the code above and paste in WhatsApp pairing.\n\n` +
-      `_Tap button to copy._`;
-
-    // Try native cta_copy interactive button first
-    let sent = false;
-    try {
-      await sock.relayMessage(
-        from,
-        {
-          viewOnceMessage: {
-            message: {
-              interactiveMessage: proto.Message.InteractiveMessage.create({
-                body: { text: bodyText },
-                footer: { text: "MAXX~XMD CODE" },
-                nativeFlowMessage: {
-                  buttons: [
-                    {
-                      name: "cta_copy",
-                      buttonParamsJson: JSON.stringify({
-                        display_text: "📋 Copy Pairing Code",
-                        id: "copy_code",
-                        copy_code: pairingCode,
-                      }),
-                    },
-                  ],
-                },
-              }),
-            },
-          },
-        },
-        {}
-      );
-      sent = true;
-    } catch { /* fall through to plain text */ }
-
-    if (!sent) {
-      // Fallback: instructions card + bare code on its own line for easy copy
-      await reply(bodyText);
-      await sock.sendMessage(from, { text: pairingCode }).catch(() => {});
-    }
+    // Send the code — plain text first (always works), then try the fancy button
+    await send(
+      `🔑 *MAXX-XMD Pairing Code*\n\n` +
+      `📱 Number: *${phone}*\n` +
+      `🔢 Code: *${pairingCode}*\n\n` +
+      `Copy the code above ↑ and paste it in WhatsApp → Linked Devices → Link with phone number\n\n` +
+      `> _MAXX-XMD_ ⚡`
+    );
+    logger.info({ phone, from }, "🔑 pair: code message sent");
   },
 });
 

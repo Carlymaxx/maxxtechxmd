@@ -1210,7 +1210,7 @@ export async function generatePairingCode(phoneNumber: string): Promise<string> 
     const code = await Promise.race([
       sock.requestPairingCode(phoneNumber),
       new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("WhatsApp did not return a pairing code in time.")), 20000)
+        setTimeout(() => reject(new Error("WhatsApp did not return a pairing code in time.")), 8000)
       ),
     ]);
 
