@@ -773,21 +773,11 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       logger.info({ sessionId }, "✅ Session ready — now processing incoming commands");
 
       // ── Persist auth state to Heroku AFTER history sync completes ──────────
-      // DO NOT backup on connect — at that point the session is stale (the
-      // processedHistoryMessages cursor in creds.json is hours behind NOW).
-      // WhatsApp uses that cursor to decide what history to replay, so backing
-      // up a stale creds means every future deploy triggers a full history sync
-      // (30-90 min of "append" floods that block all commands).
-      //
-      // Instead: back up on the FIRST "notify" message.  "notify" only appears
-      // after WhatsApp has finished replaying history, so creds at that moment
-      // has an up-to-date cursor — future deploys will only sync the brief gap
-      // (seconds) between the backup and the restart.
-      // The backup triggers a dyno restart (Heroku config-var update); that is
-      // acceptable because the restart gap is short and the next sync is fast.
-      if (sessionId === "main" && process.env.HEROKU_API_KEY && process.env.HEROKU_APP_NAME) {
-        (globalThis as any)._postSyncBackupDone = false; // reset flag on each connect
-      }
+      // Backup fires on the FIRST "notify" batch (see messages.upsert handler).
+      // We do NOT reset _postSyncBackupDone here — restoreSessionFromEnv() may
+      // have already set it to true (if the backup was taken <30 min ago) to
+      // prevent the backup→restart→backup infinite loop.  Resetting it here
+      // would undo that protection and send us into the loop again.
 
       // ── Channel subscription + startup react ─────────────────────────────
       // subscribeNewsletterUpdates (XMPP) receives live posts in messages.upsert.
