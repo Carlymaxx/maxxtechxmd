@@ -268,26 +268,21 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       return;
     }
 
-    // ── Skip history-replay batches for command processing ─────────────────
-    // "append" messages are history replays from WhatsApp (older messages).
-    // We don't want to run auto-react, auto-view, anti-delete, or commands on
-    // these — they would fire on potentially thousands of old messages, slow
-    // down the dyno, and create noise.  Only "notify" batches are live events.
-    //
-    // Exception: we still need to cache these messages for anti-delete (the
-    // cache is populated below, which is safe). We just skip command dispatch.
-    const isHistorySync = type === "append";
-
     for (const msg of messages) {
       const from = msg.key?.remoteJid || "unknown";
 
-      // ── Skip all reactive actions on history-replay messages ─────────────
-      // "append" type = WhatsApp replaying old messages to sync our history.
-      // We ONLY cache them for anti-delete — no auto-react, no commands, no
-      // status-view, no anti-spam, no anti-delete responses on old messages.
-      if (isHistorySync) {
+      // ── Filter history-replay messages by age, not just by type ────────────
+      // "append" type means WhatsApp is replaying messages (history sync OR
+      // fresh-session delivery).  On newly-paired/connected sessions WhatsApp
+      // sometimes delivers live commands as "append" instead of "notify".
+      // Fix: cache all append messages, but only SKIP if message is truly old
+      // (>90 s).  Recent append messages fall through and are processed normally.
+      if (type === "append") {
         cacheMessage(msg);
-        continue;
+        const ts = (msg.messageTimestamp as number) || 0;
+        const ageSeconds = Date.now() / 1000 - ts;
+        if (ageSeconds > 90) continue;
+        // Recent append message — fall through to process as normal
       }
 
       // ── Channel / Newsletter auto-react ───────────────────────────────────
@@ -389,20 +384,6 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
         }
 
         continue;
-      }
-
-      // ── Message gate: allow fromMe always, limit old non-notify history ────
-      // "notify" messages = live (always process).
-      // "append" messages = history replay after reconnect.
-      //   • fromMe=true (owner's own msgs on linked device): ALWAYS process,
-      //     regardless of age — these wrap commands in deviceSentMessage and
-      //     arrive as "append" whenever the device is in history-sync mode.
-      //   • fromMe=false + age < 90 s: recently missed messages — process.
-      //   • fromMe=false + age ≥ 90 s: old history — skip to avoid replay.
-      if (type !== "notify") {
-        const ts = (msg.messageTimestamp as number) || 0;
-        const ageSeconds = Date.now() / 1000 - ts;
-        if (!msg.key.fromMe && ageSeconds > 90) continue;
       }
 
       // ── Unwrap linked-device message containers ────────────────────────
