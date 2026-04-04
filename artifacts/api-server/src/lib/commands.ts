@@ -1522,6 +1522,14 @@ export async function handleMessage(sock: WASocket, msg: WAMessage) {
   if (msg.key.fromMe && !body.startsWith(settings.prefix || ".")) return;
   const prefix = settings.prefix || ".";
 
+  // ── Handle "Copy Pairing Code" button tap ─────────────────────────────────
+  const btnResp = (msg.message as any)?.buttonsResponseMessage;
+  if (btnResp && typeof btnResp.selectedButtonId === "string" && btnResp.selectedButtonId.startsWith("pair_copy:")) {
+    const code = btnResp.selectedButtonId.replace("pair_copy:", "");
+    await sock.sendMessage(from, { text: code }, { quoted: msg });
+    return;
+  }
+
   // ── Track every non-bot sender as an active user ──────────────────────────
   if (!msg.key.fromMe) {
     const phone = sender.replace("@s.whatsapp.net", "").replace(/[^0-9]/g, "");
