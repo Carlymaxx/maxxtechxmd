@@ -90,9 +90,9 @@ registerCommand({
   name: "mode",
   aliases: ["modestatus"],
   category: "Settings",
-  sudoOnly: true,
-  description: "Set bot mode (public/private/inbox)",
-  handler: async ({ args, settings, reply }) => {
+  description: "Set bot mode (public/private/inbox) — DM only",
+  handler: async ({ args, settings, reply, isGroup }) => {
+    if (isGroup) return; // silent — only works in DMs
     const m = args[0]?.toLowerCase();
     if (!m || !["public", "private", "inbox", "anti"].includes(m)) {
       return reply(`❓ Current mode: *${settings.mode}*\n\nModes:\n• *public* — anyone can use\n• *private* — only owner/sudo\n• *inbox* — DMs only\n\nUsage: .mode public`);
@@ -125,9 +125,9 @@ registerCommand({
   name: "autoreact",
   aliases: ["autoreaction"],
   category: "Settings",
-  sudoOnly: true,
-  description: "Toggle auto-react to DM messages (groups always auto-react)",
-  handler: async ({ args, settings, reply }) => {
+  description: "Toggle auto-react — DM only",
+  handler: async ({ args, settings, reply, isGroup }) => {
+    if (isGroup) return; // silent — only works in DMs
     if (!args[0] || !["on", "off"].includes(args[0].toLowerCase())) {
       return reply(
         `❓ Usage: .autoreact on/off\n\n` +

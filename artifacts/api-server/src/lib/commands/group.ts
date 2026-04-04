@@ -352,30 +352,6 @@ registerCommand({
 });
 
 registerCommand({
-  name: "kickall",
-  aliases: [],
-  category: "Group",
-  description: "Kick all non-admin members (admins/owner only)",
-  groupOnly: true,
-  adminOnly: true,
-  handler: async ({ sock, from, groupMetadata, sender, isSudo, reply }) => {
-    if (!groupMetadata) return reply("❌ Could not fetch group info.");
-    const isAdmin = groupMetadata.participants.some((p: any) => p.id === sender && p.admin) || isSudo;
-    if (!isAdmin) return reply("⛔ Only group admins or the bot owner can use kickall.");
-    const nonAdmins = groupMetadata.participants
-      .filter((p: any) => !p.admin && p.id !== sender)
-      .map((p: any) => p.id);
-    if (!nonAdmins.length) return reply("✅ No non-admin members to kick.");
-    await reply(`⚠️ Kicking ${nonAdmins.length} members...`);
-    for (const jid of nonAdmins) {
-      try { await sock.groupParticipantsUpdate(from, [jid], "remove"); } catch {}
-      await new Promise(r => setTimeout(r, 1000));
-    }
-    await reply(`✅ Done! Kicked ${nonAdmins.length} members.`);
-  },
-});
-
-registerCommand({
   name: "totalmembers",
   aliases: ["members", "count"],
   category: "Group",
