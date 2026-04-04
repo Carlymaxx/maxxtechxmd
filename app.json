@@ -61,11 +61,6 @@
       "value": "false",
       "required": false
     },
-    "ANTI_SPAM": {
-      "description": "Automatically block spam accounts that message the bot",
-      "value": "false",
-      "required": false
-    },
     "WELCOME_MSG": {
       "description": "Send a welcome message when a new member joins a group",
       "value": "true",
