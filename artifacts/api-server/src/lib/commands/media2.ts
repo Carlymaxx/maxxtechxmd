@@ -302,6 +302,14 @@ registerCommand({
 
 // ── Image Filters ─────────────────────────────────────────────────────────────
 
+async function dlImgBuf(msg: any, imgMsg: any): Promise<Buffer> {
+  const { downloadMediaMessage } = await import("@whiskeysockets/baileys");
+  const fakeMsg = msg.message?.imageMessage
+    ? msg
+    : { ...msg, message: { imageMessage: imgMsg } };
+  return downloadMediaMessage(fakeMsg, "buffer", {}) as Promise<Buffer>;
+}
+
 registerCommand({
   name: "blur",
   aliases: ["blurimg", "blurimage"],
@@ -312,18 +320,13 @@ registerCommand({
       || msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
     if (!imgMsg) return reply(`❌ Reply to an image with *.blur*${FOOTER}`);
     try {
-      const stream = await (sock as any).downloadMediaMessage(
-        imgMsg.url ? { message: { imageMessage: imgMsg } } : msg
-      );
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream) chunks.push(chunk);
-      const buf = Buffer.concat(chunks);
+      const buf = await dlImgBuf(msg, imgMsg);
       const sharp = (await import("sharp")).default;
       const level = Math.min(parseInt(args[0]) || 3, 20);
       const blurred = await sharp(buf).blur(level).jpeg().toBuffer();
       await sock.sendMessage(from, { image: blurred, caption: `🌀 Blurred (level ${level})${FOOTER}` }, { quoted: msg });
-    } catch {
-      await reply(`❌ Blur failed.${FOOTER}`);
+    } catch (e: any) {
+      await reply(`❌ Blur failed: ${e.message}${FOOTER}`);
     }
   },
 });
@@ -338,15 +341,12 @@ registerCommand({
       || msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
     if (!imgMsg) return reply(`❌ Reply to an image with *.grayscale*${FOOTER}`);
     try {
-      const stream = await (sock as any).downloadMediaMessage(imgMsg.url ? { message: { imageMessage: imgMsg } } : msg);
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream) chunks.push(chunk);
-      const buf = Buffer.concat(chunks);
+      const buf = await dlImgBuf(msg, imgMsg);
       const sharp = (await import("sharp")).default;
       const result = await sharp(buf).grayscale().jpeg().toBuffer();
       await sock.sendMessage(from, { image: result, caption: `⬛ Grayscale Image${FOOTER}` }, { quoted: msg });
-    } catch {
-      await reply(`❌ Grayscale failed.${FOOTER}`);
+    } catch (e: any) {
+      await reply(`❌ Grayscale failed: ${e.message}${FOOTER}`);
     }
   },
 });
@@ -361,15 +361,12 @@ registerCommand({
       || msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
     if (!imgMsg) return reply(`❌ Reply to an image with *.invert*${FOOTER}`);
     try {
-      const stream = await (sock as any).downloadMediaMessage(imgMsg.url ? { message: { imageMessage: imgMsg } } : msg);
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream) chunks.push(chunk);
-      const buf = Buffer.concat(chunks);
+      const buf = await dlImgBuf(msg, imgMsg);
       const sharp = (await import("sharp")).default;
       const result = await sharp(buf).negate().jpeg().toBuffer();
       await sock.sendMessage(from, { image: result, caption: `🔄 Inverted Colors${FOOTER}` }, { quoted: msg });
-    } catch {
-      await reply(`❌ Invert failed.${FOOTER}`);
+    } catch (e: any) {
+      await reply(`❌ Invert failed: ${e.message}${FOOTER}`);
     }
   },
 });
@@ -384,18 +381,15 @@ registerCommand({
       || msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
     if (!imgMsg) return reply(`❌ Reply to an image with *.imgflip*${FOOTER}`);
     try {
-      const stream = await (sock as any).downloadMediaMessage(imgMsg.url ? { message: { imageMessage: imgMsg } } : msg);
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream) chunks.push(chunk);
-      const buf = Buffer.concat(chunks);
+      const buf = await dlImgBuf(msg, imgMsg);
       const sharp = (await import("sharp")).default;
       const isVertical = args[0]?.toLowerCase() === "vertical";
       const result = isVertical
         ? await sharp(buf).flip().jpeg().toBuffer()
         : await sharp(buf).flop().jpeg().toBuffer();
       await sock.sendMessage(from, { image: result, caption: `🔄 Flipped ${isVertical ? "Vertically" : "Horizontally"}${FOOTER}` }, { quoted: msg });
-    } catch {
-      await reply(`❌ Flip failed.${FOOTER}`);
+    } catch (e: any) {
+      await reply(`❌ Flip failed: ${e.message}${FOOTER}`);
     }
   },
 });
@@ -411,15 +405,12 @@ registerCommand({
     if (!imgMsg) return reply(`❌ Reply to an image with *.rotate <degrees>*${FOOTER}`);
     const deg = parseInt(args[0]) || 90;
     try {
-      const stream = await (sock as any).downloadMediaMessage(imgMsg.url ? { message: { imageMessage: imgMsg } } : msg);
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream) chunks.push(chunk);
-      const buf = Buffer.concat(chunks);
+      const buf = await dlImgBuf(msg, imgMsg);
       const sharp = (await import("sharp")).default;
       const result = await sharp(buf).rotate(deg).jpeg().toBuffer();
       await sock.sendMessage(from, { image: result, caption: `🔄 Rotated ${deg}°${FOOTER}` }, { quoted: msg });
-    } catch {
-      await reply(`❌ Rotate failed.${FOOTER}`);
+    } catch (e: any) {
+      await reply(`❌ Rotate failed: ${e.message}${FOOTER}`);
     }
   },
 });
