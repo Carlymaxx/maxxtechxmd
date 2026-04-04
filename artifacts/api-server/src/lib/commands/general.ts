@@ -84,6 +84,16 @@ registerCommand({
 ⚡ *Ping:* ${ms}ms
 📡 *Network:* Stable 🔥
 
+━━━━━━━━━━━━━━━━━━━━━━
+🤖 *Get this bot:*
+https://pair.maxxtech.co.ke
+
+👥 *Support group:*
+https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ
+
+📢 *Our channel:*
+https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J
+
 💖 Thanks for using *MAXX-XMD*!`);
   },
 });
@@ -777,7 +787,14 @@ registerCommand({
       } catch {
         await sock.sendMessage(from, { text }, { quoted: msg });
       }
-      await sock.sendMessage(from, { text: `https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J` });
+      await sock.sendMessage(from, {
+        text:
+          `🔗 *MAXX-XMD LINKS*\n\n` +
+          `🤖 *Get this bot (pair):*\nhttps://pair.maxxtech.co.ke\n\n` +
+          `👥 *Support group:*\nhttps://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ\n\n` +
+          `📢 *Follow our channel:*\nhttps://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
+          `🌐 *Website:* https://www.maxxtech.co.ke`
+      });
       return;
     }
 

@@ -397,6 +397,10 @@ registerCommand({
       `🆔 *JID:* \`${target}\`\n` +
       `🏷️ *Role:* ${role}\n` +
       `💬 *About:* _${about}_\n\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `🤖 *Get this bot:* https://pair.maxxtech.co.ke\n` +
+      `👥 *Support group:* https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ\n` +
+      `📢 *Channel:* https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
       `> _MAXX-XMD_ ⚡`;
 
     try {

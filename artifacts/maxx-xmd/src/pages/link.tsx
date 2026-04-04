@@ -48,7 +48,7 @@ interface ActiveUser {
 const SOCIALS = [
   { icon: Github,      label: "GitHub Repo", url: "https://github.com/Carlymaxx/maxxtechxmd",       color: "#e2e8f0" },
   { icon: GitFork,     label: "Fork Repo",   url: "https://github.com/Carlymaxx/maxxtechxmd/fork",  color: "#a78bfa" },
-  { icon: MessageCircle, label: "WhatsApp Group", url: "https://chat.whatsapp.com/",                color: "#25d366" },
+  { icon: MessageCircle, label: "WhatsApp Group", url: "https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ", color: "#25d366" },
   { icon: Globe,       label: "Channel",     url: "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J", color: "#00d4ff" },
 ];
 

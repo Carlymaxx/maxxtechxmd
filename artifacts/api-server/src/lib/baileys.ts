@@ -618,6 +618,9 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
               `• Type *.menu* to see all commands\n` +
               `• Be respectful to all members\n` +
               `• Have fun! 🔥\n\n` +
+              `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+              `🤖 *Get this bot:* https://pair.maxxtech.co.ke\n` +
+              `📢 *Our channel:* https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J\n\n` +
               `> _${botName}_ ⚡`;
 
           try {
