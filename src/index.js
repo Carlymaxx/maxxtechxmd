@@ -2,11 +2,9 @@ import {
   makeWASocket,
   DisconnectReason,
   fetchLatestBaileysVersion,
-  makeInMemoryStore,
-  jidDecode,
 } from '@whiskeysockets/baileys';
-import express from 'express';
 import { Boom } from '@hapi/boom';
+import express from 'express';
 import pino from 'pino';
 import { config } from './lib/config.js';
 import { getAuthState } from './lib/session.js';
@@ -38,11 +36,6 @@ const server = app.listen(config.PORT, () => {
   logger.info({ port: config.PORT }, `${config.BOT_NAME} web server started`);
 });
 
-// ── In-memory message store ────────────────────────────────────────────────
-const store = makeInMemoryStore({
-  logger: pino({ level: 'silent' }),
-});
-
 // ── Bot connection ─────────────────────────────────────────────────────────
 async function connectBot() {
   const { state, saveCreds } = await getAuthState();
@@ -59,8 +52,6 @@ async function connectBot() {
     syncFullHistory: false,
     generateHighQualityLinkPreview: true,
   });
-
-  store.bind(sock.ev);
 
   // ── Connection updates ───────────────────────────────────────────────────
   sock.ev.on('connection.update', async (update) => {
@@ -117,21 +108,19 @@ async function connectBot() {
         continue;
       }
 
-      // Auto features
+      // Auto features (read, typing, react)
       await handleAutoFeatures(sock, msg).catch(() => {});
 
       // Anti-spam (groups only)
       const isSpam = await handleAntiSpam(sock, msg).catch(() => false);
       if (isSpam) continue;
 
-      // Skip if from self (unless it's a fromMe command test)
+      // Skip own messages
       if (key.fromMe) continue;
 
       // Work mode filtering
       const isGroup = jid?.endsWith('@g.us');
-      const isDM = jid?.endsWith('@s.whatsapp.net');
-      const sender = key.participant || jid;
-      const isOwnerMsg = sender === `${config.OWNER_NUMBER}@s.whatsapp.net`;
+      const isOwnerMsg = (key.participant || jid) === `${config.OWNER_NUMBER}@s.whatsapp.net`;
 
       if (config.WORK_MODE === 'private' && !isOwnerMsg) continue;
       if (config.WORK_MODE === 'group' && !isGroup && !isOwnerMsg) continue;
@@ -150,12 +139,9 @@ async function connectBot() {
       const cmdName = rawCmd.toLowerCase();
       const cmd = getCommand(cmdName);
 
-      if (!cmd) {
-        // Unknown command — silently ignore
-        continue;
-      }
+      if (!cmd) continue;
 
-      logger.info({ from: sender, cmd: cmdName, args }, 'Command received');
+      logger.info({ from: key.participant || jid, cmd: cmdName }, 'Command received');
 
       try {
         await cmd.execute(sock, msg, args);
@@ -163,7 +149,7 @@ async function connectBot() {
         logger.error({ err, cmd: cmdName }, 'Command error');
         try {
           await sock.sendMessage(jid, {
-            text: `❌ An error occurred while running \`${config.PREFIX}${cmdName}\`.\n${err.message}`,
+            text: `❌ Error running \`${config.PREFIX}${cmdName}\`: ${err.message}`,
           }, { quoted: msg });
         } catch (_) {}
       }
