@@ -55,7 +55,7 @@
     },
     "AUTOREACT_STATUS": {
       "description": "Automatically react to status updates",
-      "value": "true",
+      "value": "false",
       "required": false
     },
     "ANTICALL": {
