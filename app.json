@@ -1,91 +1,79 @@
 {
-  "name": "MAXX-XMD WhatsApp Bot",
-  "description": "The most powerful WhatsApp multi-device bot with 580+ commands. Deploy in one click.",
+  "name": "MAXX-XMD",
+  "description": "MAXX-XMD WhatsApp Multi-Device Bot",
   "repository": "https://github.com/Carlymaxx/maxxtechxmd",
-  "logo": "https://www.maxxtech.co.ke/logo.png",
-  "keywords": ["whatsapp", "bot", "multi-device", "baileys"],
-  "buildpacks": [
-    { "url": "heroku/nodejs" }
-  ],
+  "logo": "https://files.catbox.moe/hmq9os.jpg",
+  "keywords": ["whatsapp", "bot", "maxx-xmd"],
   "env": {
-    "SESSION_ID": {
-      "description": "MAXX-XMD SESSION ID. Get it from https://pair.maxxtech.co.ke",
+    "BOT_NAME": {
+      "description": "The display name of your bot",
+      "value": "MAXX-XMD",
+      "required": true
+    },
+    "PREFIX": {
+      "description": "Command prefix (default: .)",
+      "value": ".",
       "required": true
     },
     "OWNER_NUMBER": {
-      "description": "Your WhatsApp number with country code (e.g. 254700000000). Optional — if not set, the bot treats itself as the owner.",
-      "required": false
+      "description": "Your WhatsApp number with country code (e.g. 254712345678)",
+      "required": true
     },
-    "PREFIX": {
-      "description": "Command prefix (e.g. . or ! or /)",
-      "value": ".",
+    "SESSION_ID": {
+      "description": "Your WhatsApp session ID — get it from the bot's /pair page",
       "required": false
     },
     "WORK_MODE": {
-      "description": "Bot mode: public (everyone can use) or private (owner only)",
+      "description": "public | private | group",
       "value": "public",
-      "required": false
+      "required": true
     },
     "AUTO_READ": {
-      "description": "Automatically mark messages as read",
-      "value": "false",
-      "required": false
+      "description": "Auto-read messages (true/false)",
+      "value": "false"
     },
     "AUTO_TYPING": {
-      "description": "Show typing indicator when the bot is processing a command",
-      "value": "true",
-      "required": false
+      "description": "Show typing indicator (true/false)",
+      "value": "false"
+    },
+    "AUTO_REACT": {
+      "description": "Auto-react to messages with emojis (true/false)",
+      "value": "false"
     },
     "AUTO_VIEW_STATUS": {
-      "description": "Automatically view status updates from contacts",
-      "value": "true",
-      "required": false
+      "description": "Auto-view statuses (true/false)",
+      "value": "false"
     },
     "AUTO_LIKE_STATUS": {
-      "description": "Automatically like status updates from contacts",
-      "value": "true",
-      "required": false
-    },
-    "AUTOREACT_STATUS": {
-      "description": "Automatically react to status updates",
-      "value": "true",
-      "required": false
+      "description": "Auto-like statuses with ❤️ (true/false)",
+      "value": "false"
     },
     "ANTICALL": {
-      "description": "Reject incoming calls automatically",
-      "value": "false",
-      "required": false
+      "description": "Block incoming calls (true/false)",
+      "value": "false"
+    },
+    "ANTI_SPAM": {
+      "description": "Detect and warn spammers in groups (true/false)",
+      "value": "false"
     },
     "WELCOME_MSG": {
-      "description": "Send a welcome message when a new member joins a group",
-      "value": "true",
-      "required": false
+      "description": "Welcome message for new group members. Use @user as placeholder",
+      "value": "Welcome to the group, @user! 🎉"
     },
     "HEROKU_API_KEY": {
-      "description": "Your Heroku API key — enables the .update command to auto-update the bot from WhatsApp. Get it from: heroku.com/account/applications",
-      "required": false
+      "description": "Heroku API key for bot self-management (restart, etc.)"
     },
     "HEROKU_APP_NAME": {
-      "description": "Your Heroku app name (e.g. my-maxx-bot) — required for .update command auto-updates",
-      "required": false
-    },
-    "NPM_CONFIG_PRODUCTION": {
-      "description": "Keep all bot packages after build — do not change this value",
-      "value": "false",
-      "required": false
-    },
-    "NODE_MODULES_CACHE": {
-      "description": "Disable build cache for clean installs — do not change this value",
-      "value": "false",
-      "required": false
+      "description": "The name of THIS Heroku app (for self-restart)"
     }
   },
   "formation": {
     "web": {
       "quantity": 1,
-      "size": "basic"
+      "size": "eco"
     }
   },
-  "addons": [],
-  "stack": "heroku-24"
+  "buildpacks": [
+    { "url": "heroku/nodejs" }
+  ]
 }

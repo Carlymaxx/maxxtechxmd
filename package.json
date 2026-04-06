@@ -1,17 +1,25 @@
 {
-  "name": "workspace",
-  "version": "0.0.0",
-  "license": "MIT",
-  "packageManager": "pnpm@10.26.1",
-  "engines": {
-    "node": "20.x"
-  },
+  "name": "maxx-xmd-bot",
+  "version": "2.0.0",
+  "description": "MAXX-XMD WhatsApp Bot",
+  "type": "module",
+  "main": "src/index.js",
   "scripts": {
-    "heroku-prebuild": "corepack enable && corepack prepare pnpm@10.26.1 --activate",
-    "heroku-postbuild": "pnpm install --no-frozen-lockfile"
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "postinstall": "node patches/fix-newsletter-server-id.cjs"
   },
-  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
-    "javascript-obfuscator": "^5.4.1"
+    "@whiskeysockets/baileys": "^6.7.18",
+    "axios": "^1.7.9",
+    "express": "^4.21.2",
+    "jimp": "^1.6.0",
+    "node-cache": "^5.1.2",
+    "pino": "^9.6.0",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.33.5"
   }
 }
