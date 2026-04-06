@@ -13,13 +13,12 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@hapi/boom": "^10.0.1",
     "@whiskeysockets/baileys": "^6.7.18",
     "axios": "^1.7.9",
     "express": "^4.21.2",
-    "jimp": "^1.6.0",
     "node-cache": "^5.1.2",
     "pino": "^9.6.0",
-    "qrcode": "^1.5.4",
-    "sharp": "^0.33.5"
+    "qrcode": "^1.5.4"
   }
 }
