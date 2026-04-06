@@ -1,1 +1,1 @@
-web: node src/index.js
+web: pnpm --filter @workspace/api-server run start
