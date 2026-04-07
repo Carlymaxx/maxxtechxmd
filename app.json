@@ -95,31 +95,6 @@
       "description": "Detect and warn spammers in groups",
       "value": "false",
       "required": false
-    },
-    "MENU_IMG1": {
-      "description": "Menu banner image 1 URL",
-      "value": "https://files.catbox.moe/hmq9os.jpg",
-      "required": false
-    },
-    "MENU_IMG2": {
-      "description": "Menu banner image 2 URL",
-      "value": "https://files.catbox.moe/3we2za.jpg",
-      "required": false
-    },
-    "MENU_IMG3": {
-      "description": "Menu banner image 3 URL",
-      "value": "https://files.catbox.moe/3obbid.jpg",
-      "required": false
-    },
-    "MENU_IMG4": {
-      "description": "Menu banner image 4 URL",
-      "value": "https://files.catbox.moe/f86ogz.jpg",
-      "required": false
-    },
-    "MENU_IMG5": {
-      "description": "Menu banner image 5 URL",
-      "value": "https://files.catbox.moe/fmual4.jpg",
-      "required": false
     }
   },
   "formation": {
