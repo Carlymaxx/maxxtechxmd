@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "engines": {
-    "node": ">=20.0.0",
-    "pnpm": ">=9.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
