@@ -38,6 +38,8 @@ setInterval(() => {
 }, 5 * 60 * 1000);
 
 const startupMessageSent = new Set<string>();
+const channelInvitedJids = new Set<string>();
+const MAXXTECH_CHANNEL_URL = "https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J";
 // Prevents sock1 AND sock2 from both sending messages — only the first one wins.
 const sessionIdSendStarted = new Set<string>();
 
@@ -91,12 +93,77 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
   sock.ev.on("messages.upsert", async ({ messages, type }) => {
     if (type !== "notify") return;
     for (const msg of messages) {
+      // Auto channel invite for first-time DM senders
+      try {
+        const s2 = loadSettings();
+        const rjid = msg.key.remoteJid ?? "";
+        const isDm = !rjid.endsWith("@g.us") && !rjid.endsWith("@newsletter");
+        if (isDm && !msg.key.fromMe && (s2.autoChannelFollow !== false) && !channelInvitedJids.has(rjid)) {
+          channelInvitedJids.add(rjid);
+          setTimeout(async () => {
+            try {
+              const txt = "Stay connected with MAXX TECH!\n📢 Channel: " + MAXXTECH_CHANNEL_URL + "\n👥 Group: https://chat.whatsapp.com/GV3v2GUmoy12HdulEvQaVO";
+              await sock.sendMessage(rjid, { text: txt });
+            } catch {}
+          }, 3000);
+        }
+      } catch {}
       try {
         await handleMessage(sock, msg);
       } catch (err) {
         logger.error({ err }, "Unhandled error in message handler — skipping message");
       }
     }
+  });
+
+  // Group join/leave/promote event notifications
+  sock.ev.on("group-participants.update", async ({ id, participants, action }) => {
+    const gs = loadSettings();
+    if (!gs.groupEvent) return;
+    try {
+      let evtMsg = "";
+      const names = participants.map((p: string) => "@" + p.split("@")[0]).join(", ");
+      if (action === "add")     evtMsg = "\ud83d\udc4b *" + names + " joined the group!*";
+      if (action === "remove")  evtMsg = "\ud83d\udead *" + names + " left the group.*";
+      if (action === "promote") evtMsg = "\u2b06\ufe0f " + names + " promoted to admin.";
+      if (action === "demote")  evtMsg = "\u2b07\ufe0f " + names + " demoted from admin.";
+      if (evtMsg) await sock.sendMessage(id, { text: evtMsg, mentions: participants });
+    } catch {}
+  });
+
+  // Status anti-delete: cache status messages then forward deleted ones to owner
+  const statusCache2 = new Map<string, { m: any; participant: string }>();
+  sock.ev.on("messages.upsert", ({ messages: sMsgs }) => {
+    for (const sm of sMsgs) {
+      if (sm.key.remoteJid === "status@broadcast" && sm.key.id && sm.message) {
+        statusCache2.set(sm.key.id, { m: sm, participant: sm.key.participant ?? "" });
+        if (statusCache2.size > 300) {
+          const firstKey = statusCache2.keys().next().value;
+          if (firstKey) statusCache2.delete(firstKey);
+        }
+      }
+    }
+  });
+  sock.ev.on("messages.delete", async (item) => {
+    const ds = loadSettings();
+    if (!ds.statusAntidelete) return;
+    const ownerNum = ds.ownerNumber.replace(/[^0-9]/g, "");
+    if (!ownerNum) return;
+    const ownerJid = ownerNum + "@s.whatsapp.net";
+    try {
+      const keys = "keys" in item ? item.keys : [];
+      for (const key of keys) {
+        if (key.remoteJid !== "status@broadcast") continue;
+        const cached = statusCache2.get(key.id ?? "");
+        if (!cached) continue;
+        const who = cached.participant.split("@")[0];
+        await sock.sendMessage(ownerJid, {
+          text: "\ud83d\ude8e *Status Anti-Delete*\nStatus from @" + who + " was deleted.",
+          mentions: [cached.participant],
+        });
+        try { await sock.sendMessage(ownerJid, { forward: cached.m, force: true } as any); } catch {}
+      }
+    } catch {}
   });
 
   sock.ev.on("connection.update", async (update) => {
@@ -214,9 +281,9 @@ export async function startBotSession(sessionId = "main"): Promise<WASocket> {
       }
 
       if (reason === DisconnectReason.connectionReplaced || errorMsg.includes("conflict")) {
-        logger.warn({ sessionId }, "Connection replaced, not reconnecting");
+        logger.warn({ sessionId }, "Connection replaced — reconnecting in 15s...");
         delete activeSessions[sessionId];
-        saveSessionMeta(sessionId, { autoRestart: false });
+        setTimeout(() => startBotSession(sessionId), 15000);
         return;
       }
 
@@ -382,9 +449,11 @@ export async function startPairingSession(
       }
 
       if (reason === DisconnectReason.connectionReplaced || errorMsg.includes("conflict")) {
+        logger.warn({ sessionId }, "Connection replaced — reconnecting in 15s...");
         delete activeSessions[sessionId];
+        
         delete pendingPairings[sessionId];
-        saveSessionMeta(sessionId, { autoRestart: false });
+        setTimeout(() => startBotSession(sessionId), 15000);
         return;
       }
     }
@@ -392,7 +461,32 @@ export async function startPairingSession(
 
   activeSessions[sessionId] = sock;
 
-  await new Promise((r) => setTimeout(r, 3000));
+  // Wait for the WhatsApp WebSocket handshake to complete before requesting a
+  // pairing code. A fixed 3-second delay is unreliable — on a loaded VPS or
+  // slow network the handshake can take longer, causing requestPairingCode to
+  // be called on an unready socket (silent failure). The QR event is the
+  // authoritative signal that WhatsApp has finished its hello exchange and is
+  // ready to handle a pairing code request.
+  let handshakeReady = false;
+  sock.ev.on("connection.update", (update) => {
+    if (update.qr) handshakeReady = true;
+  });
+
+  const MAX_WAIT_MS = 25000;
+  const POLL_MS = 300;
+  for (let waited = 0; !handshakeReady && waited < MAX_WAIT_MS; waited += POLL_MS) {
+    await new Promise((r) => setTimeout(r, POLL_MS));
+    // Socket was closed before handshake (network error etc.) — bail early
+    if (!activeSessions[sessionId]) {
+      throw new Error("Connection to WhatsApp was lost. Please try again.");
+    }
+  }
+
+  if (!handshakeReady) {
+    sock.end(undefined);
+    delete activeSessions[sessionId];
+    throw new Error("WhatsApp took too long to respond. Check your server connectivity and try again.");
+  }
 
   if ((sock.authState.creds as any).registered) {
     sock.end(undefined);
@@ -402,9 +496,24 @@ export async function startPairingSession(
     throw new Error("Session already registered. Please try again.");
   }
 
-  const pairingCode = await sock.requestPairingCode(phoneNumber);
-  logger.info({ sessionId, phoneNumber }, "Pairing code generated");
+  let pairingCode: string;
+  try {
+    pairingCode = await sock.requestPairingCode(phoneNumber);
+  } catch (err: any) {
+    const sf = path.join(AUTH_DIR, sessionId);
+    try { sock.end(undefined); } catch {}
+    try { fs.rmSync(sf, { recursive: true, force: true }); } catch {}
+    delete activeSessions[sessionId];
+    throw new Error(err?.message || "WhatsApp rejected the pairing code request. Please try again.");
+  }
 
+  if (!pairingCode) {
+    try { sock.end(undefined); } catch {}
+    delete activeSessions[sessionId];
+    throw new Error("WhatsApp did not return a pairing code. Please try again.");
+  }
+
+  logger.info({ sessionId, phoneNumber }, "Pairing code generated");
   return { sock, pairingCode };
 }
 

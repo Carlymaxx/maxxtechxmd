@@ -373,7 +373,7 @@ async function requestCode() {
     err.style.display = '';
     return;
   }
-  if (!/^\\d{10,15}$/.test(raw)) {
+  if (!/^[0-9]{10,15}$/.test(raw)) {
     err.textContent = 'Enter a valid number with country code and no spaces or + sign. Example: 254700000000';
     err.style.display = '';
     return;
