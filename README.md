@@ -7,7 +7,7 @@ A WhatsApp bot with rich and multiple features created by carlymaxx.
 
 <div align="center"> 
   <a href="https://git.io/typing-svg"> 
-    <img src="https://readme-typing-svg.demolab.com?font=Rockwell&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=MAXX~OFFICIAL;Multi+Device+Whatsapp+Bot;Made+by+Maxx" alt="[...]
+    <img src="https://readme-typing-svg.demolab.com?font=Rockwell&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=MAXX~OFFICIAL;Multi+Device+Whatsapp+Bot;Made+by+Maxx" alt="MAXX Official Banner">
   </a> 
 </div> 
 
@@ -37,17 +37,18 @@ A WhatsApp bot with rich and multiple features created by carlymaxx.
 </p>
 
 <h1 align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=25&duration=3000&color=00FF00&background=000000&center=true&vCenter=true&width=600&lines=⚡+MAXX+XMD+VERSION;🔥+The+Most+" alt="[...]
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=25&duration=3000&color=00FF00&background=000000&center=true&vCenter=true&width=700&lines=⚡+MAXX+XMD+VERSION;🔥+The+Most+Advanced+Bot;💎+Premium+Features" alt="MAXX XMD Version">
 </h1>
 
 <!-- Quantum Pulse - Activity Animation -->
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=2000&pause=500&color=FF00FF&background=000000&center=true&vCenter=true&width=400&lines=🟢+Maxx+bot:+Alive;💬+" alt="[...]
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=2000&pause=500&color=FF00FF&background=000000&center=true&vCenter=true&width=500&lines=🟢+Maxx+bot:+Alive;💬+Always+Ready+To+Serve;⚡+Processing+Your+Commands" alt="Activity Status">
 </p>
 
 ```
 DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO🫠
 ```
+
 ---
 
 > **CURRENT BOT VERSION ➜ `2.0.9 ⚡`**
@@ -56,7 +57,7 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO🫠
 
 ## ✨ Maxx Tech Banner
 
-[![Maxx Tech](https://img.shields.io/badge/Maxx%20Tech-ALIVE-brightgreen?style=for-the-badge)]()
+[![Maxx Tech](https://img.shields.io/badge/Maxx%20Tech-ALIVE-brightgreen?style=for-the-badge)](https://www.maxxtech.co.ke)
 
 ## 🚀 Deployment Options
 
