@@ -7,7 +7,7 @@ A WhatsApp bot with rich and multiple features created by carlymaxx.
 
 <div align="center"> 
   <a href="https://git.io/typing-svg"> 
-    <img src="https://readme-typing-svg.demolab.com?font=Rockwell&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=MAXX~OFFICIAL;Multi+Device+Whatsapp+Bot;Made+by+Maxx" alt="Typing SVG" />
+    <img src="https://readme-typing-svg.demolab.com?font=Rockwell&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=MAXX~OFFICIAL;Multi+Device+Whatsapp+Bot;Made+by+Maxx" alt="[...]
   </a> 
 </div> 
 
@@ -24,7 +24,7 @@ A WhatsApp bot with rich and multiple features created by carlymaxx.
     <img src="https://img.shields.io/badge/🍴%20FORK%20THIS%20REPO-darkblue?style=for-the-badge&logo=github&logoColor=white" height="55" alt="Fork Repo"/>
   </a>
   &nbsp;&nbsp;
-  <a href="https:/pair.maxxtech.co.ke/" target="_blank">
+  <a href="https://pair.maxxtech.co.ke/" target="_blank">
     <img src="https://img.shields.io/badge/🔑%20GET%20SESSION%20ID-ffb703?style=for-the-badge&logo=whatsapp&logoColor=white" height="55" alt="Get Session ID"/>
   </a>
 </p>
@@ -37,12 +37,12 @@ A WhatsApp bot with rich and multiple features created by carlymaxx.
 </p>
 
 <h1 align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=25&duration=3000&color=00FF00&background=000000&center=true&vCenter=true&width=600&lines=⚡+MAXX+XMD+VERSION;🔥+The+Most+Powerful+WhatsApp+Bot;💻+Crafted+by+CARLY+MAXX;🚀+Next-Gen+Maxx+Technology;🌈+Fast+⚡+Secure+🔒+Reliable+✅" alt="Typing Animation">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=25&duration=3000&color=00FF00&background=000000&center=true&vCenter=true&width=600&lines=⚡+MAXX+XMD+VERSION;🔥+The+Most+" alt="[...]
 </h1>
 
 <!-- Quantum Pulse - Activity Animation -->
 <p align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=20&duration=2000&pause=500&color=FF00FF&background=000000&center=true&vCenter=true&width=400&lines=🟢+Maxx+bot:+Alive;💬+Responding+to+your+messages;💯Auto+typing+on;🔥Auto+react+status+ready;😁anti+link+sensitive;🚀+Deploying+WhatsApp+Bots;🔔+Always+Online!" alt="Quantum Pulse Animation">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=2000&pause=500&color=FF00FF&background=000000&center=true&vCenter=true&width=400&lines=🟢+Maxx+bot:+Alive;💬+" alt="[...]
 </p>
 
 ```
@@ -56,7 +56,7 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO🫠
 
 ## ✨ Maxx Tech Banner
 
-[![Maxx Tech](https:/maxxtech.co.ke.io/badge/Maxx%20Tech-ALIVE-brightgreen?style=for-the-badge)]()
+[![Maxx Tech](https://img.shields.io/badge/Maxx%20Tech-ALIVE-brightgreen?style=for-the-badge)]()
 
 ## 🚀 Deployment Options
 
@@ -139,6 +139,14 @@ You can deploy this project on **Railway**, **Heroku**, **Render**, **Termux**, 
    ```bash
    npm start
    ```
+
+---
+
+## 💬 Support
+
+- 🌐 Website: https://www.maxxtech.co.ke
+- 📧 Email: info@maxxtech.co.ke
+- 🐛 Report bugs: [GitHub Issues](https://github.com/Carlymaxx/maxxtechxmd/issues)
 
 ---
 
