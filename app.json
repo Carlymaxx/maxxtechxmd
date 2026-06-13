@@ -3,17 +3,8 @@
   "description": "The most powerful WhatsApp multi-device bot with 580+ commands. Deploy in one click.",
   "repository": "https://github.com/Carlymaxx/maxxtechxmd",
   "logo": "https://www.maxxtech.co.ke/logo.png",
-  "keywords": [
-    "whatsapp",
-    "bot",
-    "multi-device",
-    "baileys"
-  ],
-  "buildpacks": [
-    {
-      "url": "heroku/nodejs"
-    }
-  ],
+  "keywords": ["whatsapp", "bot", "multi-device", "baileys"],
+  "buildpacks": [{ "url": "heroku/nodejs" }],
   "env": {
     "SESSION_ID": {
       "description": "MAXX-XMD SESSION ID. Get it from https://pair.maxxtech.co.ke",
@@ -84,6 +75,11 @@
     "NODE_MODULES_CACHE": {
       "description": "Disable build cache for clean installs — do not change this value",
       "value": "false",
+      "required": false
+    },
+    "NODEJS_COREPACK_ENABLED": {
+      "description": "Enable Corepack to activate pnpm for workspace installs — do not change this value",
+      "value": "1",
       "required": false
     },
     "AUTO_REACT": {

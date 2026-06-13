@@ -1,0 +1,28 @@
+{
+  "apps": [
+    {
+      "name": "maxx-bot-maxx-xmd-2-mp6yrdzw",
+      "script": "/root/maxxtechxmd/artifacts/api-server/dist/index.mjs",
+      "node_args": "--enable-source-maps --max-old-space-size=512",
+      "instances": 1,
+      "autorestart": true,
+      "watch": false,
+      "max_memory_restart": "500M",
+      "cwd": "/root/maxxtechxmd",
+      "env": {
+        "NODE_ENV": "production",
+        "PORT": "10045",
+        "SESSION_ID": "MAXX-XMD~H4sIAAAAAAAAA5VUTZOiSBD9L3XVGEFBwIiOWERRoFUQRHFjD0AVWAoFFoVCT/jfN3Cmu+ewM9F7q8/Ml++9zO+AFLhCFmrB5DsoKb6FDHVL1pYITMC0ThJEQR/AkIVgAmpruJnPuAT7qPba86w6QfnqXu69racfj5QYktn684g3R+oLePRBWUcZjv8Q0OZYZhSXPGB2j26LnQPlxC+T+ESQm83e2rOF7rxQ+louvIBHFzHEFJN0Xp5QjmiYWai1Q0y/Br+awtVgYfSGvuBmmrlTelawXqdp8kbv2m54rCBOnGmecaP0a/AvgWlc69w2qHpSphZferW9E99guiwy/ZQpxlttLMh8YC25H/ArnBIEDYgIw6z9Mu/hQopuRa1B9YxMxr0F7HWJjVW1sV3p3msvx+VULix0GM5XXwPObNd01PS0dk1uu0hWt8XUEpLITdXiGr86VXAcJkHFmeQS/wrcpu9eufwf3vNlEEXD8+bg9STer8IBESt9IUtabyk6TN/Hu6QeqRsxy+Ovwa+E8RRCR1vWjcw3Jy+V7dgWBXnYCPVbLEOicbZnxq6/cD7hh6ymf0J5JYYORzAVrsvofsZEDHBQ82fV1C9ysA9QXF75Ip8vXpPL8eZ4ARtv2t7rUrwJkrdZtxeRn3lrfn5tQokmq4sExTzWnJdnRRfUGhBM+EcfUJTiitGQ4YI8zxSpD0J4c1FMEXvSC3ZBI+WKWW1rfby5FLYrcs5evd+3g8sMJ6VCFgePs+RhToMX0AclLWJUVQguccUK2q5QVYUpqsDk73/6gKCG/RCuSyfzoz5IMK3YjtRlVoTwXdaP2zCOi5owtyWx1i0QBRPu8xgxhkladUzWJKTxCd+QdgpZBSZJmFXoo0ZEEQQTRmv00bdaATvqzdlqvjouZdAH+VMSDMEEDEWB57jxSB6PxMlY/qv6du/ChmX5jSAG+iB7PuNFQRhxwliQpaEwHncvu4vHB8IuIEQsxFkFJkAzNrgoV9rcGszIWl0s1HmqaqkKPit6N8cP8rNDnNexaeumoFjX02Gb2eJuXZY3xh+CJtLXA32r8HdJ5ucv/xEETEBRKWOOHAvPdY1MdZURdQStOW7k8qBDR7ZhEc03PeskNI2fDpCMW8X3e3Hre5ysnho7WPqe4LyK8zSnFjdsx3GmP53UBxDdcIx+TSbzmyDwpRlxjGMUNsqeG0XxZuCurlF4w/mKRnv9Iqk4OZFbuSyUg3WP0Tqe742lOp5Nd4fxK7eVR2dBydmOCfZM57fTn7Z9tk32c1zhp6E6rbptgtGz+0nYKfg7Ud4Bd97iHv1f/v6cI7/pxenRH5mUaF7jItu9Fj539Hr+LAwjCfrD1b7xkmaXwHgzWG/B4/FPH5RZyJKC5t20JJAWz+S0qDuvGiQp/pBMUw1j6qRuV3EWVkz99L+Hc1SxMC/BhJckWRaHQ0l5/AsZZCAmNwcAAA==",
+        "OWNER_NUMBER": "254100638635",
+        "PREFIX": ".",
+        "WORK_MODE": "public",
+        "BOT_NAME": "MAXX-XMD",
+        "AUTO_LIKE_STATUS": "true",
+        "AUTO_VIEW_STATUS": "true",
+        "AUTOREACT_STATUS": "false",
+        "ALWAYS_ONLINE": "true",
+        "AUTO_READ": "false"
+      }
+    }
+  ]
+}

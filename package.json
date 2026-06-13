@@ -2,16 +2,23 @@
   "name": "workspace",
   "version": "0.0.0",
   "license": "MIT",
-  "packageManager": "pnpm@10.26.1",
   "engines": {
-    "node": "20.x"
+    "node": ">=20.0.0"
   },
   "scripts": {
-    "heroku-prebuild": "corepack enable && corepack prepare pnpm@10.26.1 --activate",
-    "heroku-postbuild": "pnpm install --no-frozen-lockfile"
+    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "heroku-postbuild": "echo 'Using pre-built dist — no recompile needed'",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,
+  "devDependencies": {
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2"
+  },
+  "packageManager": "pnpm@10.26.1",
   "dependencies": {
-    "javascript-obfuscator": "^5.4.1"
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "qrcode": "^1.5.4"
   }
 }

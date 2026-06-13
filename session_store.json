@@ -1,6 +1,6 @@
 {
   "MAXX-XMD-538635-F7IZ": {
-    "phoneNumber": "254100538635",
+    "phoneNumber": "254111204968",
     "type": "paired",
     "autoRestart": false,
     "id": "MAXX-XMD-538635-F7IZ",
@@ -14,5 +14,268 @@
     "id": "MAXX-XMD-979273-RB8B",
     "updatedAt": 1775039074724,
     "createdAt": 1775039074724
+  },
+  "MAXX-XMD-000000-7JS9": {
+    "phoneNumber": "254700000000",
+    "type": "paired",
+    "autoRestart": false,
+    "id": "MAXX-XMD-000000-7JS9",
+    "updatedAt": 1778756185389,
+    "createdAt": 1778756185389
+  },
+  "MAXX-XMD-345679-QIWV": {
+    "phoneNumber": "254712345679",
+    "type": "paired",
+    "autoRestart": false,
+    "id": "MAXX-XMD-345679-QIWV",
+    "updatedAt": 1778756662244,
+    "createdAt": 1778756662244
+  },
+  "MAXX-XMD-345001-GG6U": {
+    "phoneNumber": "254712345001",
+    "type": "paired",
+    "autoRestart": false,
+    "id": "MAXX-XMD-345001-GG6U",
+    "updatedAt": 1778756991729,
+    "createdAt": 1778756991729
+  },
+  "MAXX-XMD-332772-8TM8": {
+    "phoneNumber": "254746332772",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-111222-RMUX": {
+    "phoneNumber": "254700111222",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-638635-JDHM": {
+    "phoneNumber": "254100638635",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-638635-BGGH": {
+    "phoneNumber": "254100638635",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-269538-25R3": {
+    "phoneNumber": "254119269538",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-269538-4AGD": {
+    "phoneNumber": "254119269538",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-269538-GCQC": {
+    "phoneNumber": "254119269538",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-638635-QUVU": {
+    "phoneNumber": "254100638635",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-324845-Y5A2": {
+    "phoneNumber": "263734324845",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-950285-3IHO": {
+    "phoneNumber": "263780950285",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-950285-2AS8": {
+    "phoneNumber": "263780950285",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-500099-XPR3": {
+    "phoneNumber": "260952500099",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-986922-IOVD": {
+    "phoneNumber": "256763986922",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-510002-KWV1": {
+    "phoneNumber": "260979510002",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-500099-1C8J": {
+    "phoneNumber": "260952500099",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-228246-B017": {
+    "phoneNumber": "08068228246",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-510002-X49C": {
+    "phoneNumber": "260979510002",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-500099-E3LF": {
+    "phoneNumber": "260952500099",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-500099-K199": {
+    "phoneNumber": "260952500099",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-510002-1KXH": {
+    "phoneNumber": "260979510002",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-500099-8XAH": {
+    "phoneNumber": "260952500099",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-510002-Y67G": {
+    "phoneNumber": "260979510002",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-007344-7OQG": {
+    "phoneNumber": "260971007344",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-510002-VNOE": {
+    "phoneNumber": "260979510002",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-853047-TYXG": {
+    "phoneNumber": "263717853047",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-500099-4HIV": {
+    "phoneNumber": "260952500099",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-500099-EL50": {
+    "phoneNumber": "260952500099",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-510002-RRDM": {
+    "phoneNumber": "260979510002",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-324845-PTGQ": {
+    "phoneNumber": "263734324845",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-324845-XDT5": {
+    "phoneNumber": "263734324845",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-329402-PI63": {
+    "phoneNumber": "263787329402",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-329402-9GSK": {
+    "phoneNumber": "0787329402",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-329402-M0VJ": {
+    "phoneNumber": "263787329402",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-329402-SOCQ": {
+    "phoneNumber": "263787329402",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-500099-BHBT": {
+    "phoneNumber": "260952500099",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-510002-OWVJ": {
+    "phoneNumber": "260979510002",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-500099-ID4P": {
+    "phoneNumber": "260952500099",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-638635-L5SN": {
+    "phoneNumber": "254100638635",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-408214-IFHT": {
+    "phoneNumber": "263787408214",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-408214-GX7A": {
+    "phoneNumber": "263787408214",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-408214-Q65I": {
+    "phoneNumber": "263787408214",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-408214-PCE9": {
+    "phoneNumber": "263787408214",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-408214-14Z5": {
+    "phoneNumber": "263787408214",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-638635-S0C3": {
+    "phoneNumber": "254100638635",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-638635-4MN1": {
+    "phoneNumber": "254100638635",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD-638635-YNTK": {
+    "phoneNumber": "254100638635",
+    "type": "paired",
+    "autoRestart": false
+  },
+  "MAXX-XMD~H4sIAAAAAAAAA5VU246iShT9l3rFjCDIxaSTg4CKF0QFGjyZhxIKLOUmVYA68d8n2NM9/XBm0qee6rr32mutXT9AXmCCFugGRj9AWeEGUtRN6a1EYATGdRyjCvRABCkEI+AuotSny763DdA9HQdyG+hRNvSxYVjORB97oSGZ4eI1O59fwKMHyvqQ4vAvAYt1HnCRJ7Bt+lqcp840sHYyIc52eoY7Ux+7l3Q+SbC9PBkv4NFFhLjCeWKUR5ShCqYLdLMhrr4GH+ljP1QUW51zwX6TTC+iZiwspZSuK5NeBWeyR8f4zkS1K3wN/r7QGuvE43VYr2R9gvjUMn3VXqdSuMQrfX8yIvfqWa7ht2/wCU5yFJkRyimmty/z3uqNxUTtdK7aLhTR3COH8z7xV5eLtJ0dDM1j2OH0ZhUpX3wNOGtUNtkEHHuHXj9reHMqo0W0uDM674sLvnFZj9E3Mpum58/A7erdK+f/w/tgFd68853uWlfXM+UwazeL05qGM1lC5WlYxm6aKrVe7vnwa/Ct2Vb22r2s52KpY3PKKiSrbwvjzEhF4sI+ZKCW8vLy5n7iHdK6+hvKw/mVbOrZrH9QNviUJ6bbvHJJvjH6q3GbJlGrkEM1sDNpq4pGoBvqATW6pmenTZxPGbxEr36/5NaBOT5OLRy5ghz4Y/XlWdEZ3cwIjLhHD1QowYRWkOIif+7JfA/AqNmhsEL0SS9I6lhGTDyRI2uFSq+A7PFyEtJKuQzFLbvdJPbEqFTTNI/yC+iBsipCRAiKZpjQorqtECEwQQSM/v3eAzm60jfhunQyx/dAjCtC3bwu0wJG77J+nMIwLOqc7m55qHUTVIER+3sbUYrzhHRM1jmswiNukHaElIBRDFOCPmpEFYrAiFY1+uhbrYg66rm9Mxnosgh6IHtKgqPOJkOBY1mRl0V+OBKVf8i3tgsLy/JbjijogfR5jRsKAs8KoiBLA0EUu5vdweMDYRcwQhTilIAR0MwdLsqVZswdJbfU6VQ1ElVLVPC7ondzvJGf+mFWh3N7MheUxeXob1N76Fpl2VDOD66HidWfbBWulWTOePmPIGAEnArGTMwpGyFr/ZXO7nl9deWdsjZOE14u3SawGaqdtOw6zI5WxPg51gYa3FbNLMhidX0kE+XeHEl7XtpWK5F1w2pa56QeiFCDQ/Q5GSunQnNUESPvRdc5WHW+Fy8XKF72A45kqYS3S/W6rZz1Ky3tZbxcXtT1ZrkObYjJEh2xu6RuEPDHu8wyk6VE2oEy1No32z7bJv31XeGnoTqtumWM0bP7c5ihP4vyDrjzFvvofXr76x/5Qy+O9x4/r3LNue6QvbsUHrt3GE+H8CBF3mD1enXiqxtH4bpvbcHj8b0HyhTSuKgyMAIwj6rimbwq6s6rZh4Xf0mmqaY53iS7ruIUEqr+9r+DM0QozEow4iRJloeKKEk9kN3UstxRSN/7BqjdsMMBePwE89AIFlQHAAA=": {
+    "id": "MAXX-XMD~H4sIAAAAAAAAA5VU25KiOhT9l7xqjSCgNFVddQAbQUW0EW+n5iFCwABySbgYp/z3Kezp7nk4M9XnLSRh7bXXWjs/QJZjiuaIAeUHKAhuYIW6ZcUKBBSg1WGICOiDAFYQKKA3qQ4pqRzVTZrDWmjXt9kNC7fxsZ1JdhL3uMtaVIWVN+HFZ3Dvg6I+pdj/C2Dr0CgQeSEs2THci7M9Lx8SOPODeaEb4oTbhduwfo132OSewb1DhJjgLHopzuiCCEzniK0gJl+jjyxTz26DsSDJPj6Gu+0knp6opGmz1hgLRb08xoJT7qfNNP8a/Uhfo1Ln9tK1fOH1zYWtXTmnq7Xdln61obctu1omtw4jw3ujT3GUocAKUFbhin1Zd3mezc39SxB6IZxur0kZu3svMINhoQ13QpqvqqS3K/Iz4+2vERe0qysmm9FQfjWmwdMGrtC1Z5BltJm+5la9qImTC8IZtx73O/EVec9K8n90Z9p4XDrH/XQWjjJSErogVho/ySM2KA+jHLexK1LTHMwM+jX69m0ryAN3M1uMsVZvb+aCiJOTtQqwQ+eTle02mSYHBpoz+ZM+rGryN5Z1Y4QHXyXx9GBdcHKAyX61cwS2kJyxmDdHhiKdezUY29QOv9vplpyMpbIowhW7eWWxi/OZawwFw6O9PD6dtM1Bj6P2+dFRgpgVAIW/9wFBEaYVgRXOs8eezPcBDBoX+QRVD3lB70YOzZm56uRy3cLjJqFesrRHfGS315ibm06VW0K8t6dN+wz6oCC5jyhFgYlplRNmI0phhChQ/v3eBxm6Vm/GdeVkXuiDEBNaeVldpDkM3m39OIW+n9dZ5bLM17sFIkDhPrdRVeEsop2SdQaJf8YN0s+wokAJYUrRR4+IoAAoFanRx9zqedBJL07txXwxP4A+uDwswQFQwFASeZ4fcuLTSFbG3D/0W9vBwqL4lqEK9EH6dm0sShIvS7I0lCWO7252B/cPhh1ggCqIUwoUoK/0fbNS9Zfl/CYF6nSq2pGqRyr47Og9HG/iS8NYxqUkmu3pzAz/TFWnNxNgkIxnL540SlNtISPpqD3txOf/AAEKMHTeYNJim290T8c2tJb6bKYt+KyIufBi+C8e621wsqv1VBqwRAvScq/a9LrN4Cy2OGtzHQjboTcdOapXkKWl8pu53iWpDwLUYB/9Xixn6WI/5FxzmVom3wy2k8vKW+aXHgvYiJjp2V+6l6X4ckoXJbdydkXvGGTbwjvb6zZJ2qPcwol73M+Xy4MNeSIO2pF0jt5i+xib9NdzhR+B6rzqPkOMHtOfwc7BP5nyTrjLFnfv//bvr3fkD7OooSAfWGWNNHkq+ue9dVInDQ6G2dFhr4aDiuPaHZj1bh1ua3C/f++DIoVVmJMLUADMApI/ipO87rJqZWH+l2K6ZllqFC27jlNIK/Uz/xt8QbSClwIo/FjmOHEkcNz9J6pePzk3BwAA",
+    "phoneNumber": "254111204968",
+    "type": "panel",
+    "autoRestart": true,
+    "panelUserId": 2,
+    "createdAt": 1778862709498,
+    "updatedAt": 1778862709498
   }
 }
