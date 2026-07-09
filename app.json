@@ -1,21 +1,20 @@
 {
   "name": "MAXX-XMD WhatsApp Bot",
-  "description": "The most powerful WhatsApp multi-device bot with 580+ commands. Deploy in one click.",
+  "description": "The most powerful WhatsApp multi-device bot with 677+ commands. Deploy in one click.",
   "repository": "https://github.com/Carlymaxx/maxxtechxmd",
-  "logo": "https://www.maxxtech.co.ke/logo.png",
+  "logo": "https://files.catbox.moe/9r47nb.jpg",
   "keywords": ["whatsapp", "bot", "multi-device", "baileys", "kenyan"],
   "buildpacks": [{ "url": "heroku/nodejs" }],
   "env": {
     "SESSION_ID": {
-      "description": "Get your Session ID FREE from https://pair.maxxtech.co.ke",
+      "description": "Get your Session ID FREE from https://pair.maxxtech.co.ke — enter your number, scan QR, copy the Session ID.",
       "required": true
-    },
-
+    }
   },
   "formation": {
     "web": {
       "quantity": 1,
-      "size": "basic"
+      "size": "eco"
     }
   },
   "addons": [],
