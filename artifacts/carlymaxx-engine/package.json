@@ -25,16 +25,10 @@
     "sharp": "^0.34.5",
     "youtube-dl-exec": "^3.1.4",
     "gifted-btns": "latest",
-    "wa-sticker-formatter": "^4.4.4",
     "@tobyg74/tiktok-api-dl": "^1.3.7",
     "instagram-url-direct": "^2.0.7"
   },
   "devDependencies": {
     "esbuild": "^0.25.8"
-  },
-  "pnpm": {
-    "overrides": {
-      "sharp": "0.34.5"
-    }
   }
 }
