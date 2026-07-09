@@ -1,0 +1,50 @@
+# ============================================================
+#  MAXX-XMD WhatsApp Bot - Docker Compose
+#  Usage: docker-compose up -d
+#  Stop:  docker-compose down
+# ============================================================
+
+version: '3.8'
+
+services:
+  maxx-xmd:
+    image: maxx-xmd
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: maxx-xmd
+    restart: unless-stopped
+    environment:
+      # REQUIRED: Get your Session ID from https://pair.maxxtech.co.ke
+      - SESSION_ID=${SESSION_ID}
+
+      # OPTIONAL: Customize your bot
+      - BOT_NAME=${BOT_NAME:-MAXX-XMD}
+      - PREFIX=${PREFIX:-.}
+      - WORK_MODE=${WORK_MODE:-public}
+      - OWNER_NUMBER=${OWNER_NUMBER:-}
+
+      # OPTIONAL: Paystack payments
+      - PAYSTACK_SECRET_KEY=${PAYSTACK_SECRET_KEY:-}
+      - PAYSTACK_PUBLIC_KEY=${PAYSTACK_PUBLIC_KEY:-}
+
+      # OPTIONAL: Auto-save settings (needed for .setname/.setpic to persist)
+      - HEROKU_API_KEY=${HEROKU_API_KEY:-}
+      - HEROKU_APP_NAME=${HEROKU_APP_NAME:-}
+
+    volumes:
+      # Persist WhatsApp session data between container restarts
+      - maxx_session:/app/maxx_session
+
+    ports:
+      - "3000:3000"
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  maxx_session:
+    driver: local

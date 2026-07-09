@@ -1,0 +1,14 @@
+{
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
+  "engines": {
+    "node": "20.x"
+  },
+  "packageManager": "pnpm@10.26.1",
+  "scripts": {
+    "heroku-prebuild": "corepack enable && corepack prepare pnpm@10.26.1 --activate",
+    "heroku-postbuild": "pnpm install --no-frozen-lockfile && pnpm --filter @workspace/api-server install --no-frozen-lockfile"
+  },
+  "private": true
+}
