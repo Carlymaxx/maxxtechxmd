@@ -31,5 +31,10 @@
   },
   "devDependencies": {
     "esbuild": "^0.25.8"
+  },
+  "pnpm": {
+    "overrides": {
+      "sharp": "0.34.5"
+    }
   }
 }
