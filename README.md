@@ -96,7 +96,7 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO 🫠
   <img src="https://img.shields.io/badge/YouTube_Download-MP3_%26_MP4-red?style=for-the-badge&logo=youtube&logoColor=white&color=ff0000&labelColor=000000" alt="YouTube Download" />
   <img src="https://img.shields.io/badge/Instagram_Download-Reels_%26_Posts-e1306c?style=for-the-badge&logo=instagram&logoColor=white&labelColor=000000" alt="Instagram Download" />
   <img src="https://img.shields.io/badge/Multi_Device-Supported-success?style=for-the-badge&logo=whatsapp&logoColor=white&labelColor=000000" alt="Multi Device" />
-  <img src="https://img.shields.io/badge/677+_Commands-Loaded-gold?style=for-the-badge&logo=terminal&logoColor=white&labelColor=000000" alt="Commands" />
+  <img src="https://img.shields.io/badge/Commands-Loaded-gold?style=for-the-badge&logo=terminal&logoColor=white&labelColor=000000" alt="Commands" />
 </p>
 
 <p align="center">
