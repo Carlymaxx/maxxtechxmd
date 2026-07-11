@@ -9,6 +9,14 @@
     "SESSION_ID": {
       "description": "Get your Session ID FREE from https://pair.maxxtech.co.ke — enter your number, scan QR, copy the Session ID.",
       "required": true
+    },
+    "NPM_CONFIG_PRODUCTION": {
+      "description": "Keep all dependencies (including Baileys and gifted-btns) in the slug.",
+      "value": "false"
+    },
+    "NODE_MODULES_CACHE": {
+      "description": "Disable node_modules cache to ensure clean installs.",
+      "value": "false"
     }
   },
   "formation": {
