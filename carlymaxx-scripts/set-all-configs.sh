@@ -26,3 +26,4 @@ for app in $APPS; do
   echo "$app: $result"
 done
 echo "Done."
+# MAXX-XMD

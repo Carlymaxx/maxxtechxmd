@@ -67,3 +67,4 @@ auth_info_baileys/
 # Replit-internal config (not needed for deployers)
 artifacts/maxx-engine/.replit-artifact/
 .env
+# MAXX-XMD

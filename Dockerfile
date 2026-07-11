@@ -40,3 +40,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 
 # Start the bot
 CMD ["node", "--enable-source-maps", "./artifacts/carlymaxx-engine/dist/index.mjs"]
+# MAXX-XMD
