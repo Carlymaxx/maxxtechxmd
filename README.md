@@ -52,13 +52,25 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO 🫠
 
 <p align="center">
   <a href="https://github.com/Carlymaxx/maxxtechxmd/fork" target="_blank">
-    <img src="https://img.shields.io/badge/🍴%20FORK%20THIS%20REPO-darkblue?style=for-the-badge&logo=github&logoColor=white" height="55" alt="Fork Repo"/>
+    <img src="https://img.shields.io/badge/🍴%20FORK%20THIS%20REPO-darkblue?style=for-the-badge&logo=github&logoColor=white" height="45" alt="Fork Repo"/>
   </a>
-  &nbsp;&nbsp;
+  &nbsp;
   <a href="https://pair.maxxtech.co.ke" target="_blank">
-    <img src="https://img.shields.io/badge/🔑%20GET%20SESSION%20ID-ffb703?style=for-the-badge&logo=whatsapp&logoColor=white" height="55" alt="Get Session ID"/>
+    <img src="https://img.shields.io/badge/🔑%20GET%20SESSION%20ID-ffb703?style=for-the-badge&logo=whatsapp&logoColor=white" height="45" alt="Get Session ID"/>
+  </a>
+  &nbsp;
+  <a href="https://maxxtech.co.ke" target="_blank">
+    <img src="https://img.shields.io/badge/🌍%20VISIT%20WEBSITE-00b894?style=for-the-badge&logo=google-chrome&logoColor=white" height="45" alt="Website"/>
   </a>
 </p>
+
+<p align="center">
+  <img src="https://i.imgur.com/dBaSKWF.gif" height="20" width="100%">
+</p>
+
+---
+
+## 📊 Repo Stats
 
 <p align="center">
   <a href="https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
@@ -92,11 +104,11 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO 🫠
   <img src="https://komarev.com/ghpvc/?username=maxxtechxmd&label=REPO+VIEWS&color=FF0000&style=for-the-badge" alt="Visitor Counter"/>
 </p>
 
----
-
 <p align="center">
   <img src="https://i.imgur.com/dBaSKWF.gif" height="20" width="100%">
 </p>
+
+---
 
 ## ⚡ Features
 
@@ -112,7 +124,59 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO 🫠
   <img src="https://img.shields.io/badge/YouTube_Download-MP3_%26_MP4-red?style=for-the-badge&logo=youtube&logoColor=white&color=ff0000&labelColor=000000" alt="YouTube Download" />
   <img src="https://img.shields.io/badge/Instagram_Download-Reels_%26_Posts-e1306c?style=for-the-badge&logo=instagram&logoColor=white&labelColor=000000" alt="Instagram Download" />
   <img src="https://img.shields.io/badge/Multi_Device-Supported-success?style=for-the-badge&logo=whatsapp&logoColor=white&labelColor=000000" alt="Multi Device" />
-  <img src="https://img.shields.io/badge/Commands-Loaded-gold?style=for-the-badge&logo=terminal&logoColor=white&labelColor=000000" alt="Commands" />
+  <img src="https://img.shields.io/badge/M--Pesa_Payments-Enabled-00C851?style=for-the-badge&logo=stripe&logoColor=white&labelColor=000000" alt="M-Pesa" />
+</p>
+
+<p align="center">
+  <img src="https://i.imgur.com/dBaSKWF.gif" height="20" width="100%">
+</p>
+
+---
+
+## 🌐 Community & Links
+
+<p align="center">
+  <a href="https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J" target="_blank">
+    <img src="https://img.shields.io/badge/📢%20WHATSAPP%20CHANNEL-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" height="45" alt="WhatsApp Channel"/>
+  </a>
+  &nbsp;
+  <a href="https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ" target="_blank">
+    <img src="https://img.shields.io/badge/👥%20WHATSAPP%20GROUP-128C7E?style=for-the-badge&logo=whatsapp&logoColor=white" height="45" alt="WhatsApp Group"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://t.me/maxxtechgram" target="_blank">
+    <img src="https://img.shields.io/badge/✈️%20TELEGRAM%20CHANNEL-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" height="45" alt="Telegram"/>
+  </a>
+  &nbsp;
+  <a href="https://youtube.com/@maxxtechxmd?si=ImFOHpQxL5afPBt9" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20YOUTUBE%20CHANNEL-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="YouTube Channel"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtube.com/shorts/xsoFZBGAudY?si=dsjahvNHt9VL-bzU" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20WATCH%20SHORT%201-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="YouTube Short 1"/>
+  </a>
+  &nbsp;
+  <a href="https://youtube.com/shorts/0-ssjMGe8TM?si=s8sPQc2Ww1fB1got" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20WATCH%20SHORT%202-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="YouTube Short 2"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://maxxtech.co.ke" target="_blank">
+    <img src="https://img.shields.io/badge/🌍%20WEBSITE-00b894?style=for-the-badge&logo=google-chrome&logoColor=white" height="45" alt="Website"/>
+  </a>
+  &nbsp;
+  <a href="https://pair.maxxtech.co.ke" target="_blank">
+    <img src="https://img.shields.io/badge/🔑%20PAIR%20SITE-ffb703?style=for-the-badge&logo=whatsapp&logoColor=white" height="45" alt="Pair Site"/>
+  </a>
+  &nbsp;
+  <a href="https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/💻%20GITHUB%20REPO-181717?style=for-the-badge&logo=github&logoColor=white" height="45" alt="GitHub"/>
+  </a>
 </p>
 
 <p align="center">
@@ -123,38 +187,45 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO 🫠
 
 ## 🚀 Deployment Options
 
-> You can deploy this project on **Heroku**, **Railway**, **Render**, **Docker/VPS**, **Termux**, or **Koyeb**. Choose the method that suits you best.
+> Deploy on **Heroku**, **Railway**, **Render**, **Docker/VPS**, **Termux**, or **Koyeb** — your choice.
 
 <p align="center">
   <a href="https://heroku.com/deploy?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
-    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20HEROKU-430098?style=for-the-badge&logo=heroku&logoColor=white" height="55" alt="Deploy on Heroku"/>
+    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20HEROKU-430098?style=for-the-badge&logo=heroku&logoColor=white" height="50" alt="Deploy on Heroku"/>
   </a>
 </p>
 
 <p align="center">
   <a href="https://railway.app/new/template?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
-    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20RAILWAY-ec4c2d?style=for-the-badge&logo=railway&logoColor=white" height="55" alt="Deploy on Railway"/>
+    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20RAILWAY-ec4c2d?style=for-the-badge&logo=railway&logoColor=white" height="50" alt="Deploy on Railway"/>
   </a>
 </p>
 
 <p align="center">
   <a href="https://render.com/deploy?repo=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
-    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20RENDER-1f1f1f?style=for-the-badge&logo=render&logoColor=white" height="55" alt="Deploy on Render"/>
+    <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20RENDER-1f1f1f?style=for-the-badge&logo=render&logoColor=white" height="50" alt="Deploy on Render"/>
   </a>
 </p>
 
 <p align="center">
   <a href="https://termux.dev" target="_blank">
-    <img src="https://img.shields.io/badge/📱%20RUN%20ON%20TERMUX-00ff00?style=for-the-badge&logo=android&logoColor=black" height="55" alt="Run on Termux"/>
+    <img src="https://img.shields.io/badge/📱%20RUN%20ON%20TERMUX-00ff00?style=for-the-badge&logo=android&logoColor=black" height="50" alt="Run on Termux"/>
   </a>
 </p>
 
 ---
 
-### 1️⃣ Heroku (One Click — Recommended)
+### 1️⃣ Heroku — One Click (Recommended)
 
 1. Click **Deploy on Heroku** above
-2. Enter your `SESSION_ID` — get it FREE from [pair.maxxtech.co.ke](https://pair.maxxtech.co.ke)
+2. Enter your `SESSION_ID` — get it FREE below:
+
+<p align="center">
+  <a href="https://pair.maxxtech.co.ke" target="_blank">
+    <img src="https://img.shields.io/badge/🔑%20GET%20FREE%20SESSION%20ID-ffb703?style=for-the-badge&logo=whatsapp&logoColor=white" height="45" alt="Get Session ID"/>
+  </a>
+</p>
+
 3. Click **Deploy App** → Done in 2 minutes!
 
 ---
@@ -181,7 +252,7 @@ docker-compose -f docker/docker-compose.yml logs -f
 
 ---
 
-### 3️⃣ VPS / Katapump (Manual Node.js)
+### 3️⃣ VPS / Katapump — Manual Node.js
 
 > **Requirements:** Node.js 20+, pnpm
 
@@ -211,7 +282,7 @@ pm2 save && pm2 startup
 
 ---
 
-### 4️⃣ Railway / Render / Koyeb (Free Hosting)
+### 4️⃣ Railway / Render / Koyeb
 
 1. Fork this repo
 2. Connect your GitHub to Railway / Render / Koyeb
@@ -224,6 +295,26 @@ pm2 save && pm2 startup
   <img src="https://i.imgur.com/dBaSKWF.gif" height="20" width="100%">
 </p>
 
+## 🎬 Watch Tutorials
+
+<p align="center">
+  <a href="https://youtube.com/@maxxtechxmd?si=ImFOHpQxL5afPBt9" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20SUBSCRIBE%20ON%20YOUTUBE-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="Subscribe"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtube.com/shorts/xsoFZBGAudY?si=dsjahvNHt9VL-bzU" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20DEPLOYMENT%20TUTORIAL%201-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="Tutorial 1"/>
+  </a>
+  &nbsp;
+  <a href="https://youtube.com/shorts/0-ssjMGe8TM?si=s8sPQc2Ww1fB1got" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20DEPLOYMENT%20TUTORIAL%202-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="Tutorial 2"/>
+  </a>
+</p>
+
+---
+
 ## ⚡ Tips
 
 > **iPhone users:** If any button says "Download" instead of opening, try long-pressing → **Open in New Tab**
@@ -233,6 +324,12 @@ pm2 save && pm2 startup
 ---
 
 ## 🔑 Get Your Session ID
+
+<p align="center">
+  <a href="https://pair.maxxtech.co.ke" target="_blank">
+    <img src="https://img.shields.io/badge/🔑%20PAIR%20YOUR%20NUMBER%20NOW-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" height="50" alt="Get Session ID"/>
+  </a>
+</p>
 
 Visit **[pair.maxxtech.co.ke](https://pair.maxxtech.co.ke)** — enter your WhatsApp number, scan QR or enter pairing code, copy the Session ID. It's **100% FREE**.
 
@@ -255,22 +352,6 @@ Visit **[pair.maxxtech.co.ke](https://pair.maxxtech.co.ke)** — enter your What
   <img src="https://i.imgur.com/dBaSKWF.gif" height="20" width="100%">
 </p>
 
-## 🌐 Community & Links
-
-<div align="center">
-
-| | |
-|---|---|
-| 🌍 **Website** | [maxxtech.co.ke](https://maxxtech.co.ke) |
-| 📢 **WhatsApp Channel** | [Follow Us](https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J) |
-| 👥 **WhatsApp Group** | [Join Group](https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ) |
-| 💻 **GitHub** | [Carlymaxx/maxxtechxmd](https://github.com/Carlymaxx/maxxtechxmd) |
-| 🔑 **Pair Site** | [pair.maxxtech.co.ke](https://pair.maxxtech.co.ke) |
-
-</div>
-
----
-
 ## 👑 Contributors
 
 <table align="center">
@@ -285,7 +366,19 @@ Visit **[pair.maxxtech.co.ke](https://pair.maxxtech.co.ke)** — enter your What
   </tr>
 </table>
 
-> Want to contribute? **Fork** the repo, make your changes, and open a **Pull Request!**
+<p align="center">
+  <a href="https://github.com/Carlymaxx/maxxtechxmd/fork" target="_blank">
+    <img src="https://img.shields.io/badge/🍴%20FORK%20%26%20CONTRIBUTE-181717?style=for-the-badge&logo=github&logoColor=white" height="45" alt="Fork & Contribute"/>
+  </a>
+  &nbsp;
+  <a href="https://github.com/Carlymaxx/maxxtechxmd/issues/new/choose" target="_blank">
+    <img src="https://img.shields.io/badge/🐛%20REPORT%20A%20BUG-red?style=for-the-badge&logo=github&logoColor=white" height="45" alt="Report Bug"/>
+  </a>
+  &nbsp;
+  <a href="https://github.com/Carlymaxx/maxxtechxmd/issues/new/choose" target="_blank">
+    <img src="https://img.shields.io/badge/✨%20REQUEST%20FEATURE-blueviolet?style=for-the-badge&logo=github&logoColor=white" height="45" alt="Request Feature"/>
+  </a>
+</p>
 
 ---
 
@@ -306,4 +399,3 @@ Visit **[pair.maxxtech.co.ke](https://pair.maxxtech.co.ke)** — enter your What
 <p align="center">
   <img src="https://i.imgur.com/dBaSKWF.gif" height="20" width="100%">
 </p>
-

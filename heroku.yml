@@ -1,0 +1,7 @@
+build:
+  docker:
+    web:
+      dockerfile: docker/Dockerfile
+
+run:
+  web: node --enable-source-maps ./artifacts/carlymaxx-engine/dist/index.mjs
