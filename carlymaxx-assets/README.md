@@ -1,0 +1,1 @@
+# MAXX-XMD Assets

@@ -49,3 +49,4 @@ volumes:
   maxx_session:
     driver: local
 # MAXX-XMD
+
