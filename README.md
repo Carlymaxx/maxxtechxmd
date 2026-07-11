@@ -70,6 +70,36 @@
   <sub>⭐ Don't forget to <b>FORK 🍴</b> and <b>STAR 🌟</b> the repo to support the project!</sub>
 </p>
 
+<br/>
+
+<p align="center">
+  <a href="https://heroku.com/deploy?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20%20DEPLOY%20ON%20HEROKU%20%20-430098?style=for-the-badge&logo=heroku&logoColor=white" height="65" alt="Deploy on Heroku"/>
+  </a>
+  <br/><sub>⭐ Recommended — one click, done in 2 minutes</sub>
+</p>
+
+<p align="center">
+  <a href="https://railway.app/new/template?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20%20DEPLOY%20ON%20RAILWAY%20%20-ec4c2d?style=for-the-badge&logo=railway&logoColor=white" height="65" alt="Deploy on Railway"/>
+  </a>
+  <br/><sub>Free tier available — great for testing</sub>
+</p>
+
+<p align="center">
+  <a href="https://render.com/deploy?repo=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20%20DEPLOY%20ON%20RENDER%20%20-1f1f1f?style=for-the-badge&logo=render&logoColor=white" height="65" alt="Deploy on Render"/>
+  </a>
+  <br/><sub>Free hosting with auto-deploy from GitHub</sub>
+</p>
+
+<p align="center">
+  <a href="https://termux.dev" target="_blank">
+    <img src="https://img.shields.io/badge/📱%20%20RUN%20ON%20TERMUX%20%20-00b300?style=for-the-badge&logo=android&logoColor=white" height="65" alt="Run on Termux"/>
+  </a>
+  <br/><sub>Run directly on your Android phone 24/7</sub>
+</p>
+
 ---
 
 ## 📊 Repo Stats
@@ -225,33 +255,7 @@
 
 ## 🚀 Deployment Options
 
-<p align="center">
-  <a href="https://heroku.com/deploy?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
-    <img src="https://img.shields.io/badge/🚀%20%20DEPLOY%20ON%20HEROKU%20%20-430098?style=for-the-badge&logo=heroku&logoColor=white" height="65" alt="Deploy on Heroku"/>
-  </a>
-  <br/><sub>⭐ Recommended — one click, done in 2 minutes</sub>
-</p>
-
-<p align="center">
-  <a href="https://railway.app/new/template?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
-    <img src="https://img.shields.io/badge/🚀%20%20DEPLOY%20ON%20RAILWAY%20%20-ec4c2d?style=for-the-badge&logo=railway&logoColor=white" height="65" alt="Deploy on Railway"/>
-  </a>
-  <br/><sub>Free tier available — great for testing</sub>
-</p>
-
-<p align="center">
-  <a href="https://render.com/deploy?repo=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
-    <img src="https://img.shields.io/badge/🚀%20%20DEPLOY%20ON%20RENDER%20%20-1f1f1f?style=for-the-badge&logo=render&logoColor=white" height="65" alt="Deploy on Render"/>
-  </a>
-  <br/><sub>Free hosting with auto-deploy from GitHub</sub>
-</p>
-
-<p align="center">
-  <a href="https://termux.dev" target="_blank">
-    <img src="https://img.shields.io/badge/📱%20%20RUN%20ON%20TERMUX%20%20-00b300?style=for-the-badge&logo=android&logoColor=white" height="65" alt="Run on Termux"/>
-  </a>
-  <br/><sub>Run directly on your Android phone 24/7</sub>
-</p>
+> Deploy on **Heroku**, **Railway**, **Render**, **Docker/VPS**, **Termux**, or **Koyeb** — your choice.
 
 ---
 
