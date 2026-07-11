@@ -11,7 +11,7 @@ services:
     image: maxx-xmd
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
     container_name: maxx-xmd
     restart: unless-stopped
     environment:

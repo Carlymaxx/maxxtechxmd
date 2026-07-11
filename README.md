@@ -151,16 +151,16 @@ git clone https://github.com/Carlymaxx/maxxtechxmd.git
 cd maxxtechxmd
 
 # 2. Copy environment file
-cp .env.example .env
+cp docker/.env.example .env
 
 # 3. Edit .env — paste your SESSION_ID
 nano .env
 
 # 4. Build and start
-docker-compose up -d
+docker-compose -f docker/docker-compose.yml up -d
 
 # 5. View logs
-docker-compose logs -f
+docker-compose -f docker/docker-compose.yml logs -f
 ```
 
 ---
