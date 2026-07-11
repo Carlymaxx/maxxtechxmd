@@ -70,6 +70,44 @@
   <sub>⭐ Don't forget to <b>FORK 🍴</b> and <b>STAR 🌟</b> the repo to support the project!</sub>
 </p>
 
+<br/>
+
+<p align="center">
+  <a href="https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J" target="_blank">
+    <img src="https://img.shields.io/badge/📢%20%20FOLLOW%20WHATSAPP%20CHANNEL%20%20-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" height="65" alt="WhatsApp Channel"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ" target="_blank">
+    <img src="https://img.shields.io/badge/👥%20%20JOIN%20WHATSAPP%20GROUP%20%20-128C7E?style=for-the-badge&logo=whatsapp&logoColor=white" height="65" alt="WhatsApp Group"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://t.me/maxxtechgram" target="_blank">
+    <img src="https://img.shields.io/badge/✈️%20%20JOIN%20TELEGRAM%20CHANNEL%20%20-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" height="65" alt="Telegram"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtube.com/@maxxtechxmd?si=ImFOHpQxL5afPBt9" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20%20SUBSCRIBE%20ON%20YOUTUBE%20%20-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="65" alt="YouTube Channel"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtube.com/shorts/0-ssjMGe8TM?si=s8sPQc2Ww1fB1got" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20%20HOW%20TO%20GET%20MAXX--XMD%20%20-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="65" alt="How to Get MAXX-XMD"/>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtube.com/shorts/xsoFZBGAudY?si=dsjahvNHt9VL-bzU" target="_blank">
+    <img src="https://img.shields.io/badge/▶️%20%20HOW%20TO%20DEPLOY%20ON%20YOUR%20SERVER%20%20-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="65" alt="Deploy on Your Own Server"/>
+  </a>
+</p>
+
 ---
 
 ## 📊 Repo Stats
