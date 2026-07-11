@@ -70,44 +70,6 @@
   <sub>⭐ Don't forget to <b>FORK 🍴</b> and <b>STAR 🌟</b> the repo to support the project!</sub>
 </p>
 
-<br/>
-
-<p align="center">
-  <a href="https://whatsapp.com/channel/0029Vb6XNTjAInPblhlwnm2J" target="_blank">
-    <img src="https://img.shields.io/badge/📢%20%20FOLLOW%20WHATSAPP%20CHANNEL%20%20-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" height="65" alt="WhatsApp Channel"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://chat.whatsapp.com/BWZOtIlbZoJ9Xt8lgxxbqQ" target="_blank">
-    <img src="https://img.shields.io/badge/👥%20%20JOIN%20WHATSAPP%20GROUP%20%20-128C7E?style=for-the-badge&logo=whatsapp&logoColor=white" height="65" alt="WhatsApp Group"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://t.me/maxxtechgram" target="_blank">
-    <img src="https://img.shields.io/badge/✈️%20%20JOIN%20TELEGRAM%20CHANNEL%20%20-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" height="65" alt="Telegram"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://youtube.com/@maxxtechxmd?si=ImFOHpQxL5afPBt9" target="_blank">
-    <img src="https://img.shields.io/badge/▶️%20%20SUBSCRIBE%20ON%20YOUTUBE%20%20-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="65" alt="YouTube Channel"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://youtube.com/shorts/0-ssjMGe8TM?si=s8sPQc2Ww1fB1got" target="_blank">
-    <img src="https://img.shields.io/badge/▶️%20%20HOW%20TO%20GET%20MAXX--XMD%20%20-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="65" alt="How to Get MAXX-XMD"/>
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://youtube.com/shorts/xsoFZBGAudY?si=dsjahvNHt9VL-bzU" target="_blank">
-    <img src="https://img.shields.io/badge/▶️%20%20HOW%20TO%20DEPLOY%20ON%20YOUR%20SERVER%20%20-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="65" alt="Deploy on Your Own Server"/>
-  </a>
-</p>
-
 ---
 
 ## 📊 Repo Stats
@@ -263,38 +225,33 @@
 
 ## 🚀 Deployment Options
 
-<div align="center">
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="https://heroku.com/deploy?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
-        <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20HEROKU-430098?style=for-the-badge&logo=heroku&logoColor=white" height="45" alt="Deploy on Heroku"/>
-      </a>
-      <br/><sub>⭐ Recommended — one click, done in 2 minutes</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="https://railway.app/new/template?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
-        <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20RAILWAY-ec4c2d?style=for-the-badge&logo=railway&logoColor=white" height="45" alt="Deploy on Railway"/>
-      </a>
-      <br/><sub>Free tier available — great for testing</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="50%">
-      <a href="https://render.com/deploy?repo=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
-        <img src="https://img.shields.io/badge/🚀%20DEPLOY%20ON%20RENDER-1f1f1f?style=for-the-badge&logo=render&logoColor=white" height="45" alt="Deploy on Render"/>
-      </a>
-      <br/><sub>Free hosting with auto-deploy from GitHub</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="https://termux.dev" target="_blank">
-        <img src="https://img.shields.io/badge/📱%20RUN%20ON%20TERMUX-00ff00?style=for-the-badge&logo=android&logoColor=black" height="45" alt="Run on Termux"/>
-      </a>
-      <br/><sub>Run directly on your Android phone 24/7</sub>
-    </td>
-  </tr>
-</table>
-</div>
+<p align="center">
+  <a href="https://heroku.com/deploy?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20%20DEPLOY%20ON%20HEROKU%20%20-430098?style=for-the-badge&logo=heroku&logoColor=white" height="65" alt="Deploy on Heroku"/>
+  </a>
+  <br/><sub>⭐ Recommended — one click, done in 2 minutes</sub>
+</p>
+
+<p align="center">
+  <a href="https://railway.app/new/template?template=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20%20DEPLOY%20ON%20RAILWAY%20%20-ec4c2d?style=for-the-badge&logo=railway&logoColor=white" height="65" alt="Deploy on Railway"/>
+  </a>
+  <br/><sub>Free tier available — great for testing</sub>
+</p>
+
+<p align="center">
+  <a href="https://render.com/deploy?repo=https://github.com/Carlymaxx/maxxtechxmd" target="_blank">
+    <img src="https://img.shields.io/badge/🚀%20%20DEPLOY%20ON%20RENDER%20%20-1f1f1f?style=for-the-badge&logo=render&logoColor=white" height="65" alt="Deploy on Render"/>
+  </a>
+  <br/><sub>Free hosting with auto-deploy from GitHub</sub>
+</p>
+
+<p align="center">
+  <a href="https://termux.dev" target="_blank">
+    <img src="https://img.shields.io/badge/📱%20%20RUN%20ON%20TERMUX%20%20-00b300?style=for-the-badge&logo=android&logoColor=white" height="65" alt="Run on Termux"/>
+  </a>
+  <br/><sub>Run directly on your Android phone 24/7</sub>
+</p>
 
 ---
 
