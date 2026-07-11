@@ -157,11 +157,11 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO 🫠
 
 <p align="center">
   <a href="https://youtube.com/shorts/xsoFZBGAudY?si=dsjahvNHt9VL-bzU" target="_blank">
-    <img src="https://img.shields.io/badge/▶️%20WATCH%20SHORT%201-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="YouTube Short 1"/>
+    <img src="https://img.shields.io/badge/▶️%20HOW%20TO%20GET%20MAXX--XMD-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="How to Get MAXX-XMD"/>
   </a>
   &nbsp;
   <a href="https://youtube.com/shorts/0-ssjMGe8TM?si=s8sPQc2Ww1fB1got" target="_blank">
-    <img src="https://img.shields.io/badge/▶️%20WATCH%20SHORT%202-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="YouTube Short 2"/>
+    <img src="https://img.shields.io/badge/▶️%20DEPLOY%20ON%20YOUR%20OWN%20SERVER-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="Deploy on Your Own Server"/>
   </a>
 </p>
 
@@ -305,11 +305,11 @@ pm2 save && pm2 startup
 
 <p align="center">
   <a href="https://youtube.com/shorts/xsoFZBGAudY?si=dsjahvNHt9VL-bzU" target="_blank">
-    <img src="https://img.shields.io/badge/▶️%20DEPLOYMENT%20TUTORIAL%201-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="Tutorial 1"/>
+    <img src="https://img.shields.io/badge/▶️%20HOW%20TO%20GET%20MAXX--XMD-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="How to Get MAXX-XMD"/>
   </a>
   &nbsp;
   <a href="https://youtube.com/shorts/0-ssjMGe8TM?si=s8sPQc2Ww1fB1got" target="_blank">
-    <img src="https://img.shields.io/badge/▶️%20DEPLOYMENT%20TUTORIAL%202-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="Tutorial 2"/>
+    <img src="https://img.shields.io/badge/▶️%20DEPLOY%20ON%20YOUR%20OWN%20SERVER-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="45" alt="Deploy on Your Own Server"/>
   </a>
 </p>
 
