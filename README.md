@@ -202,13 +202,13 @@
       <br/><sub>Subscribe to our YouTube channel for all updates</sub>
     </td>
     <td align="center" width="33%">
-      <a href="https://youtube.com/shorts/xsoFZBGAudY?si=dsjahvNHt9VL-bzU" target="_blank">
+      <a href="https://youtube.com/shorts/0-ssjMGe8TM?si=s8sPQc2Ww1fB1got" target="_blank">
         <img src="https://img.shields.io/badge/▶️%20HOW%20TO%20GET%20MAXX--XMD-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="40" alt="How to Get MAXX-XMD"/>
       </a>
       <br/><sub>Step-by-step guide to get & set up MAXX-XMD</sub>
     </td>
     <td align="center" width="33%">
-      <a href="https://youtube.com/shorts/0-ssjMGe8TM?si=s8sPQc2Ww1fB1got" target="_blank">
+      <a href="https://youtube.com/shorts/xsoFZBGAudY?si=dsjahvNHt9VL-bzU" target="_blank">
         <img src="https://img.shields.io/badge/▶️%20DEPLOY%20YOUR%20OWN%20SERVER-FF0000?style=for-the-badge&logo=youtube&logoColor=white" height="40" alt="Deploy on Your Own Server"/>
       </a>
       <br/><sub>How to deploy MAXX-XMD on your own VPS or server</sub>
