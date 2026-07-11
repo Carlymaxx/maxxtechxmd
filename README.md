@@ -76,6 +76,22 @@ DON'T FORGET TO FORK 🍴 & STAR 🌟 OUR REPO 🫠
   <img src="https://img.shields.io/badge/Node.js-20-brightgreen?style=for-the-badge&logo=node.js" alt="Node.js"/>
 </p>
 
+<p align="center">
+  <a href="https://github.com/Carlymaxx/maxxtechxmd/blob/main/LICENSE" target="_blank">
+    <img src="https://img.shields.io/github/license/Carlymaxx/maxxtechxmd?style=for-the-badge&color=00ff99&labelColor=000000" alt="License"/>
+  </a>
+  &nbsp;
+  <img src="https://img.shields.io/github/last-commit/Carlymaxx/maxxtechxmd?style=for-the-badge&color=ff6600&labelColor=000000" alt="Last Commit"/>
+  &nbsp;
+  <img src="https://img.shields.io/github/repo-size/Carlymaxx/maxxtechxmd?style=for-the-badge&color=9900ff&labelColor=000000" alt="Repo Size"/>
+  &nbsp;
+  <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge&logo=github&labelColor=000000" alt="PRs Welcome"/>
+</p>
+
+<p align="center">
+  <img src="https://komarev.com/ghpvc/?username=maxxtechxmd&label=REPO+VIEWS&color=FF0000&style=for-the-badge" alt="Visitor Counter"/>
+</p>
+
 ---
 
 <p align="center">
