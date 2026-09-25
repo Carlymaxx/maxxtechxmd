@@ -42,7 +42,7 @@ These files are critical and must NOT be modified, deleted, renamed, or reformat
 
 ---
 
-## 3. Folder Structure — Do Not Rename
+## 3. Folder Structure — Do Not Rename.
 
 ```
 maxxtechxmd/
